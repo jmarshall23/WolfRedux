@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Return to Castle Wolfenstein Script Actions Documentation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h2 {
+            color: #2E86C1;
+        }
+        p {
+            color: #424242;
+	    font-size: 20px;
+	    text-indent: 40px;
+        }
+        code {
+            background-color: #F2F3F4;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Return to Castle Wolfenstein Script Actions Documentation</h1>
+    
+    <section id="movement-actions">
+        <h2>Movement Actions</h2>
+        <p><code>gotomarker</code>: Moves the character to a specified marker at the default movement speed.</p>
+        <p><code>runtomarker</code>: Moves the character to a specified marker at a running speed.</p>
+        <p><code>walktomarker</code>: Moves the character to a specified marker at a walking speed.</p>
+        <p><code>crouchtomarker</code>: Moves the character to a specified marker while crouching.</p>
+    </section>
+    
+    <section id="interaction-actions">
+        <h2>Interaction Actions</h2>
+        <p><code>gotocast</code>: Moves the character to a specified cast (NPC).</p>
+        <p><code>runtocast</code>: Runs the character to a specified cast.</p>
+        <p><code>walktocast</code>: Walks the character to a specified cast.</p>
+        <p><code>crouchtocast</code>: Crouches the character to a specified cast.</p>
+        <p><code>followcast</code>: Makes the character follow a specified cast.</p>
+    </section>
+    
+    <section id="sound-animation-actions">
+        <h2>Sound and Animation Actions</h2>
+        <p><code>playsound</code>: Plays a specified sound.</p>
+        <p><code>playanim</code>: Plays a specified animation.</p>
+        <p><code>clearanim</code>: Clears the current animation.</p>
+    </section>
+    
+    <!-- Control Actions -->
+    <section id="control-actions">
+        <h2>Control Actions</h2>
+        <p><code>wait</code>: Pauses the script for a specified amount of time.</p>
+        <p><code>abort_if_loadgame</code>: Aborts the script if the game is loaded from a save.</p>
+        <p><code>trigger</code>: Triggers another script or event.</p>
+        <p><code>resetscript</code>: Resets the script to its initial state.</p>
+    </section>
+
+    <!-- Combat and Equipment Actions -->
+    <section id="combat-equipment-actions">
+        <h2>Combat and Equipment Actions</h2>
+        <p><code>setammo</code>: Sets the amount of ammo for a specified weapon.</p>
+        <p><code>givearmor</code>: Gives armor to the character.</p>
+        <p><code>giveweapon</code>: Gives a specified weapon to the character.</p>
+    </section>
+
+    <!-- Utility Actions -->
+    <section id="utility-actions">
+        <h2>Utility Actions</h2>
+        <p><code>alertentity</code>: Triggers an entity's script.</p>
+        <p><code>savegame</code>: Saves the game.</p>
+        <p><code>godmode</code>: Toggles god mode for the character.</p>
+    </section>
+
+	<!-- Player Interaction Actions -->
+	<section id="player-interaction-actions">
+	    <h2>Player Interaction Actions</h2>
+	    <p><code>lockplayer</code>: Locks player controls, preventing any player action.</p>
+	    <p><code>unlockplayer</code>: Unlocks player controls, allowing player actions again. (Implied action not listed previously)</p>
+	</section>
+
+
+    <!-- Mission Control Actions -->
+    <section id="mission-control-actions">
+        <h2>Mission Control Actions</h2>
+        <p><code>missionfailed</code>: Triggers a mission failed state.</p>
+        <p><code>missionsuccess</code>, <code>objectivemet</code>: Triggers a mission success state.</p>
+	<p><code>objectivesneeded</code>: Specifies the number of objectives needed to complete the mission.</p>
+    </section>
+
+    <!-- Advanced Actions -->
+    <section id="advanced-actions">
+        <h2>Advanced Actions</h2>
+        <p><code>mu_start</code>, <code>mu_play</code>, <code>mu_stop</code>, <code>mu_fade</code>, <code>mu_queue</code>: Control music playback and fading.</p>
+        <p><code>teleport</code>: Teleports the character to a specified location.</p>
+	<p><code>changelevel</code>: Changes the current level to a specified one.</p>
+	<p><code>endgame</code>: Triggers the end of the game sequence.</p>
+	<p><code>foundsecret</code>: Marks a secret as found</p>
+	<p><code>lightningdamage</code>: Applies lightning damage to the entity or player.</p>
+    </section>
+
+<!-- Environmental and Scenario Actions -->
+<section id="environmental-scenario-actions">
+    <h2>Environmental and Scenario Actions</h2>
+    <p><code>teleport</code>: Teleports the character to a specified location, instantly changing their position in the game world.</p>
+    <p><code>cigarette</code>: Initiates the cigarette animation or effect for a character. (Specific to thematic actions)</p>
+</section>
+
+<!-- Condition and State Actions -->
+<section id="condition-state-actions">
+    <h2>Condition and State Actions</h2>
+    <p><code>noaidamage</code>: Toggles whether AI can receive damage, enabling or disabling their vulnerability.</p>
+    <p><code>nosight</code>, <code>sight</code>: Toggles the AI's ability to see, affecting their reaction to the player and other entities.</p>
+    <p><code>noavoid</code>, <code>avoid</code>: Toggles the AI's avoidance behavior, influencing how they navigate around obstacles or dangerous areas.</p>
+</section>
+    
+
+</body>
+</html>
