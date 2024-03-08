@@ -94,17 +94,17 @@ int CG_SoundScriptPrecache( const char *name ) {
 			scriptSound = sound->soundList;
 			if ( !sound->streaming ) {
 				while ( scriptSound ) {
-					scriptSound->sfxHandle = trap_S_RegisterSound( scriptSound->filename );
+					scriptSound->sfxHandle = engine->trap_S_RegisterSound( scriptSound->filename );
 					scriptSound = scriptSound->next;
 				}
 			} else /*if (cg_buildScript.integer)*/ {    // RF, 11/6/01 enabled this permanently so that streaming sounds get touched within file system on startup
 				while ( scriptSound ) {
 					// just open the file so it gets copied to the build dir
 					fileHandle_t f;
-					trap_FS_FOpenFile( scriptSound->filename, &f, FS_READ );
+					engine->trap_FS_FOpenFile( scriptSound->filename, &f, FS_READ );
 					// read a few bytes so the operating system does a better job of caching it for us
-					trap_FS_Read( buf, sizeof( buf ), f );
-					trap_FS_FCloseFile( f );
+					engine->trap_FS_Read( buf, sizeof( buf ), f );
+					engine->trap_FS_FCloseFile( f );
 					scriptSound = scriptSound->next;
 				}
 			}
@@ -141,15 +141,15 @@ void CG_SoundPickOldestRandomSound( soundScript_t *sound, vec3_t org, int entnum
 		// play this sound
 		if ( !sound->streaming ) {
 			if ( !oldestSound->sfxHandle ) {
-				oldestSound->sfxHandle = trap_S_RegisterSound( oldestSound->filename );
+				oldestSound->sfxHandle = engine->trap_S_RegisterSound( oldestSound->filename );
 			}
 			if ( sound->attenuation ) {
-				trap_S_StartSound( org, entnum, sound->channel, oldestSound->sfxHandle );
+				engine->trap_S_StartSound( org, entnum, sound->channel, oldestSound->sfxHandle );
 			} else {
-				trap_S_StartLocalSound( oldestSound->sfxHandle, sound->channel );
+				engine->trap_S_StartLocalSound( oldestSound->sfxHandle, sound->channel );
 			}
 		} else {
-			trap_S_StartStreamingSound( oldestSound->filename, sound->looping ? oldestSound->filename : NULL, entnum, sound->channel, sound->attenuation );
+			engine->trap_S_StartStreamingSound( oldestSound->filename, sound->looping ? oldestSound->filename : NULL, entnum, sound->channel, sound->attenuation );
 		}
 		oldestSound->lastPlayed = cg.time;
 		//
@@ -389,7 +389,7 @@ static void CG_SoundLoadSoundFiles( void ) {
 
 	// scan for sound files
 	Com_sprintf( filename, MAX_QPATH, "sound/scripts/filelist.txt" );
-	len = trap_FS_FOpenFile( filename, &f, FS_READ );
+	len = engine->trap_FS_FOpenFile( filename, &f, FS_READ );
 	if ( len <= 0 ) {
 		CG_Printf( S_COLOR_RED "WARNING: no sound files found (filelist.txt not found in sound/scripts)\n" );
 		return;
@@ -398,9 +398,9 @@ static void CG_SoundLoadSoundFiles( void ) {
 		CG_Error( "%s is too big, make it smaller (max = %i bytes)\n", filename, MAX_BUFFER );
 	}
 	// load the file into memory
-	trap_FS_Read( buffer, len, f );
+	engine->trap_FS_Read( buffer, len, f );
 	buffer[len] = 0;
-	trap_FS_FCloseFile( f );
+	engine->trap_FS_FCloseFile( f );
 	// parse the list
 	text = buffer;
 	numSounds = 0;
@@ -422,7 +422,7 @@ static void CG_SoundLoadSoundFiles( void ) {
 	{
 		Com_sprintf( filename, sizeof( filename ), "sound/scripts/%s", soundFiles[i] );
 		CG_Printf( "...loading '%s'\n", filename );
-		len = trap_FS_FOpenFile( filename, &f, FS_READ );
+		len = engine->trap_FS_FOpenFile( filename, &f, FS_READ );
 		if ( len <= 0 ) {
 			CG_Error( "Couldn't load %s", filename );
 		}
@@ -430,8 +430,8 @@ static void CG_SoundLoadSoundFiles( void ) {
 			CG_Error( "%s is too big, make it smaller (max = %i bytes)\n", filename, MAX_BUFFER );
 		}
 		memset( buffer, 0, sizeof( buffer ) );
-		trap_FS_Read( buffer, len, f );
-		trap_FS_FCloseFile( f );
+		engine->trap_FS_Read( buffer, len, f );
+		engine->trap_FS_FCloseFile( f );
 		CG_SoundParseSounds( filename, buffer );
 	}
 }

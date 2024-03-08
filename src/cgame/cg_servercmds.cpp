@@ -128,7 +128,7 @@ void CG_ParseServerinfo( void ) {
 
 	info = CG_ConfigString( CS_SERVERINFO );
 	cgs.gametype =(gametype_t)atoi( Info_ValueForKey( info, "g_gametype" ) );
-	trap_Cvar_Set( "g_gametype", va( "%i", cgs.gametype ) );
+	engine->trap_Cvar_Set( "g_gametype", va( "%i", cgs.gametype ) );
 	cgs.dmflags = atoi( Info_ValueForKey( info, "dmflags" ) );
 	cgs.teamflags = atoi( Info_ValueForKey( info, "teamflags" ) );
 	cgs.fraglimit = atoi( Info_ValueForKey( info, "fraglimit" ) );
@@ -140,18 +140,18 @@ void CG_ParseServerinfo( void ) {
 
 // JPW NERVE
 // prolly should parse all CS_SERVERINFO keys automagically, but I don't want to break anything that might be improperly set for wolf SP, so I'm just parsing MP relevant stuff here
-	trap_Cvar_Set( "g_medicChargeTime",Info_ValueForKey( info,"g_medicChargeTime" ) );
-	trap_Cvar_Set( "g_engineerChargeTime",Info_ValueForKey( info,"g_engineerChargeTime" ) );
-	trap_Cvar_Set( "g_soldierChargeTime",Info_ValueForKey( info,"g_soldierChargeTime" ) );
-	trap_Cvar_Set( "g_LTChargeTime",Info_ValueForKey( info,"g_LTChargeTime" ) );
-	trap_Cvar_Set( "g_redlimbotime",Info_ValueForKey( info,"g_redlimbotime" ) );
-	trap_Cvar_Set( "g_bluelimbotime",Info_ValueForKey( info,"g_bluelimbotime" ) );
+	engine->trap_Cvar_Set( "g_medicChargeTime",Info_ValueForKey( info,"g_medicChargeTime" ) );
+	engine->trap_Cvar_Set( "g_engineerChargeTime",Info_ValueForKey( info,"g_engineerChargeTime" ) );
+	engine->trap_Cvar_Set( "g_soldierChargeTime",Info_ValueForKey( info,"g_soldierChargeTime" ) );
+	engine->trap_Cvar_Set( "g_LTChargeTime",Info_ValueForKey( info,"g_LTChargeTime" ) );
+	engine->trap_Cvar_Set( "g_redlimbotime",Info_ValueForKey( info,"g_redlimbotime" ) );
+	engine->trap_Cvar_Set( "g_bluelimbotime",Info_ValueForKey( info,"g_bluelimbotime" ) );
 // jpw
 
 	//	Q_strncpyz( cgs.redTeam, Info_ValueForKey( info, "g_redTeam" ), sizeof(cgs.redTeam) );
-//	trap_Cvar_Set("g_redTeam", cgs.redTeam);
+//	engine->trap_Cvar_Set("g_redTeam", cgs.redTeam);
 //	Q_strncpyz( cgs.blueTeam, Info_ValueForKey( info, "g_blueTeam" ), sizeof(cgs.blueTeam) );
-//	trap_Cvar_Set("g_blueTeam", cgs.blueTeam);
+//	engine->trap_Cvar_Set("g_blueTeam", cgs.blueTeam);
 }
 
 
@@ -230,7 +230,7 @@ static void CG_ParseWarmup( void ) {
 	if ( warmup == 0 && cg.warmup ) {
 
 	} else if ( warmup > 0 && cg.warmup <= 0 ) {
-		trap_S_StartLocalSound( cgs.media.countPrepareSound, CHAN_ANNOUNCER );
+		engine->trap_S_StartLocalSound( cgs.media.countPrepareSound, CHAN_ANNOUNCER );
 	}
 
 	cg.warmup = warmup;
@@ -282,7 +282,7 @@ static void CG_ParseFog( void ) {
 	if ( !token || !token[0] ) {
 		// set to  'no fog'
 		// 'FOG_MAP' is not registered, so it will always make fog go away
-		trap_R_SetFog( FOG_CMD_SWITCHFOG, FOG_MAP, (int)ne, 0, 0, 0, 0 );
+		engine->trap_R_SetFog( FOG_CMD_SWITCHFOG, FOG_MAP, (int)ne, 0, 0, 0, 0 );
 		return;
 	}
 
@@ -294,8 +294,8 @@ static void CG_ParseFog( void ) {
 	token = COM_Parse( (char **)&info );    b = atof( token );
 	token = COM_Parse( (char **)&info );    time = atoi( token );
 
-	trap_R_SetFog( FOG_SERVER, (int)ne, (int)fa, r, g, b, density );
-	trap_R_SetFog( FOG_CMD_SWITCHFOG, FOG_SERVER, time, 0, 0, 0, 0 );
+	engine->trap_R_SetFog( FOG_SERVER, (int)ne, (int)fa, r, g, b, density );
+	engine->trap_R_SetFog( FOG_CMD_SWITCHFOG, FOG_SERVER, time, 0, 0, 0, 0 );
 }
 
 /*
@@ -358,7 +358,7 @@ void CG_ShaderStateChanged( void ) {
 				strncpy( timeOffset, t, o - t );
 				timeOffset[o - t] = 0;
 				o++;
-				trap_R_RemapShader( originalShader, newShader, timeOffset );
+				engine->trap_R_RemapShader( originalShader, newShader, timeOffset );
 			}
 		} else {
 			break;
@@ -380,7 +380,7 @@ static void CG_ConfigStringModified( void ) {
 
 	// get the gamestate from the client system, which will have the
 	// new configstring already integrated
-	trap_GetGameState( &cgs.gameState );
+	engine->trap_GetGameState( &cgs.gameState );
 
 	// look up the individual string that was modified
 	str = CG_ConfigString( num );
@@ -414,7 +414,7 @@ static void CG_ConfigStringModified( void ) {
 	} else if ( num == CS_VOTE_STRING ) {
 		Q_strncpyz( cgs.voteString, str, sizeof( cgs.voteString ) );
 #if 0
-		trap_S_StartLocalSound( cgs.media.voteNow, CHAN_ANNOUNCER );
+		engine->trap_S_StartLocalSound( cgs.media.voteNow, CHAN_ANNOUNCER );
 	} else if ( num >= CS_TEAMVOTE_TIME && num <= CS_TEAMVOTE_TIME + 1 ) {
 		cgs.teamVoteTime[num - CS_TEAMVOTE_TIME] = atoi( str );
 		cgs.teamVoteModified[num - CS_TEAMVOTE_TIME] = qtrue;
@@ -426,7 +426,7 @@ static void CG_ConfigStringModified( void ) {
 		cgs.teamVoteModified[num - CS_TEAMVOTE_NO] = qtrue;
 	} else if ( num >= CS_TEAMVOTE_STRING && num <= CS_TEAMVOTE_STRING + 1 ) {
 		Q_strncpyz( cgs.teamVoteString[num - CS_TEAMVOTE_STRING], str, sizeof( cgs.teamVoteString ) );
-		trap_S_StartLocalSound( cgs.media.voteNow, CHAN_ANNOUNCER );
+		engine->trap_S_StartLocalSound( cgs.media.voteNow, CHAN_ANNOUNCER );
 #endif
 	} else if ( num == CS_INTERMISSION ) {
 		cg.intermissionStarted = atoi( str );
@@ -435,7 +435,7 @@ static void CG_ConfigStringModified( void ) {
 	} else if ( num == CS_FOGVARS ) {
 		CG_ParseFog();
 	} else if ( num >= CS_MODELS && num < CS_MODELS + MAX_MODELS ) {
-		cgs.gameModels[ num - CS_MODELS ] = trap_R_RegisterModel( str );
+		cgs.gameModels[ num - CS_MODELS ] = engine->trap_R_RegisterModel( str );
 	} else if ( num >= CS_SOUNDS && num < CS_SOUNDS + MAX_MODELS ) {
 		if ( str[0] != '*' ) {   // player specific sounds don't register here
 
@@ -443,7 +443,7 @@ static void CG_ConfigStringModified( void ) {
 			if ( !strstr( str, ".wav" ) ) {
 				CG_SoundScriptPrecache( str );
 			} else {
-				cgs.gameSounds[ num - CS_SOUNDS] = trap_S_RegisterSound( str );
+				cgs.gameSounds[ num - CS_SOUNDS] = engine->trap_S_RegisterSound( str );
 			}
 
 		}
@@ -566,7 +566,7 @@ void CG_SendMoveSpeed( animation_t *animList, int numAnims, char *modelName ) {
 	}
 
 	// send the movespeeds to the server
-	trap_SendMoveSpeedsToGame( 0, text );
+	engine->trap_SendMoveSpeedsToGame( 0, text );
 }
 
 /*
@@ -645,9 +645,9 @@ static void CG_MapRestart( void ) {
 	cg.zoomval = 0;
 
 	// reset fog to world fog (if present)
-//	trap_R_SetFog(FOG_CMD_SWITCHFOG, FOG_MAP,20,0,0,0,0);
-//	trap_Cvar_VariableStringBuffer("r_mapFogColor", buff, sizeof(buff));
-//	trap_SendClientCommand(va("fogswitch %s", buff) );
+//	engine->trap_R_SetFog(FOG_CMD_SWITCHFOG, FOG_MAP,20,0,0,0,0);
+//	engine->trap_Cvar_VariableStringBuffer("r_mapFogColor", buff, sizeof(buff));
+//	engine->trap_SendClientCommand(va("fogswitch %s", buff) );
 
 	CG_InitLocalEntities();
 	CG_InitMarkPolys();
@@ -679,7 +679,7 @@ static void CG_MapRestart( void ) {
 	// done.
 
 	// RF, init ZombieFX
-	trap_RB_ZombieFXAddNewHit( -1, NULL, NULL );
+	engine->trap_RB_ZombieFXAddNewHit( -1, NULL, NULL );
 
 	// make sure the "3 frags left" warnings play again
 	cg.fraglimitWarnings = 0;
@@ -696,7 +696,7 @@ static void CG_MapRestart( void ) {
 
 	CG_StartMusic();
 
-	trap_S_ClearLoopingSounds( qtrue );
+	engine->trap_S_ClearLoopingSounds( qtrue );
 
 	// we really should clear more parts of cg here and stop sounds
 	cg.v_dmg_time = 0;
@@ -722,7 +722,7 @@ static void CG_MapRestart( void ) {
 		if ( cg_loadWeaponSelect.integer > 0 ) {
 			cg.weaponSelect = cg_loadWeaponSelect.integer;
 			cg.weaponSelectTime = cg.time;
-			trap_Cvar_Set( "cg_loadWeaponSelect", "0" );  // turn it off
+			engine->trap_Cvar_Set( "cg_loadWeaponSelect", "0" );  // turn it off
 		}
 	}
 	// clear out rumble effects
@@ -732,18 +732,18 @@ static void CG_MapRestart( void ) {
 
 	// play the "fight" sound if this is a restart without warmup
 //	if ( cg.warmup == 0 /* && cgs.gametype == GT_TOURNAMENT */) {
-//		trap_S_StartLocalSound( cgs.media.countFightSound, CHAN_ANNOUNCER );
+//		engine->trap_S_StartLocalSound( cgs.media.countFightSound, CHAN_ANNOUNCER );
 //		CG_CenterPrint( "FIGHT!", 120, GIANTCHAR_WIDTH*2 );
 //	}
 #ifdef MISSIONPACK
 	if ( cg_singlePlayerActive.integer ) {
-		trap_Cvar_Set( "ui_matchStartTime", va( "%i", cg.time ) );
+		engine->trap_Cvar_Set( "ui_matchStartTime", va( "%i", cg.time ) );
 		if ( cg_recordSPDemo.integer && cg_recordSPDemoName.string && *cg_recordSPDemoName.string ) {
-			trap_SendConsoleCommand( va( "set g_synchronousclients 1 ; record %s \n", cg_recordSPDemoName.string ) );
+			engine->trap_SendConsoleCommand( va( "set g_synchronousclients 1 ; record %s \n", cg_recordSPDemoName.string ) );
 		}
 	}
 #endif
-	trap_Cvar_Set( "cg_thirdPerson", "0" );
+	engine->trap_Cvar_Set( "cg_thirdPerson", "0" );
 }
 
 /*
@@ -842,9 +842,9 @@ static void CG_ServerCommand( void ) {
 		cmd = CG_Argv( 1 );           // yes, this is obviously a hack, but so is the way we hear about
 									  // votes passing or failing
 		if ( !Q_stricmpn( cmd, "vote failed", 11 ) || !Q_stricmpn( cmd, "team vote failed", 16 ) ) {
-			trap_S_StartLocalSound( cgs.media.voteFailed, CHAN_ANNOUNCER );
+			engine->trap_S_StartLocalSound( cgs.media.voteFailed, CHAN_ANNOUNCER );
 		} else if ( !Q_stricmpn( cmd, "vote passed", 11 ) || !Q_stricmpn( cmd, "team vote passed", 16 ) ) {
-			trap_S_StartLocalSound( cgs.media.votePassed, CHAN_ANNOUNCER );
+			engine->trap_S_StartLocalSound( cgs.media.votePassed, CHAN_ANNOUNCER );
 		}
 #endif
 		return;
@@ -852,7 +852,7 @@ static void CG_ServerCommand( void ) {
 
 	if ( !strcmp( cmd, "chat" ) ) {
 		if ( !cg_teamChatsOnly.integer ) {
-			trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
+			engine->trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
 			Q_strncpyz( text, CG_Argv( 1 ), MAX_SAY_TEXT );
 			CG_RemoveChatEscapeChar( text );
 			CG_Printf( "%s\n", text );
@@ -861,7 +861,7 @@ static void CG_ServerCommand( void ) {
 	}
 
 	if ( !strcmp( cmd, "tchat" ) ) {
-		trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
+		engine->trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
 		Q_strncpyz( text, CG_Argv( 1 ), MAX_SAY_TEXT );
 		CG_RemoveChatEscapeChar( text );
 		CG_AddToTeamChat( text );
@@ -871,11 +871,11 @@ static void CG_ServerCommand( void ) {
 
 	// NERVE - SMF - limbo chat
 	if ( !strcmp( cmd, "lchat" ) ) {
-		trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
+		engine->trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
 		Q_strncpyz( text, CG_Argv( 1 ), MAX_SAY_TEXT );
 		CG_RemoveChatEscapeChar( text );
 //		CG_AddToLimboChat( text );
-		trap_UI_LimboChat( text );
+		engine->trap_UI_LimboChat( text );
 		CG_Printf( "%s\n", text );
 		return;
 	}
@@ -912,8 +912,8 @@ static void CG_ServerCommand( void ) {
 	}
 
 	if ( Q_stricmp( cmd, "remapShader" ) == 0 ) {
-		if ( trap_Argc() == 4 ) {
-			trap_R_RemapShader( CG_Argv( 1 ), CG_Argv( 2 ), CG_Argv( 3 ) );
+		if ( engine->trap_Argc() == 4 ) {
+			engine->trap_R_RemapShader( CG_Argv( 1 ), CG_Argv( 2 ), CG_Argv( 3 ) );
 		}
 	}
 
@@ -951,7 +951,7 @@ static void CG_ServerCommand( void ) {
 			fadeTime = atoi( text );
 		}
 
-		trap_S_StartBackgroundTrack( CG_Argv( 1 ), CG_Argv( 1 ), fadeTime );
+		engine->trap_S_StartBackgroundTrack( CG_Argv( 1 ), CG_Argv( 1 ), fadeTime );
 		return;
 	}
 	// plays once then back to whatever the loop was \/
@@ -963,7 +963,7 @@ static void CG_ServerCommand( void ) {
 			fadeTime = atoi( text );
 		}
 
-		trap_S_StartBackgroundTrack( CG_Argv( 1 ), "onetimeonly", fadeTime );
+		engine->trap_S_StartBackgroundTrack( CG_Argv( 1 ), "onetimeonly", fadeTime );
 		return;
 	}
 
@@ -974,27 +974,27 @@ static void CG_ServerCommand( void ) {
 		if ( text && strlen( text ) ) {
 			fadeTime = atoi( text );
 		}
-		trap_S_FadeBackgroundTrack( 0.0f, fadeTime, 0 );
-		trap_S_StartBackgroundTrack( "", "", -2 ); // '-2' for 'queue looping track' (QUEUED_PLAY_LOOPED)
+		engine->trap_S_FadeBackgroundTrack( 0.0f, fadeTime, 0 );
+		engine->trap_S_StartBackgroundTrack( "", "", -2 ); // '-2' for 'queue looping track' (QUEUED_PLAY_LOOPED)
 		return;
 	}
 
 	if ( !strcmp( cmd, "mu_fade" ) ) {
-		trap_S_FadeBackgroundTrack( atof( CG_Argv( 1 ) ), atoi( CG_Argv( 2 ) ), 0 );
+		engine->trap_S_FadeBackgroundTrack( atof( CG_Argv( 1 ) ), atoi( CG_Argv( 2 ) ), 0 );
 		return;
 	}
 
 	if ( !strcmp( cmd, "snd_fade" ) ) {
-		trap_S_FadeAllSound( atof( CG_Argv( 1 ) ), atoi( CG_Argv( 2 ) ) );
+		engine->trap_S_FadeAllSound( atof( CG_Argv( 1 ) ), atoi( CG_Argv( 2 ) ) );
 		return;
 	}
 
 	if ( !strcmp( cmd, "rockandroll" ) ) {   // map loaded, game is ready to begin.
 		CG_Fade( 0, 0, 0, 255, cg.time, 0 );      // go black
-		trap_UI_Popup( "pregame" );                // start pregame menu
-		trap_Cvar_Set( "cg_norender", "1" );    // don't render the world until the player clicks in and the 'playerstart' func has been called (g_main in G_UpdateCvars() ~ilne 949)
+		engine->trap_UI_Popup( "pregame" );                // start pregame menu
+		engine->trap_Cvar_Set( "cg_norender", "1" );    // don't render the world until the player clicks in and the 'playerstart' func has been called (g_main in G_UpdateCvars() ~ilne 949)
 
-		trap_S_FadeAllSound( 1.0f, 1000 );    // fade sound up
+		engine->trap_S_FadeAllSound( 1.0f, 1000 );    // fade sound up
 
 		return;
 	}
@@ -1011,8 +1011,8 @@ static void CG_ServerCommand( void ) {
 
 		// just open the file so it gets copied to the build dir
 		//CG_FileTouchForBuild(CG_Argv(1));
-		trap_FS_FOpenFile( CG_Argv( 1 ), &f, FS_READ );
-		trap_FS_FCloseFile( f );
+		engine->trap_FS_FOpenFile( CG_Argv( 1 ), &f, FS_READ );
+		engine->trap_FS_FCloseFile( f );
 		return;
 	}
 
@@ -1031,7 +1031,7 @@ with this this snapshot.
 */
 void CG_ExecuteNewServerCommands( int latestSequence ) {
 	while ( cgs.serverCommandSequence < latestSequence ) {
-		if ( trap_GetServerCommand( ++cgs.serverCommandSequence ) ) {
+		if ( engine->trap_GetServerCommand( ++cgs.serverCommandSequence ) ) {
 			CG_ServerCommand();
 		}
 	}

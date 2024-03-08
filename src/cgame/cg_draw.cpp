@@ -150,7 +150,7 @@ void CG_Text_PaintChar( float x, float y, float width, float height, float scale
 	w = width * scale;
 	h = height * scale;
 	CG_AdjustFrom640( &x, &y, &w, &h );
-	trap_R_DrawStretchPic( x, y, w, h, s, t, s2, t2, hShader );
+	engine->trap_R_DrawStretchPic( x, y, w, h, s, t, s2, t2, hShader );
 }
 
 void CG_Text_Paint( float x, float y, int font, float scale, vec4_t color, const char *text, float adjust, int limit, int style ) {
@@ -180,7 +180,7 @@ void CG_Text_Paint( float x, float y, int font, float scale, vec4_t color, const
 
 	if ( text ) {
 		const char *s = text;
-		trap_R_SetColor( color );
+		engine->trap_R_SetColor( color );
 		memcpy( &newColor[0], &color[0], sizeof( vec4_t ) );
 		len = strlen( text );
 		if ( limit > 0 && len > limit ) {
@@ -194,7 +194,7 @@ void CG_Text_Paint( float x, float y, int font, float scale, vec4_t color, const
 			if ( Q_IsColorString( s ) ) {
 				memcpy( newColor, g_color_table[ColorIndex( *( s + 1 ) )], sizeof( newColor ) );
 				newColor[3] = color[3];
-				trap_R_SetColor( newColor );
+				engine->trap_R_SetColor( newColor );
 				s += 2;
 				continue;
 			} else {
@@ -202,7 +202,7 @@ void CG_Text_Paint( float x, float y, int font, float scale, vec4_t color, const
 				if ( style == ITEM_TEXTSTYLE_SHADOWED || style == ITEM_TEXTSTYLE_SHADOWEDMORE ) {
 					int ofs = style == ITEM_TEXTSTYLE_SHADOWED ? 1 : 2;
 					colorBlack[3] = newColor[3];
-					trap_R_SetColor( colorBlack );
+					engine->trap_R_SetColor( colorBlack );
 					CG_Text_PaintChar( x + ofs, y - yadj + ofs,
 									   glyph->imageWidth,
 									   glyph->imageHeight,
@@ -213,7 +213,7 @@ void CG_Text_Paint( float x, float y, int font, float scale, vec4_t color, const
 									   glyph->t2,
 									   glyph->glyph );
 					colorBlack[3] = 1.0;
-					trap_R_SetColor( newColor );
+					engine->trap_R_SetColor( newColor );
 				}
 				CG_Text_PaintChar( x, y - yadj,
 								   glyph->imageWidth,
@@ -230,7 +230,7 @@ void CG_Text_Paint( float x, float y, int font, float scale, vec4_t color, const
 				count++;
 			}
 		}
-		trap_R_SetColor( NULL );
+		engine->trap_R_SetColor( NULL );
 	}
 }
 
@@ -346,9 +346,9 @@ void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, qhandl
 		refdef.rdflags &= ~RDF_DRAWSKYBOX;
 	}
 
-	trap_R_ClearScene();
-	trap_R_AddRefEntityToScene( &ent );
-	trap_R_RenderScene( &refdef );
+	engine->trap_R_ClearScene();
+	engine->trap_R_AddRefEntityToScene( &ent );
+	engine->trap_R_RenderScene( &refdef );
 }
 
 /*
@@ -374,7 +374,7 @@ void CG_DrawHead( float x, float y, float w, float h, int clientNum, vec3_t head
 		}
 
 		// offset the origin y and z to center the head
-		trap_R_ModelBounds( cm, mins, maxs );
+		engine->trap_R_ModelBounds( cm, mins, maxs );
 
 		origin[2] = -0.5 * ( mins[2] + maxs[2] );
 		origin[1] = 0.5 * ( mins[1] + maxs[1] );
@@ -416,7 +416,7 @@ void CG_DrawFlagModel( float x, float y, float w, float h, int team ) {
 	cm = cgs.media.redFlagModel;
 
 	// offset the origin y and z to center the flag
-	trap_R_ModelBounds( cm, mins, maxs );
+	engine->trap_R_ModelBounds( cm, mins, maxs );
 
 	origin[2] = -0.5 * ( mins[2] + maxs[2] );
 	origin[1] = 0.5 * ( mins[1] + maxs[1] );
@@ -450,7 +450,7 @@ void CG_DrawKeyModel( int keynum, float x, float y, float w, float h, int fadeti
 	cm = cg_items[keynum].models[0];
 
 	// offset the origin y and z to center the model
-	trap_R_ModelBounds( cm, mins, maxs );
+	engine->trap_R_ModelBounds( cm, mins, maxs );
 
 	origin[2] = -0.5 * ( mins[2] + maxs[2] );
 	origin[1] = 0.5 * ( mins[1] + maxs[1] );
@@ -603,9 +603,9 @@ void CG_DrawTeamBackground( int x, int y, int w, int h, float alpha, int team ) 
 	} else {
 		return;
 	}
-	trap_R_SetColor( hcolor );
+	engine->trap_R_SetColor( hcolor );
 	CG_DrawPic( x, y, w, h, cgs.media.teamStatusBar );
-	trap_R_SetColor( NULL );
+	engine->trap_R_SetColor( NULL );
 }
 
 //////////////////////
@@ -650,17 +650,17 @@ static void CG_DrawStatusBar( void ) {
 		hcolor[1] = 0;
 		hcolor[2] = 0;
 		hcolor[3] = 0.33;
-		trap_R_SetColor( hcolor );
+		engine->trap_R_SetColor( hcolor );
 		CG_DrawPic( 0, 420, 640, 60, cgs.media.teamStatusBar );
-		trap_R_SetColor( NULL );
+		engine->trap_R_SetColor( NULL );
 	} else if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_BLUE ) {
 		hcolor[0] = 0;
 		hcolor[1] = 0;
 		hcolor[2] = 1;
 		hcolor[3] = 0.33;
-		trap_R_SetColor( hcolor );
+		engine->trap_R_SetColor( hcolor );
 		CG_DrawPic( 0, 420, 640, 60, cgs.media.teamStatusBar );
-		trap_R_SetColor( NULL );
+		engine->trap_R_SetColor( NULL );
 	}
 
 	cent = &cg_entities[cg.snap->ps.clientNum];
@@ -729,7 +729,7 @@ static void CG_DrawStatusBar( void ) {
 					color = 1;  // red
 				}
 			}
-			trap_R_SetColor( colors[color] );
+			engine->trap_R_SetColor( colors[color] );
 
 			// pulsing grenade icon to help the player 'count' in their head
 			if ( ps->grenadeTimeLeft ) {
@@ -739,16 +739,16 @@ static void CG_DrawStatusBar( void ) {
 					if ( ( ( cg.grenLastTime ) % 1000 ) < ( ( ps->grenadeTimeLeft ) % 1000 ) ) {
 						switch ( ps->grenadeTimeLeft / 1000 ) {
 						case 3:
-							trap_S_StartLocalSound( cgs.media.grenadePulseSound4, CHAN_LOCAL_SOUND );
+							engine->trap_S_StartLocalSound( cgs.media.grenadePulseSound4, CHAN_LOCAL_SOUND );
 							break;
 						case 2:
-							trap_S_StartLocalSound( cgs.media.grenadePulseSound3, CHAN_LOCAL_SOUND );
+							engine->trap_S_StartLocalSound( cgs.media.grenadePulseSound3, CHAN_LOCAL_SOUND );
 							break;
 						case 1:
-							trap_S_StartLocalSound( cgs.media.grenadePulseSound2, CHAN_LOCAL_SOUND );
+							engine->trap_S_StartLocalSound( cgs.media.grenadePulseSound2, CHAN_LOCAL_SOUND );
 							break;
 						case 0:
-							trap_S_StartLocalSound( cgs.media.grenadePulseSound1, CHAN_LOCAL_SOUND );
+							engine->trap_S_StartLocalSound( cgs.media.grenadePulseSound1, CHAN_LOCAL_SOUND );
 							break;
 						}
 					}
@@ -796,7 +796,7 @@ static void CG_DrawStatusBar( void ) {
 				CG_DrawPic( ( ( 530 + 68 ) - halfScale ) + wideOffset,  ( 446 - 10 ) - halfScale, ( 38 + scale ) - wideOffset, 38 + scale, icon );
 			}
 
-			trap_R_SetColor( NULL );
+			engine->trap_R_SetColor( NULL );
 
 			// if we didn't draw a 3D icon, draw a 2D icon for ammo
 			if ( !cg_draw3dIcons.integer ) {
@@ -815,14 +815,14 @@ static void CG_DrawStatusBar( void ) {
 	//
 	value = ps->stats[STAT_HEALTH];
 	if ( value > 100 ) {
-		trap_R_SetColor( colors[3] );       // white
+		engine->trap_R_SetColor( colors[3] );       // white
 	} else if ( value > 25 ) {
-		trap_R_SetColor( colors[0] );   // green
+		engine->trap_R_SetColor( colors[0] );   // green
 	} else if ( value > 0 ) {
 		color = ( cg.time >> 8 ) & 1; // flash
-		trap_R_SetColor( colors[color] );
+		engine->trap_R_SetColor( colors[color] );
 	} else {
-		trap_R_SetColor( colors[1] );   // red
+		engine->trap_R_SetColor( colors[1] );   // red
 	}
 
 	// stretch the health up when taking damage
@@ -836,7 +836,7 @@ static void CG_DrawStatusBar( void ) {
 	}
 //----(SA) end
 	CG_ColorForHealth( hcolor );
-	trap_R_SetColor( hcolor );
+	engine->trap_R_SetColor( hcolor );
 
 
 	//
@@ -844,7 +844,7 @@ static void CG_DrawStatusBar( void ) {
 	//
 	value = ps->stats[STAT_ARMOR];
 	if ( value > 0 ) {
-		trap_R_SetColor( colors[0] );
+		engine->trap_R_SetColor( colors[0] );
 //----(SA) Wolf statusbar change
 //		CG_DrawField (370, STATUSBARHEIGHT, 3, value);
 		{
@@ -854,7 +854,7 @@ static void CG_DrawStatusBar( void ) {
 			CG_DrawBigString2( 200, STATUSBARHEIGHT, printme, cg_hudAlpha.value );
 		}
 //----(SA) end
-		trap_R_SetColor( NULL );
+		engine->trap_R_SetColor( NULL );
 //----(SA) Wolf statusbar change
 //		CG_DrawPic( 370 + CHAR_WIDTH*3 + TEXT_ICON_SPACE, STATUSBARHEIGHT, ICON_SIZE, ICON_SIZE, cgs.media.armorIcon );
 //----(SA) end
@@ -957,7 +957,7 @@ static float CG_DrawFPS( float y ) {
 
 	// don't use serverTime, because that will be drifting to
 	// correct for internet lag changes, timescales, timedemos, etc
-	t = trap_Milliseconds();
+	t = engine->trap_Milliseconds();
 	frameTime = t - previous;
 	previous = t;
 
@@ -1119,9 +1119,9 @@ static float CG_DrawTeamOverlay( float y ) {
 		hcolor[2] = 1;
 		hcolor[3] = 0.33;
 	}
-	trap_R_SetColor( hcolor );
+	engine->trap_R_SetColor( hcolor );
 	CG_DrawPic( x, y, w, h, cgs.media.teamStatusBar );
-	trap_R_SetColor( NULL );
+	engine->trap_R_SetColor( NULL );
 
 
 	for ( i = 0; i < numSortedTeamPlayers; i++ ) {
@@ -1180,7 +1180,7 @@ static float CG_DrawTeamOverlay( float y ) {
 
 					if ( item != NULL ) { // JPW NERVE added for invulnerability powerup at beginning of map
 						CG_DrawPic( xx, y, TINYCHAR_WIDTH, TINYCHAR_HEIGHT,
-									trap_R_RegisterShader( item->icon ) );
+									engine->trap_R_RegisterShader( item->icon ) );
 						xx -= TINYCHAR_WIDTH;
 					} // jpw
 				}
@@ -1434,19 +1434,19 @@ static float CG_DrawPowerups( float y ) {
 
 		y -= ICON_SIZE;
 
-		trap_R_SetColor( colors[color] );
+		engine->trap_R_SetColor( colors[color] );
 		CG_DrawField( x, y, 2, sortedTime[ i ] / 1000 );
 
 		t = ps->powerups[ sorted[i] ];
 		if ( t - cg.time >= POWERUP_BLINKS * POWERUP_BLINK_TIME ) {
-			trap_R_SetColor( NULL );
+			engine->trap_R_SetColor( NULL );
 		} else {
 			vec4_t modulate;
 
 			f = (float)( t - cg.time ) / POWERUP_BLINK_TIME;
 			f -= (int)f;
 			modulate[0] = modulate[1] = modulate[2] = modulate[3] = f;
-			trap_R_SetColor( modulate );
+			engine->trap_R_SetColor( modulate );
 		}
 
 		if ( cg.powerupActive == sorted[i] &&
@@ -1458,9 +1458,9 @@ static float CG_DrawPowerups( float y ) {
 		}
 
 		CG_DrawPic( 640 - size, y + ICON_SIZE / 2 - size / 2,
-					size, size, trap_R_RegisterShader( item->icon ) );
+					size, size, engine->trap_R_RegisterShader( item->icon ) );
 	}
-	trap_R_SetColor( NULL );
+	engine->trap_R_SetColor( NULL );
 
 	return y;
 }
@@ -1544,9 +1544,9 @@ static void CG_DrawTeamInfo( void ) {
 			hcolor[3] = 0.33;
 		}
 
-		trap_R_SetColor( hcolor );
+		engine->trap_R_SetColor( hcolor );
 		CG_DrawPic( CHATLOC_X, CHATLOC_Y - h, 640, h, cgs.media.teamStatusBar );
-		trap_R_SetColor( NULL );
+		engine->trap_R_SetColor( NULL );
 
 		hcolor[0] = hcolor[1] = hcolor[2] = 1.0;
 		hcolor[3] = 1.0;
@@ -1582,7 +1582,7 @@ static void CG_DrawPickupItem( void ) {
 			CG_RegisterItemVisuals( value );
 
 //----(SA) commented out
-//			trap_R_SetColor( fadeColor );
+//			engine->trap_R_SetColor( fadeColor );
 //			CG_DrawPic( 8, 380, ICON_SIZE, ICON_SIZE, cg_items[ value ].icon );
 //----(SA) end
 
@@ -1609,7 +1609,7 @@ static void CG_DrawPickupItem( void ) {
 //			CG_Text_Paint(ICON_SIZE + 16, 398, 2, 0.3f, color, pickupText, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE);
 
 
-			trap_R_SetColor( NULL );
+			engine->trap_R_SetColor( NULL );
 		}
 	}
 }
@@ -1639,7 +1639,7 @@ void CG_DrawHoldableItem_old( void ) {
 
 	if ( value ) {
 
-		trap_R_SetColor( NULL );
+		engine->trap_R_SetColor( NULL );
 
 		CG_RegisterItemVisuals( item - bg_itemlist );
 
@@ -1695,14 +1695,14 @@ static void CG_DrawReward( void ) {
 		return;
 	}
 
-	trap_R_SetColor( color );
+	engine->trap_R_SetColor( color );
 	y = 56;
 	x = 320 - cg.rewardCount * ICON_SIZE / 2;
 	for ( i = 0 ; i < cg.rewardCount ; i++ ) {
 		CG_DrawPic( x, y, ICON_SIZE - 4, ICON_SIZE - 4, cg.rewardShader );
 		x += ICON_SIZE;
 	}
-	trap_R_SetColor( NULL );
+	engine->trap_R_SetColor( NULL );
 }
 
 
@@ -1781,8 +1781,8 @@ static void CG_DrawDisconnect( void ) {
 	int w;          // bk010215 - FIXME char message[1024];
 
 	// draw the phone jack if we are completely past our buffers
-	cmdNum = trap_GetCurrentCmdNumber() - CMD_BACKUP + 1;
-	trap_GetUserCmd( cmdNum, &cmd );
+	cmdNum = engine->trap_GetCurrentCmdNumber() - CMD_BACKUP + 1;
+	engine->trap_GetUserCmd( cmdNum, &cmd );
 	if ( cmd.serverTime <= cg.snap->ps.commandTime
 		 || cmd.serverTime > cg.time ) { // special check for map_restart // bk 0102165 - FIXME
 		return;
@@ -1801,7 +1801,7 @@ static void CG_DrawDisconnect( void ) {
 	x = 640 - 48;
 	y = 480 - 48;
 
-	CG_DrawPic( x, y, 48, 48, trap_R_RegisterShader( "gfx/2d/net.tga" ) );
+	CG_DrawPic( x, y, 48, 48, engine->trap_R_RegisterShader( "gfx/2d/net.tga" ) );
 }
 
 
@@ -1832,7 +1832,7 @@ static void CG_DrawLagometer( void ) {
 	x = 640 - 48;
 	y = 480 - 48;
 
-	trap_R_SetColor( NULL );
+	engine->trap_R_SetColor( NULL );
 	CG_DrawPic( x, y, 48, 48, cgs.media.lagometerShader );
 
 	ax = x;
@@ -1855,22 +1855,22 @@ static void CG_DrawLagometer( void ) {
 		if ( v > 0 ) {
 			if ( color != 1 ) {
 				color = 1;
-				trap_R_SetColor( g_color_table[ColorIndex( COLOR_YELLOW )] );
+				engine->trap_R_SetColor( g_color_table[ColorIndex( COLOR_YELLOW )] );
 			}
 			if ( v > range ) {
 				v = range;
 			}
-			trap_R_DrawStretchPic( ax + aw - a, mid - v, 1, v, 0, 0, 0, 0, cgs.media.whiteShader );
+			engine->trap_R_DrawStretchPic( ax + aw - a, mid - v, 1, v, 0, 0, 0, 0, cgs.media.whiteShader );
 		} else if ( v < 0 ) {
 			if ( color != 2 ) {
 				color = 2;
-				trap_R_SetColor( g_color_table[ColorIndex( COLOR_BLUE )] );
+				engine->trap_R_SetColor( g_color_table[ColorIndex( COLOR_BLUE )] );
 			}
 			v = -v;
 			if ( v > range ) {
 				v = range;
 			}
-			trap_R_DrawStretchPic( ax + aw - a, mid, 1, v, 0, 0, 0, 0, cgs.media.whiteShader );
+			engine->trap_R_DrawStretchPic( ax + aw - a, mid, 1, v, 0, 0, 0, 0, cgs.media.whiteShader );
 		}
 	}
 
@@ -1885,29 +1885,29 @@ static void CG_DrawLagometer( void ) {
 			if ( lagometer.snapshotFlags[i] & SNAPFLAG_RATE_DELAYED ) {
 				if ( color != 5 ) {
 					color = 5;  // YELLOW for rate delay
-					trap_R_SetColor( g_color_table[ColorIndex( COLOR_YELLOW )] );
+					engine->trap_R_SetColor( g_color_table[ColorIndex( COLOR_YELLOW )] );
 				}
 			} else {
 				if ( color != 3 ) {
 					color = 3;
-					trap_R_SetColor( g_color_table[ColorIndex( COLOR_GREEN )] );
+					engine->trap_R_SetColor( g_color_table[ColorIndex( COLOR_GREEN )] );
 				}
 			}
 			v = v * vscale;
 			if ( v > range ) {
 				v = range;
 			}
-			trap_R_DrawStretchPic( ax + aw - a, ay + ah - v, 1, v, 0, 0, 0, 0, cgs.media.whiteShader );
+			engine->trap_R_DrawStretchPic( ax + aw - a, ay + ah - v, 1, v, 0, 0, 0, 0, cgs.media.whiteShader );
 		} else if ( v < 0 ) {
 			if ( color != 4 ) {
 				color = 4;      // RED for dropped snapshots
-				trap_R_SetColor( g_color_table[ColorIndex( COLOR_RED )] );
+				engine->trap_R_SetColor( g_color_table[ColorIndex( COLOR_RED )] );
 			}
-			trap_R_DrawStretchPic( ax + aw - a, ay + ah - range, 1, range, 0, 0, 0, 0, cgs.media.whiteShader );
+			engine->trap_R_DrawStretchPic( ax + aw - a, ay + ah - range, 1, range, 0, 0, 0, 0, cgs.media.whiteShader );
 		}
 	}
 
-	trap_R_SetColor( NULL );
+	engine->trap_R_SetColor( NULL );
 
 	if ( cg_nopredict.integer || cg_synchronousClients.integer ) {
 		CG_DrawBigString( ax, ay, "snc", 1.0 );
@@ -1981,7 +1981,7 @@ static void CG_DrawCenterString( void ) {
 		return;
 	}
 
-	trap_R_SetColor( color );
+	engine->trap_R_SetColor( color );
 
 	start = (char *)cg.centerPrint;
 
@@ -2022,7 +2022,7 @@ static void CG_DrawCenterString( void ) {
 		start++;
 	}
 
-	trap_R_SetColor( NULL );
+	engine->trap_R_SetColor( NULL );
 }
 
 
@@ -2067,10 +2067,10 @@ static void CG_DrawWeapReticle( void ) {
 
 		// center
 		if ( cgs.media.reticleShaderSimpleQ ) {
-			trap_R_DrawStretchPic( x, 0, w, h, 0, 0, 1, 1, cgs.media.reticleShaderSimpleQ );    // tl
-			trap_R_DrawStretchPic( x + w, 0, w, h, 1, 0, 0, 1, cgs.media.reticleShaderSimpleQ );  // tr
-			trap_R_DrawStretchPic( x, h, w, h, 0, 1, 1, 0, cgs.media.reticleShaderSimpleQ );    // bl
-			trap_R_DrawStretchPic( x + w, h, w, h, 1, 1, 0, 0, cgs.media.reticleShaderSimpleQ );  // br
+			engine->trap_R_DrawStretchPic( x, 0, w, h, 0, 0, 1, 1, cgs.media.reticleShaderSimpleQ );    // tl
+			engine->trap_R_DrawStretchPic( x + w, 0, w, h, 1, 0, 0, 1, cgs.media.reticleShaderSimpleQ );  // tr
+			engine->trap_R_DrawStretchPic( x, h, w, h, 0, 1, 1, 0, cgs.media.reticleShaderSimpleQ );    // bl
+			engine->trap_R_DrawStretchPic( x + w, h, w, h, 1, 1, 0, 0, cgs.media.reticleShaderSimpleQ );  // br
 		}
 
 		// hairs
@@ -2091,7 +2091,7 @@ static void CG_DrawWeapReticle( void ) {
 		snoopercolor[0] *= snooperBrightness;
 		snoopercolor[1] *= snooperBrightness;
 		snoopercolor[2] *= snooperBrightness;
-		trap_R_SetColor( snoopercolor );
+		engine->trap_R_SetColor( snoopercolor );
 //----(SA)	end
 
 		if ( cgs.media.snooperShaderSimple ) {
@@ -2124,10 +2124,10 @@ static void CG_DrawWeapReticle( void ) {
 
 		// center
 		if ( cgs.media.reticleShaderSimpleQ ) {
-			trap_R_DrawStretchPic( x,   0, w, h, 0, 0, 1, 1, cgs.media.reticleShaderSimpleQ );  // tl
-			trap_R_DrawStretchPic( x + w, 0, w, h, 1, 0, 0, 1, cgs.media.reticleShaderSimpleQ );  // tr
-			trap_R_DrawStretchPic( x,   h, w, h, 0, 1, 1, 0, cgs.media.reticleShaderSimpleQ );  // bl
-			trap_R_DrawStretchPic( x + w, h, w, h, 1, 1, 0, 0, cgs.media.reticleShaderSimpleQ );  // br
+			engine->trap_R_DrawStretchPic( x,   0, w, h, 0, 0, 1, 1, cgs.media.reticleShaderSimpleQ );  // tl
+			engine->trap_R_DrawStretchPic( x + w, 0, w, h, 1, 0, 0, 1, cgs.media.reticleShaderSimpleQ );  // tr
+			engine->trap_R_DrawStretchPic( x,   h, w, h, 0, 1, 1, 0, cgs.media.reticleShaderSimpleQ );  // bl
+			engine->trap_R_DrawStretchPic( x + w, h, w, h, 1, 1, 0, 0, cgs.media.reticleShaderSimpleQ );  // br
 		}
 
 		// hairs
@@ -2159,10 +2159,10 @@ static void CG_DrawBinocReticle( void ) {
 
 	if ( cgs.media.binocShaderSimpleQ ) {
 		CG_AdjustFrom640( &x, &y, &w, &h );
-		trap_R_DrawStretchPic( 0, 0, w, h, 0, 0, 1, 1, cgs.media.binocShaderSimpleQ );  // tl
-		trap_R_DrawStretchPic( w, 0, w, h, 1, 0, 0, 1, cgs.media.binocShaderSimpleQ );  // tr
-		trap_R_DrawStretchPic( 0, h, w, h, 0, 1, 1, 0, cgs.media.binocShaderSimpleQ );  // bl
-		trap_R_DrawStretchPic( w, h, w, h, 1, 1, 0, 0, cgs.media.binocShaderSimpleQ );  // br
+		engine->trap_R_DrawStretchPic( 0, 0, w, h, 0, 0, 1, 1, cgs.media.binocShaderSimpleQ );  // tl
+		engine->trap_R_DrawStretchPic( w, 0, w, h, 1, 0, 0, 1, cgs.media.binocShaderSimpleQ );  // tr
+		engine->trap_R_DrawStretchPic( 0, h, w, h, 0, 1, 1, 0, cgs.media.binocShaderSimpleQ );  // bl
+		engine->trap_R_DrawStretchPic( w, h, w, h, 1, 1, 0, 0, cgs.media.binocShaderSimpleQ );  // br
 	}
 
 	CG_FillRect( 146, 239, 348, 1, color );
@@ -2321,9 +2321,9 @@ static void CG_DrawCrosshair( void ) {
 
 	// set color based on health
 	if ( cg_crosshairHealth.integer ) {
-		trap_R_SetColor( hcolor );
+		engine->trap_R_SetColor( hcolor );
 	} else {
-		trap_R_SetColor( NULL );
+		engine->trap_R_SetColor( NULL );
 	}
 
 	w = h = cg_crosshairSize.value;
@@ -2355,7 +2355,7 @@ static void CG_DrawCrosshair( void ) {
 
 	// NERVE - SMF - modified, fixes crosshair offset in shifted/scaled 3d views
 	// (SA) also breaks scaled view...
-	trap_R_DrawStretchPic(  x + cg.refdef.x + 0.5 * ( cg.refdef.width - w ),
+	engine->trap_R_DrawStretchPic(  x + cg.refdef.x + 0.5 * ( cg.refdef.width - w ),
 							y + cg.refdef.y + 0.5 * ( cg.refdef.height - h ),
 							w, h, 0, 0, 1, 1, hShader );
 }
@@ -2393,7 +2393,7 @@ static void CG_ScanForCrosshairEntity( void ) {
 
 
 	// if the player is in fog, don't show it
-	content = trap_CM_PointContents( trace.endpos, 0 );
+	content = engine->trap_CM_PointContents( trace.endpos, 0 );
 	if ( content & CONTENTS_FOG ) {
 		return;
 	}
@@ -2441,7 +2441,7 @@ static void CG_DrawDynamiteStatus( void ) {
 		color[3] = (float)timeleft / 300.0f;
 	}
 
-	trap_R_SetColor( color );
+	engine->trap_R_SetColor( color );
 
 	timeleft *= 5;
 	timeleft -= ( timeleft % 5000 );
@@ -2454,7 +2454,7 @@ static void CG_DrawDynamiteStatus( void ) {
 	color[3] *= cg_hudAlpha.value;
 	CG_DrawBigStringColor( 320 - w / 2, 170, name, color );
 
-	trap_R_SetColor( NULL );
+	engine->trap_R_SetColor( NULL );
 }
 
 
@@ -2515,7 +2515,7 @@ static void CG_DrawCrosshairNames( void ) {
 	color = CG_FadeColor( cg.crosshairClientTime, 1000 );
 
 	if ( !color ) {
-		trap_R_SetColor( NULL );
+		engine->trap_R_SetColor( NULL );
 		return;
 	}
 
@@ -2528,7 +2528,7 @@ static void CG_DrawCrosshairNames( void ) {
 //	else
 	VectorSet( teamColor, 0.1250, 0.7608, 0.0859 );             // LIGHT-GREEN
 
-	trap_R_SetColor( teamColor );
+	engine->trap_R_SetColor( teamColor );
 	// -NERVE - SMF
 
 	name = cgs.clientinfo[ cg.crosshairClientNum ].name;
@@ -2547,7 +2547,7 @@ static void CG_DrawCrosshairNames( void ) {
 	}
 	// -NERVE - SMF
 
-	trap_R_SetColor( NULL );
+	engine->trap_R_SetColor( NULL );
 }
 
 
@@ -2585,7 +2585,7 @@ static void CG_DrawVote( void ) {
 	// play a talk beep whenever it is modified
 	if ( cgs.voteModified ) {
 		cgs.voteModified = qfalse;
-		trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
+		engine->trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
 	}
 
 	sec = ( VOTE_TIME - ( cg.time - cgs.voteTime ) ) / 1000;
@@ -2631,18 +2631,18 @@ static void CG_ActivateLimboMenu( void ) {
 	test = cg.snap->ps.pm_flags & PMF_LIMBO || cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR;
 
 	if ( test && !latch ) {
-		trap_SendConsoleCommand( "startLimboMode\n" );
-		trap_SendConsoleCommand( "OpenLimboMenu\n" );
+		engine->trap_SendConsoleCommand( "startLimboMode\n" );
+		engine->trap_SendConsoleCommand( "OpenLimboMenu\n" );
 		latch = qtrue;
 	}
 	else if ( !test && latch ) {
-		trap_SendConsoleCommand( "stopLimboMode\n" );
-		trap_SendConsoleCommand( "CloseLimboMenu\n" );
+		engine->trap_SendConsoleCommand( "stopLimboMode\n" );
+		engine->trap_SendConsoleCommand( "CloseLimboMenu\n" );
 		latch = qfalse;
 	}
 
 	// set the limbo state
-	trap_Cvar_VariableStringBuffer( "ui_limboMode", buf, sizeof( buf ) );
+	engine->trap_Cvar_VariableStringBuffer( "ui_limboMode", buf, sizeof( buf ) );
 
 	if ( atoi( buf ) )
 		cg.limboMenu = qtrue;
@@ -2800,13 +2800,13 @@ static void CG_DrawWarmup( void ) {
 		cg.warmupCount = sec;
 		switch ( sec ) {
 		case 0:
-			trap_S_StartLocalSound( cgs.media.count1Sound, CHAN_ANNOUNCER );
+			engine->trap_S_StartLocalSound( cgs.media.count1Sound, CHAN_ANNOUNCER );
 			break;
 		case 1:
-			trap_S_StartLocalSound( cgs.media.count2Sound, CHAN_ANNOUNCER );
+			engine->trap_S_StartLocalSound( cgs.media.count2Sound, CHAN_ANNOUNCER );
 			break;
 		case 2:
-			trap_S_StartLocalSound( cgs.media.count3Sound, CHAN_ANNOUNCER );
+			engine->trap_S_StartLocalSound( cgs.media.count3Sound, CHAN_ANNOUNCER );
 			break;
 		default:
 			break;
@@ -2847,7 +2847,7 @@ static void CG_DrawFlashFade( void ) {
 	if ( cgs.scrFadeStartTime + cgs.scrFadeDuration < cg.time ) {
 		cgs.scrFadeAlphaCurrent = cgs.scrFadeAlpha;
 	} else if ( cgs.scrFadeAlphaCurrent != cgs.scrFadeAlpha ) {
-		elapsed = ( time = trap_Milliseconds() ) - lastTime;  // we need to use trap_Milliseconds() here since the cg.time gets modified upon reloading
+		elapsed = ( time = engine->trap_Milliseconds() ) - lastTime;  // we need to use engine->trap_Milliseconds() here since the cg.time gets modified upon reloading
 		lastTime = time;
 		if ( elapsed < 500 && elapsed > 0 ) {
 			if ( cgs.scrFadeAlphaCurrent > cgs.scrFadeAlpha ) {
@@ -3004,12 +3004,12 @@ static void CG_DrawFlashFire( void ) {
 		col[1] = alpha;
 		col[2] = alpha;
 		col[3] = alpha;
-		trap_R_SetColor( col );
+		engine->trap_R_SetColor( col );
 		CG_DrawPic( -10, -10, 650, 490, cgs.media.viewFlashFire[( cg.time / 50 ) % 16] );
-		trap_R_SetColor( NULL );
+		engine->trap_R_SetColor( NULL );
 
-		trap_S_AddLoopingSound( cg.snap->ps.clientNum, cg.snap->ps.origin, vec3_origin, cgs.media.flameSound, (int)( 255.0 * alpha ) );
-		trap_S_AddLoopingSound( cg.snap->ps.clientNum, cg.snap->ps.origin, vec3_origin, cgs.media.flameCrackSound, (int)( 255.0 * alpha ) );
+		engine->trap_S_AddLoopingSound( cg.snap->ps.clientNum, cg.snap->ps.origin, vec3_origin, cgs.media.flameSound, (int)( 255.0 * alpha ) );
+		engine->trap_S_AddLoopingSound( cg.snap->ps.clientNum, cg.snap->ps.origin, vec3_origin, cgs.media.flameCrackSound, (int)( 255.0 * alpha ) );
 	} else {
 		cg.v_noFireTime = cg.time;
 	}
@@ -3128,7 +3128,7 @@ static void CG_DrawObjectiveInfo( void ) {
 		return;
 	}
 
-	trap_R_SetColor( color );
+	engine->trap_R_SetColor( color );
 
 	start = cg.oidPrint;
 
@@ -3213,7 +3213,7 @@ static void CG_DrawObjectiveInfo( void ) {
 		start++;
 	}
 
-	trap_R_SetColor( NULL );
+	engine->trap_R_SetColor( NULL );
 }
 // -NERVE - SMF
 
@@ -3225,7 +3225,7 @@ void CG_DrawTimedMenus() {
 		int t = cg.time - cg.voiceTime;
 		if ( t > 2500 ) {
 			Menus_CloseByName( "voiceMenu" );
-			trap_Cvar_Set( "cl_conXOffset", "0" );
+			engine->trap_Cvar_Set( "cl_conXOffset", "0" );
 			cg.voiceTime = 0;
 		}
 	}
@@ -3538,7 +3538,7 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 	// if they are waiting at the mission stats screen, show the stats
 	if ( cg_gameType.integer == GT_SINGLE_PLAYER ) {
 		if ( strlen( cg_missionStats.string ) > 1 ) {
-			trap_Cvar_Set( "com_expectedhunkusage", "-2" );
+			engine->trap_Cvar_Set( "com_expectedhunkusage", "-2" );
 			CG_DrawInformation();
 			return;
 		}
@@ -3603,7 +3603,7 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 		cg.refdef.rdflags &= ~RDF_DRAWSKYBOX;
 	}
 
-	trap_R_RenderScene( &cg.refdef );
+	engine->trap_R_RenderScene( &cg.refdef );
 
 	// restore original viewpoint if running stereo
 	if ( separation != 0 ) {

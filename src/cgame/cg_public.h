@@ -1,32 +1,10 @@
-/*
-===========================================================================
+// cg_public.h
+//
 
-Return to Castle Wolfenstein single player GPL Source Code
-Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
+#pragma once
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
-
-RTCW SP Source Code is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-RTCW SP Source Code is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
-
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
-
-If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
-
-===========================================================================
-*/
-
-
+#include "../game/bg_public.h"
+#include "tr_types.h"
 
 #define CMD_BACKUP          64
 #define CMD_MASK            ( CMD_BACKUP - 1 )
@@ -77,7 +55,7 @@ functions imported from the main executable
 
 #define CGAME_IMPORT_API_VERSION    2001
 
-struct clientGameImports_t {
+typedef struct  {
 	// System Calls
 	void (*trap_Print)(const char* fmt);
 	void (*trap_Error)(const char* fmt);
@@ -167,7 +145,22 @@ struct clientGameImports_t {
 	void (*trap_UI_LimboChat)(const char* arg0);
 	void (*trap_UI_ClosePopup)(const char* arg0);
 	qboolean(*trap_GetModelInfo)(int clientNum, char* modelName, animModelInfo_t** modelInfo);
-};
+	bool (*trap_getCameraInfo)(int val, int time, float* origin, float* angles, float* fov);
+	void (*trap_Key_SetCatcher)(int catcher);
+	qboolean (*trap_loadCamera)(int, const char* name);
+	int (*trap_MemoryRemaining)(void);
+	int (*trap_PC_FreeSource)(int handle);
+	int (*trap_PC_LoadSource)(const char* filename);
+	int (*trap_PC_ReadToken)(int source, pc_token_t* token);
+	void (*trap_RB_ZombieFXAddNewHit)(int entityNum, const vec3_t hitPos, const vec3_t hitDir);
+	void (*trap_R_DrawStretchPicGradient)(float x, float y, float w, float h, float s1, float t1, float s2, float t2, qhandle_t hShader, const float* gradientColor, int gradientType);
+	void (*trap_startCamera)(int spine, int time);
+	void (*trap_stopCamera)(int);
+	void (*trap_S_AddRangedLoopingSound)(int entityNum, const vec3_t origin, const vec3_t velocity, int range, sfxHandle_t sfx);
+	void (*trap_S_StartSoundEx)(vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfx, int flags);
+	void (*trap_S_StopStreamingSound)(int entityNum);
+	int (*trap_PC_SourceFileAndLine)(int handle, char* filename, int* line);
+} cgameImports_t;
 
 /*
 ==================================================================
@@ -177,51 +170,19 @@ functions exported to the main executable
 ==================================================================
 */
 
-typedef enum {
-	CG_INIT,
-//	void CG_Init( int serverMessageNum, int serverCommandSequence )
-	// called when the level loads or when the renderer is restarted
-	// all media should be registered at this time
-	// cgame will display loading status by calling SCR_Update, which
-	// will call CG_DrawInformation during the loading process
-	// reliableCommandSequence will be 0 on fresh loads, but higher for
-	// demos, tourney restarts, or vid_restarts
+typedef struct {
+	int apiVersion;
 
-	CG_SHUTDOWN,
-//	void (*CG_Shutdown)( void );
-	// oportunity to flush and close any open files
-
-	CG_CONSOLE_COMMAND,
-//	qboolean (*CG_ConsoleCommand)( void );
-	// a console command has been issued locally that is not recognized by the
-	// main game system.
-	// use Cmd_Argc() / Cmd_Argv() to read the command, return qfalse if the
-	// command is not known to the game
-
-	CG_DRAW_ACTIVE_FRAME,
-//	void (*CG_DrawActiveFrame)( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback );
-	// Generates and draws a game scene and status information at the given time.
-	// If demoPlayback is set, local movement prediction will not be enabled
-
-	CG_CROSSHAIR_PLAYER,
-//	int (*CG_CrosshairPlayer)( void );
-
-	CG_LAST_ATTACKER,
-//	int (*CG_LastAttacker)( void );
-
-	CG_KEY_EVENT,
-//	void	(*CG_KeyEvent)( int key, qboolean down );
-
-	CG_MOUSE_EVENT,
-//	void	(*CG_MouseEvent)( int dx, int dy );
-	CG_EVENT_HANDLING,
-//	void (*CG_EventHandling)(int type);
-
-	CG_GET_TAG,
-//	qboolean CG_GetTag( int clientNum, char *tagname, orientation_t *or );
-
-	MAX_CGAME_EXPORT
-
+	void (*Init)(int serverMessageNum, int serverCommandSequence);
+	void (*Shutdown)( void );
+	qboolean (*ConsoleCommand)( void );
+	void (*DrawActiveFrame)( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback );
+	int (*CrosshairPlayer)( void );
+	int (*LastAttacker)( void );
+	void	(*KeyEvent)( int key, qboolean down );
+	void	(*MouseEvent)( int dx, int dy );
+	void (*EventHandling)(int type);
+	qboolean (*GetTag)( int clientNum, char *tagname, orientation_t *or );
 } cgameExport_t;
 
 //----------------------------------------------

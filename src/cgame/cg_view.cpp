@@ -81,14 +81,14 @@ void CG_TestModel_f( void ) {
 	vec3_t angles;
 
 	memset( &cg.testModelEntity, 0, sizeof( cg.testModelEntity ) );
-	if ( trap_Argc() < 2 ) {
+	if ( engine->trap_Argc() < 2 ) {
 		return;
 	}
 
 	Q_strncpyz( cg.testModelName, CG_Argv( 1 ), MAX_QPATH );
-	cg.testModelEntity.hModel = trap_R_RegisterModel( cg.testModelName );
+	cg.testModelEntity.hModel = engine->trap_R_RegisterModel( cg.testModelName );
 
-	if ( trap_Argc() == 3 ) {
+	if ( engine->trap_Argc() == 3 ) {
 		cg.testModelEntity.backlerp = atof( CG_Argv( 2 ) );
 		cg.testModelEntity.frame = 1;
 		cg.testModelEntity.oldframe = 0;
@@ -152,7 +152,7 @@ static void CG_AddTestModel( void ) {
 	int i;
 
 	// re-register the model, because the level may have changed
-	cg.testModelEntity.hModel = trap_R_RegisterModel( cg.testModelName );
+	cg.testModelEntity.hModel = engine->trap_R_RegisterModel( cg.testModelName );
 	if ( !cg.testModelEntity.hModel ) {
 		CG_Printf( "Can't register model\n" );
 		return;
@@ -173,7 +173,7 @@ static void CG_AddTestModel( void ) {
 		}
 	}
 
-	trap_R_AddRefEntityToScene( &cg.testModelEntity );
+	engine->trap_R_AddRefEntityToScene( &cg.testModelEntity );
 }
 
 
@@ -220,10 +220,10 @@ static void CG_CalcVrect( void ) {
 	} else {
 		// bound normal viewsize
 		if ( cg_viewsize.integer < 30 ) {
-			trap_Cvar_Set( "cg_viewsize","30" );
+			engine->trap_Cvar_Set( "cg_viewsize","30" );
 			xsize = ysize = 30;
 		} else if ( cg_viewsize.integer > 100 ) {
-			trap_Cvar_Set( "cg_viewsize","100" );
+			engine->trap_Cvar_Set( "cg_viewsize","100" );
 			xsize = ysize = 100;
 		} else {
 			xsize = ysize = cg_viewsize.integer;
@@ -449,7 +449,7 @@ void CG_KickAngles( void ) {
 	}
 	// encode the kick angles into a 24bit number, for sending to the client exe
 //----(SA)	commented out since it doesn't appear to be used, and it spams the console when in "developer 1"
-//	trap_Cvar_Set( "cg_recoilPitch", va("%f", cg.recoilPitchAngle) );
+//	engine->trap_Cvar_Set( "cg_recoilPitch", va("%f", cg.recoilPitchAngle) );
 }
 
 
@@ -954,8 +954,8 @@ CG_UnderwaterSounds
 */
 #define UNDERWATER_BIT 8
 static void CG_UnderwaterSounds( void ) {
-//	trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.media.underWaterSound, 255 );
-	trap_S_AddLoopingSound( cg.snap->ps.clientNum, cg.snap->ps.origin, vec3_origin, cgs.media.underWaterSound, 255 & ( 1 << 8 ) );
+//	engine->trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.media.underWaterSound, 255 );
+	engine->trap_S_AddLoopingSound( cg.snap->ps.clientNum, cg.snap->ps.origin, vec3_origin, cgs.media.underWaterSound, 255 & ( 1 << 8 ) );
 }
 
 
@@ -1018,7 +1018,7 @@ static void CG_DamageBlendBlob( void ) {
 		ent.shaderRGBA[1] = 255;
 		ent.shaderRGBA[2] = 255;
 		ent.shaderRGBA[3] = 255;
-		trap_R_AddRefEntityToScene( &ent );
+		engine->trap_R_AddRefEntityToScene( &ent );
 
 		redFlash += ent.radius;
 	}
@@ -1040,7 +1040,7 @@ static void CG_DamageBlendBlob( void ) {
 		ent.customShader = cgs.media.viewFlashBlood;
 		ent.shaderRGBA[3] = (int)(180.0 * redFlash/5.0);
 
-		trap_R_AddRefEntityToScene( &ent );
+		engine->trap_R_AddRefEntityToScene( &ent );
 	}
 	*/
 }
@@ -1072,7 +1072,7 @@ static int CG_CalcViewValues( void ) {
 		float fov = 90;
 		float x;
 
-		if ( trap_getCameraInfo( CAM_PRIMARY, cg.time, &origin, &angles, &fov ) ) {
+		if ( engine->trap_getCameraInfo( CAM_PRIMARY, cg.time, (float *)&origin, (float*)&angles, (float*)&fov)) {
 			VectorCopy( origin, cg.refdef.vieworg );
 			angles[ROLL] = 0;
 			angles[PITCH] = -angles[PITCH];     // (SA) compensate for reversed pitch (this makes the game match the editor, however I'm guessing the real fix is to be done there)
@@ -1091,14 +1091,14 @@ static int CG_CalcViewValues( void ) {
 			//	return 0;
 
 			VectorCopy( origin, oldOrigin );
-			trap_SendClientCommand( va( "setCameraOrigin %f %f %f", origin[0], origin[1], origin[2] ) );
+			engine->trap_SendClientCommand( va( "setCameraOrigin %f %f %f", origin[0], origin[1], origin[2] ) );
 			return 0;
 
 		} else {
 			cg.cameraMode = qfalse;                 // camera off in cgame
-			trap_Cvar_Set( "cg_letterbox", "0" );
-			trap_SendClientCommand( "stopCamera" );    // camera off in game
-			trap_stopCamera( CAM_PRIMARY );           // camera off in client
+			engine->trap_Cvar_Set( "cg_letterbox", "0" );
+			engine->trap_SendClientCommand( "stopCamera" );    // camera off in game
+			engine->trap_stopCamera( CAM_PRIMARY );           // camera off in client
 
 			CG_Fade( 0, 0, 0, 255, 0, 0 );                // go black
 			CG_Fade( 0, 0, 0, 0, cg.time + 200, 1500 );   // then fadeup
@@ -1212,7 +1212,7 @@ static void CG_PowerupTimerSounds( void ) {
 			continue;
 		}
 		if ( ( t - cg.time ) / POWERUP_BLINK_TIME != ( t - cg.oldTime ) / POWERUP_BLINK_TIME ) {
-			trap_S_StartSound( NULL, cg.snap->ps.clientNum, CHAN_ITEM, cgs.media.wearOffSound );
+			engine->trap_S_StartSound( NULL, cg.snap->ps.clientNum, CHAN_ITEM, cgs.media.wearOffSound );
 		}
 	}
 }
@@ -1323,12 +1323,12 @@ void CG_DrawSkyBoxPortal( void ) {
 						fogEnd = atoi( token );
 					}
 
-					trap_R_SetFog( FOG_PORTALVIEW, fogStart, fogEnd, fogColor[0], fogColor[1], fogColor[2], 1.1 );
+					engine->trap_R_SetFog( FOG_PORTALVIEW, fogStart, fogEnd, fogColor[0], fogColor[1], fogColor[2], 1.1 );
 					foginited = qtrue;
 				}
 			} else {
 				if ( !foginited ) {
-					trap_R_SetFog( FOG_PORTALVIEW, 0,0,0,0,0,0 ); // init to null
+					engine->trap_R_SetFog( FOG_PORTALVIEW, 0,0,0,0,0,0 ); // init to null
 					foginited = qtrue;
 				}
 			}
@@ -1419,7 +1419,7 @@ void CG_DrawSkyBoxPortal( void ) {
 	cg.refdef.time = cg.time;
 
 	// draw the skybox
-	trap_R_RenderScene( &cg.refdef );
+	engine->trap_R_RenderScene( &cg.refdef );
 
 	cg.refdef = backuprefdef;
 }
@@ -1438,7 +1438,7 @@ extern void CG_SetupDlightstyles( void );
 
 //#define DEBUGTIME_ENABLED
 #ifdef DEBUGTIME_ENABLED
-#define DEBUGTIME CG_Printf( "t%i:%i ", dbgCnt++, elapsed = ( trap_Milliseconds() - dbgTime ) ); dbgTime += elapsed;
+#define DEBUGTIME CG_Printf( "t%i:%i ", dbgCnt++, elapsed = ( engine->trap_Milliseconds() - dbgTime ) ); dbgTime += elapsed;
 #else
 #define DEBUGTIME
 #endif
@@ -1456,7 +1456,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	cg.cld = 0;         // NERVE - SMF - reset clientDamage
 
 #ifdef DEBUGTIME_ENABLED
-	int dbgTime = trap_Milliseconds(),elapsed;
+	int dbgTime = engine->trap_Milliseconds(),elapsed;
 	int dbgCnt = 0;
 #endif
 
@@ -1471,7 +1471,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 		if (cg_loadWeaponSelect.integer > 0) {
 			cg.weaponSelect = cg_loadWeaponSelect.integer;
 			cg.weaponSelectTime = cg.time;
-			trap_Cvar_Set( "cg_loadWeaponSelect", "0" );	// turn it off
+			engine->trap_Cvar_Set( "cg_loadWeaponSelect", "0" );	// turn it off
 		}
 	}
 */
@@ -1489,12 +1489,12 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 
 	// any looped sounds will be respecified as entities
 	// are added to the render list
-	trap_S_ClearLoopingSounds( qfalse );
+	engine->trap_S_ClearLoopingSounds( qfalse );
 
 	DEBUGTIME
 
 	// clear all the render lists
-	trap_R_ClearScene();
+	engine->trap_R_ClearScene();
 
 	DEBUGTIME
 
@@ -1636,7 +1636,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	DEBUGTIME
 
 	// let the client system know what our weapon, holdable item and zoom settings are
-	trap_SetUserCmdValue( cg.weaponSelect, cg.holdableSelect, cg.zoomSensitivity, cg.cld );
+	engine->trap_SetUserCmdValue( cg.weaponSelect, cg.holdableSelect, cg.zoomSensitivity, cg.cld );
 
 	// actually issue the rendering calls
 	CG_DrawActive( stereoView );
@@ -1644,7 +1644,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	DEBUGTIME
 
 	// update audio positions
-	trap_S_Respatialize( cg.snap->ps.clientNum, cg.refdef.vieworg, cg.refdef.viewaxis, inwater );
+	engine->trap_S_Respatialize( cg.snap->ps.clientNum, cg.refdef.vieworg, cg.refdef.viewaxis, inwater );
 
 	if ( cg_stats.integer ) {
 		CG_Printf( "cg.clientFrame:%i\n", cg.clientFrame );

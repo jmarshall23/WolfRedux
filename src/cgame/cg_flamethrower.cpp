@@ -385,7 +385,7 @@ void CG_FireFlameChunks( centity_t *cent, vec3_t origin, vec3_t angles, float sp
 
 		// if igniting, play start sound
 		//if (firing) {
-		//	trap_S_StartSound( org, cent->currentState.number, CHAN_AUTO, cgs.media.flameStartSound );
+		//	engine->trap_S_StartSound( org, cent->currentState.number, CHAN_AUTO, cgs.media.flameStartSound );
 		//}
 
 		CG_Trace( &trace, org, flameChunkMins, flameChunkMaxs, org, cent->currentState.number, MASK_SHOT );
@@ -1075,7 +1075,7 @@ void CG_AddFlameSpriteToScene( flameChunk_t *f, float lifeFrac, float alpha ) {
 		frameNum = NUM_FLAME_SPRITES - 1;
 	}
 
-	trap_R_AddPolyToScene( flameShaders[frameNum], 4, verts );
+	engine->trap_R_AddPolyToScene( flameShaders[frameNum], 4, verts );
 	VectorCopy( f->org, lastPos );
 }
 
@@ -1393,7 +1393,7 @@ void CG_AddFlameToScene( flameChunk_t *fHead ) {
 				if ( lightSize < 200 ) {
 					lightSize = 200;
 				}
-				trap_R_AddLightToScene( f->org, lightSize, 1.0 * lightAlpha, 0.7 * lightAlpha, 0.3 * lightAlpha, 0 );
+				engine->trap_R_AddLightToScene( f->org, lightSize, 1.0 * lightAlpha, 0.7 * lightAlpha, 0.3 * lightAlpha, 0 );
 				VectorCopy( f->org, lastLightPos );
 				lastLightFlameChunk = f;
 				lastLightSize = lightSize;
@@ -1424,9 +1424,9 @@ void CG_AddFlameToScene( flameChunk_t *fHead ) {
 		if ( lightSize > 80 ) {
 			lightSize = 80;
 		}
-		trap_R_AddLightToScene( lightOrg, 90 + lightSize, 0, 0, alpha * 0.5, 0 );
+		engine->trap_R_AddLightToScene( lightOrg, 90 + lightSize, 0, 0, alpha * 0.5, 0 );
 	} else if ( isClientFlame || ( fHead->ownerCent == cg.snap->ps.clientNum ) ) {
-		//trap_R_AddLightToScene( lightOrg, 90 + lightSize, 1.000000*alpha, 0.603922*alpha, 0.207843*alpha, 2/*isClientFlame * (fHead->ownerCent == cg.snap->ps.clientNum)*/  );
+		//engine->trap_R_AddLightToScene( lightOrg, 90 + lightSize, 1.000000*alpha, 0.603922*alpha, 0.207843*alpha, 2/*isClientFlame * (fHead->ownerCent == cg.snap->ps.clientNum)*/  );
 	}
 }
 
@@ -1443,7 +1443,7 @@ void CG_GenerateShaders( char *filename, char *shaderName, char *dir, int numFra
 	char str[512];
 	int i;
 
-	trap_FS_FOpenFile( filename, &f, FS_WRITE );
+	engine->trap_FS_FOpenFile( filename, &f, FS_WRITE );
 	for ( i = 0; i < numFrames; i++ ) {
 		lastNumber = i;
 		b = lastNumber / 100;
@@ -1457,9 +1457,9 @@ void CG_GenerateShaders( char *filename, char *shaderName, char *dir, int numFra
 		} else {
 			Com_sprintf( str, sizeof( str ), "%s%i\n{\n\tnofog%s\n\tallowCompress\n\tcull none\n\t{\n\t\tmap sprites/%s/spr%i%i%i.tga\n\t\tblendFunc %s %s\n%s\t}\n}\n", shaderName, i + 1, nomipmap ? "\n\tnomipmap" : "", dir, b, c, d, srcBlend, dstBlend, extras );
 		}
-		trap_FS_Write( str, strlen( str ), f );
+		engine->trap_FS_Write( str, strlen( str ), f );
 	}
-	trap_FS_FCloseFile( f );
+	engine->trap_FS_FCloseFile( f );
 }
 
 /*
@@ -1558,11 +1558,11 @@ void CG_InitFlameChunks( void ) {
 
 	for ( i = 0; i < NUM_FLAME_SPRITES; i++ ) {
 		Com_sprintf( filename, MAX_QPATH, "flamethrowerFire%i", i + 1 );
-		flameShaders[i] = trap_R_RegisterShader( filename );
+		flameShaders[i] = engine->trap_R_RegisterShader( filename );
 	}
 	for ( i = 0; i < NUM_NOZZLE_SPRITES; i++ ) {
 		Com_sprintf( filename, MAX_QPATH, "nozzleFlame%i", i + 1 );
-		nozzleShaders[i] = trap_R_RegisterShader( filename );
+		nozzleShaders[i] = engine->trap_R_RegisterShader( filename );
 	}
 	initFlameShaders = qfalse;
 }
@@ -1651,16 +1651,16 @@ void CG_UpdateFlamethrowerSounds( void ) {
 		if ( centFlameInfo[f->ownerCent].lastSoundUpdate != cg.time ) {
 			// blow/ignition sound
 			if ( centFlameStatus[f->ownerCent].blowVolume * 255.0 > MIN_BLOW_VOLUME ) {
-				trap_S_AddLoopingSound( f->ownerCent, f->org, vec3_origin, cgs.media.flameBlowSound, (int)( 255.0 * centFlameStatus[f->ownerCent].blowVolume ) );
+				engine->trap_S_AddLoopingSound( f->ownerCent, f->org, vec3_origin, cgs.media.flameBlowSound, (int)( 255.0 * centFlameStatus[f->ownerCent].blowVolume ) );
 			} else {
-				trap_S_AddLoopingSound( f->ownerCent, f->org, vec3_origin, cgs.media.flameBlowSound, MIN_BLOW_VOLUME );
+				engine->trap_S_AddLoopingSound( f->ownerCent, f->org, vec3_origin, cgs.media.flameBlowSound, MIN_BLOW_VOLUME );
 			}
 
 			if ( centFlameStatus[f->ownerCent].streamVolume ) {
 				if ( cg_entities[f->ownerCent].currentState.aiChar != AICHAR_ZOMBIE ) {
-					trap_S_AddLoopingSound( f->ownerCent, f->org, vec3_origin, cgs.media.flameStreamSound, (int)( 255.0 /**centFlameStatus[f->ownerCent].streamVolume*/ ) );
+					engine->trap_S_AddLoopingSound( f->ownerCent, f->org, vec3_origin, cgs.media.flameStreamSound, (int)( 255.0 /**centFlameStatus[f->ownerCent].streamVolume*/ ) );
 				} else {
-					trap_S_AddLoopingSound( f->ownerCent, f->org, vec3_origin, cgs.media.flameCrackSound, (int)( 255.0 * centFlameStatus[f->ownerCent].streamVolume ) );
+					engine->trap_S_AddLoopingSound( f->ownerCent, f->org, vec3_origin, cgs.media.flameCrackSound, (int)( 255.0 * centFlameStatus[f->ownerCent].streamVolume ) );
 				}
 			}
 
@@ -1672,7 +1672,7 @@ void CG_UpdateFlamethrowerSounds( void ) {
 			// update the sound volume
 			if ( trav->blueLife + 100 < ( cg.time - trav->timeStart ) ) {
 				//if (!lastSoundFlameChunk || Distance( lastSoundFlameChunk->org, trav->org ) > lastSoundFlameChunk->size) {
-				trap_S_AddLoopingSound( trav->ownerCent, trav->org, vec3_origin, cgs.media.flameSound, (int)( 255.0 * ( 0.2 * ( trav->size / FLAME_MAX_SIZE ) ) ) );
+				engine->trap_S_AddLoopingSound( trav->ownerCent, trav->org, vec3_origin, cgs.media.flameSound, (int)( 255.0 * ( 0.2 * ( trav->size / FLAME_MAX_SIZE ) ) ) );
 				//	lastSoundFlameChunk = trav;
 				//}
 			}

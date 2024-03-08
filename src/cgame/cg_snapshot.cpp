@@ -149,19 +149,19 @@ void CG_SetInitialSnapshot( snapshot_t *snap ) {
 
 	CG_ExecuteNewServerCommands( snap->serverCommandSequence );
 
-	trap_SendClientCommand( "fogswitch 0" );   // clear it out so the set below will take
+	engine->trap_SendClientCommand( "fogswitch 0" );   // clear it out so the set below will take
 
-	trap_Cvar_VariableStringBuffer( "r_savegameFogColor", buf, sizeof( buf ) );
-	trap_Cvar_Set( "r_savegameFogColor", "0" );
+	engine->trap_Cvar_VariableStringBuffer( "r_savegameFogColor", buf, sizeof( buf ) );
+	engine->trap_Cvar_Set( "r_savegameFogColor", "0" );
 	if ( strlen( buf ) > 1 ) {
 		if ( !Q_stricmp( buf, "none" ) ) {
-			trap_SendClientCommand( "fogswitch 0" );   // 'off'
+			engine->trap_SendClientCommand( "fogswitch 0" );   // 'off'
 		} else {
-			trap_SendClientCommand( va( "fogswitch %s", buf ) );
+			engine->trap_SendClientCommand( va( "fogswitch %s", buf ) );
 		}
 	} else {
-		trap_Cvar_VariableStringBuffer( "r_mapFogColor", buf, sizeof( buf ) );
-		trap_SendClientCommand( va( "fogswitch %s", buf ) );
+		engine->trap_Cvar_VariableStringBuffer( "r_mapFogColor", buf, sizeof( buf ) );
+		engine->trap_SendClientCommand( va( "fogswitch %s", buf ) );
 	}
 
 	// set our local weapon selection pointer to
@@ -191,11 +191,11 @@ void CG_SetInitialSnapshot( snapshot_t *snap ) {
 		static char prevmap[64] = { 0 };
 		char curmap[64];
 
-		trap_Cvar_VariableStringBuffer( "mapname", curmap, 64 );
+		engine->trap_Cvar_VariableStringBuffer( "mapname", curmap, 64 );
 
 		if ( cgs.gametype == GT_WOLF && Q_stricmp( curmap, prevmap ) ) {
 			strcpy( prevmap, curmap );
-			trap_SendConsoleCommand( "openLimboMenu\n" );
+			engine->trap_SendConsoleCommand( "openLimboMenu\n" );
 		}
 	}
 	// -NERVE - SMF
@@ -358,9 +358,9 @@ static snapshot_t *CG_ReadNextSnapshot( void ) {
 
 		// try to read the snapshot from the client system
 		cgs.processedSnapshotNum++;
-		r = trap_GetSnapshot( cgs.processedSnapshotNum, dest );
+		r = engine->trap_GetSnapshot( cgs.processedSnapshotNum, dest );
 
-		// FIXME: why would trap_GetSnapshot return a snapshot with the same server time
+		// FIXME: why would engine->trap_GetSnapshot return a snapshot with the same server time
 		if ( cg.snap && r && dest->serverTime == cg.snap->serverTime ) {
 			//continue;
 		}
@@ -454,7 +454,7 @@ void CG_ProcessSnapshots( void ) {
 	int n;
 
 	// see what the latest snapshot the client system has is
-	trap_GetCurrentSnapshotNumber( &n, &cg.latestSnapshotTime );
+	engine->trap_GetCurrentSnapshotNumber( &n, &cg.latestSnapshotTime );
 	if ( n != cg.latestSnapshotNum ) {
 		if ( n < cg.latestSnapshotNum ) {
 			// this should never happen

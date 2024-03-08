@@ -82,7 +82,7 @@ void CG_LoadingString( const char *s ) {
 		CG_Printf( va( "LOADING... %s\n",s ) );   //----(SA)	added so you can see from the console what's going on
 
 	}
-	trap_UpdateScreen();
+	engine->trap_UpdateScreen();
 }
 
 /*
@@ -105,7 +105,7 @@ void CG_LoadingItem( int itemNum ) {
 
 
 	if ( item->icon && loadingItemIconCount < MAX_LOADING_ITEM_ICONS ) {
-		loadingItemIcons[loadingItemIconCount++] = trap_R_RegisterShaderNoMip( item->icon );
+		loadingItemIcons[loadingItemIconCount++] = engine->trap_R_RegisterShaderNoMip( item->icon );
 	}
 
 	CG_LoadingString( cgs.itemPrintNames[item - bg_itemlist] );
@@ -142,7 +142,7 @@ void CG_LoadingClient( int clientNum ) {
 // (SA) ignore player icons for the moment
 	if ( !( cg_entities[clientNum].currentState.aiChar ) ) {
 //		if ( loadingPlayerIconCount < MAX_LOADING_PLAYER_ICONS ) {
-//			loadingPlayerIcons[loadingPlayerIconCount++] = trap_R_RegisterShaderNoMip( iconName );
+//			loadingPlayerIcons[loadingPlayerIconCount++] = engine->trap_R_RegisterShaderNoMip( iconName );
 //		}
 	}
 
@@ -150,7 +150,7 @@ void CG_LoadingClient( int clientNum ) {
 	Q_CleanStr( personality );
 
 	if ( cgs.gametype == GT_SINGLE_PLAYER ) {
-		trap_S_RegisterSound( va( "sound/player/announce/%s.wav", personality ) );
+		engine->trap_S_RegisterSound( va( "sound/player/announce/%s.wav", personality ) );
 	}
 
 	CG_LoadingString( personality );
@@ -463,7 +463,7 @@ void CG_DrawInformation( void ) {
 		return;
 	}
 
-	ms = trap_Milliseconds();
+	ms = engine->trap_Milliseconds();
 	if ( ( lastDraw <= ms ) && ( lastDraw > ms - 100 ) ) {
 		return;
 	}
@@ -474,7 +474,7 @@ void CG_DrawInformation( void ) {
 	info = CG_ConfigString( CS_SERVERINFO );
 	sysInfo = CG_ConfigString( CS_SYSTEMINFO );
 
-	trap_Cvar_VariableStringBuffer( "com_expectedhunkusage", hunkBuf, MAX_QPATH );
+	engine->trap_Cvar_VariableStringBuffer( "com_expectedhunkusage", hunkBuf, MAX_QPATH );
 	expectedHunk = atoi( hunkBuf );
 
 
@@ -483,19 +483,19 @@ void CG_DrawInformation( void ) {
 	//----(SA)	just the briefing now
 
 	if ( s && s[0] != 0 ) {  // there is often no 's'
-		levelshot = trap_R_RegisterShaderNoMip( va( "levelshots/%s.tga", s ) );
+		levelshot = engine->trap_R_RegisterShaderNoMip( va( "levelshots/%s.tga", s ) );
 	}
 
 	if ( !levelshot ) {
-		levelshot = trap_R_RegisterShaderNoMip( "menu/art/unknownmap" );
+		levelshot = engine->trap_R_RegisterShaderNoMip( "menu/art/unknownmap" );
 	}
 
-	trap_R_SetColor( NULL );
+	engine->trap_R_SetColor( NULL );
 //	CG_DrawPic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, levelshot );
 
 	// blend a detail texture over it
-	//detail = trap_R_RegisterShader( "levelShotDetail" );
-	//trap_R_DrawStretchPic( 0, 0, cgs.glconfig.vidWidth, cgs.glconfig.vidHeight, 0, 0, 2.5, 2, detail );
+	//detail = engine->trap_R_RegisterShader( "levelShotDetail" );
+	//engine->trap_R_DrawStretchPic( 0, 0, cgs.glconfig.vidWidth, cgs.glconfig.vidHeight, 0, 0, 2.5, 2, detail );
 
 
 // (SA) commented out for Drew
@@ -522,7 +522,7 @@ void CG_DrawInformation( void ) {
 									   UI_CENTER | UI_EXSMALLFONT | UI_DROPSHADOW, color );
 		}
 
-		trap_UpdateScreen();
+		engine->trap_UpdateScreen();
 		callCount--;
 		return;
 	}
@@ -545,9 +545,9 @@ void CG_DrawInformation( void ) {
 			}
 		}
 
-		trap_UI_Popup( "briefing" );
+		engine->trap_UI_Popup( "briefing" );
 
-		trap_UpdateScreen();
+		engine->trap_UpdateScreen();
 		callCount--;
 		return;
 	}
@@ -572,7 +572,7 @@ void CG_DrawInformation( void ) {
 	y = 180;
 
 	// don't print server lines if playing a local game
-	trap_Cvar_VariableStringBuffer( "sv_running", buf, sizeof( buf ) );
+	engine->trap_Cvar_VariableStringBuffer( "sv_running", buf, sizeof( buf ) );
 	if ( !atoi( buf ) ) {
 		// server hostname
 		s = Info_ValueForKey( info, "sv_hostname" );

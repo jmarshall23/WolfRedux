@@ -80,7 +80,7 @@ void CG_FreeLocalEntity( localEntity_t *le ) {
 
 	// Ridah, debugging
 	localEntCount--;
-//	trap_Print( va("FreeLocalEntity: locelEntCount = %d\n", localEntCount) );
+//	engine->trap_Print( va("FreeLocalEntity: locelEntCount = %d\n", localEntCount) );
 	// done.
 
 	// remove from the doubly linked active list
@@ -110,7 +110,7 @@ localEntity_t   *CG_AllocLocalEntity( void ) {
 
 	// Ridah, debugging
 	localEntCount++;
-//	trap_Print( va("AllocLocalEntity: locelEntCount = %d\n", localEntCount) );
+//	engine->trap_Print( va("AllocLocalEntity: locelEntCount = %d\n", localEntCount) );
 	// done.
 
 	le = cg_freeLocalEntities;
@@ -256,7 +256,7 @@ void CG_FragmentBounceSound( localEntity_t *le, trace_t *trace ) {
 			} else {
 				s = cgs.media.gibBounce3Sound;
 			}
-			trap_S_StartSound( trace->endpos, ENTITYNUM_WORLD, CHAN_AUTO, s );
+			engine->trap_S_StartSound( trace->endpos, ENTITYNUM_WORLD, CHAN_AUTO, s );
 		}
 	} else if ( le->leBounceSoundType == LEBS_BRASS ) {
 
@@ -274,13 +274,13 @@ void CG_FragmentBounceSound( localEntity_t *le, trace_t *trace ) {
 			} else {
 				s = cgs.media.debBounce3Sound;
 			}
-			trap_S_StartSound( trace->endpos, ENTITYNUM_WORLD, CHAN_AUTO, s );
+			engine->trap_S_StartSound( trace->endpos, ENTITYNUM_WORLD, CHAN_AUTO, s );
 		}
 //----(SA) end
 
 	} else if ( le->leBounceSoundType == LEBS_BONE ) {
 
-		trap_S_StartSound( trace->endpos, ENTITYNUM_WORLD, CHAN_AUTO, cgs.media.boneBounceSound );
+		engine->trap_S_StartSound( trace->endpos, ENTITYNUM_WORLD, CHAN_AUTO, cgs.media.boneBounceSound );
 
 	}
 
@@ -443,7 +443,7 @@ void CG_AddFragment( localEntity_t *le ) {
 		if ( flameAlpha > 1.0 ) {
 			flameAlpha = 1.0;
 		}
-		trap_S_AddLoopingSound( -1, le->refEntity.origin, vec3_origin, cgs.media.flameCrackSound, (int)( 5.0 * flameAlpha ) );
+		engine->trap_S_AddLoopingSound( -1, le->refEntity.origin, vec3_origin, cgs.media.flameCrackSound, (int)( 5.0 * flameAlpha ) );
 	}
 
 //----(SA)	added
@@ -482,15 +482,15 @@ void CG_AddFragment( localEntity_t *le ) {
 			le->refEntity.shaderRGBA[3] = ( unsigned char )( 255.0 * flameAlpha );
 			VectorCopy( flameDir, le->refEntity.fireRiseDir );
 			le->refEntity.customShader = cgs.media.onFireShader;
-			trap_R_AddRefEntityToScene( &le->refEntity );
+			engine->trap_R_AddRefEntityToScene( &le->refEntity );
 			le->refEntity.customShader = cgs.media.onFireShader2;
-			trap_R_AddRefEntityToScene( &le->refEntity );
+			engine->trap_R_AddRefEntityToScene( &le->refEntity );
 
 			le->refEntity = backupEnt;
 		}
 
 		t = le->endTime - cg.time;
-		trap_R_AddRefEntityToScene( &le->refEntity );
+		engine->trap_R_AddRefEntityToScene( &le->refEntity );
 
 		return;
 
@@ -509,15 +509,15 @@ void CG_AddFragment( localEntity_t *le ) {
 			le->refEntity.shaderRGBA[3] = ( unsigned char )( 255.0 * flameAlpha );
 			VectorCopy( flameDir, le->refEntity.fireRiseDir );
 			le->refEntity.customShader = cgs.media.onFireShader;
-			trap_R_AddRefEntityToScene( &le->refEntity );
+			engine->trap_R_AddRefEntityToScene( &le->refEntity );
 			le->refEntity.customShader = cgs.media.onFireShader2;
-			trap_R_AddRefEntityToScene( &le->refEntity );
+			engine->trap_R_AddRefEntityToScene( &le->refEntity );
 
 			le->refEntity = backupEnt;
 		}
 
 		t = le->endTime - cg.time;
-		trap_R_AddRefEntityToScene( &le->refEntity );
+		engine->trap_R_AddRefEntityToScene( &le->refEntity );
 
 
 		// trace a line from previous position down, to see if I should start falling again
@@ -544,11 +544,11 @@ void CG_AddFragment( localEntity_t *le ) {
 		if ( VectorLength( flameDir ) == 0 ) {
 			flameDir[2] = 1;
 			// play a burning sound when not moving
-			trap_S_AddLoopingSound( 0, newOrigin, vec3_origin, cgs.media.flameSound, (int)( 0.3 * 255.0 * flameAlpha ) );
+			engine->trap_S_AddLoopingSound( 0, newOrigin, vec3_origin, cgs.media.flameSound, (int)( 0.3 * 255.0 * flameAlpha ) );
 		} else {
 			VectorNormalize( flameDir );
 			// play a flame blow sound when moving
-			trap_S_AddLoopingSound( 0, newOrigin, vec3_origin, cgs.media.flameBlowSound, (int)( 0.3 * 255.0 * flameAlpha ) );
+			engine->trap_S_AddLoopingSound( 0, newOrigin, vec3_origin, cgs.media.flameBlowSound, (int)( 0.3 * 255.0 * flameAlpha ) );
 		}
 	}
 
@@ -580,7 +580,7 @@ void CG_AddFragment( localEntity_t *le ) {
 				}
 			}
 			if ( i == 3 ) {
-				trap_S_StartSound( cg.snap->ps.origin, cg.snap->ps.clientNum, CHAN_VOICE, cgs.media.debrisHitSound );
+				engine->trap_S_StartSound( cg.snap->ps.origin, cg.snap->ps.clientNum, CHAN_VOICE, cgs.media.debrisHitSound );
 				CG_ClientDamage( cg.snap->ps.clientNum, ENTITYNUM_WORLD, CLDMG_DEBRIS );
 				// disable damage now for this debris
 				le->leFlags &= ~LEF_PLAYER_DAMAGE;
@@ -612,14 +612,14 @@ void CG_AddFragment( localEntity_t *le ) {
 			le->refEntity.shaderRGBA[3] = ( unsigned char )( 255.0 * flameAlpha );
 			VectorCopy( flameDir, le->refEntity.fireRiseDir );
 			le->refEntity.customShader = cgs.media.onFireShader;
-			trap_R_AddRefEntityToScene( &le->refEntity );
+			engine->trap_R_AddRefEntityToScene( &le->refEntity );
 			le->refEntity.customShader = cgs.media.onFireShader2;
-			trap_R_AddRefEntityToScene( &le->refEntity );
+			engine->trap_R_AddRefEntityToScene( &le->refEntity );
 
 			le->refEntity = backupEnt;
 		}
 
-		trap_R_AddRefEntityToScene( &le->refEntity );
+		engine->trap_R_AddRefEntityToScene( &le->refEntity );
 
 		// add a blood trail
 		if ( le->leBounceSoundType == LEBS_BLOOD ) {
@@ -632,7 +632,7 @@ void CG_AddFragment( localEntity_t *le ) {
 	// if it is in a nodrop zone, remove it
 	// this keeps gibs from waiting at the bottom of pits of death
 	// and floating levels
-	if ( trap_CM_PointContents( trace.endpos, 0 ) & CONTENTS_NODROP ) {
+	if ( engine->trap_CM_PointContents( trace.endpos, 0 ) & CONTENTS_NODROP ) {
 		CG_FreeLocalEntity( le );
 		return;
 	}
@@ -712,14 +712,14 @@ void CG_AddFragment( localEntity_t *le ) {
 		le->refEntity.shaderRGBA[3] = ( unsigned char )( 255.0 * flameAlpha );
 		VectorCopy( flameDir, le->refEntity.fireRiseDir );
 		le->refEntity.customShader = cgs.media.onFireShader;
-		trap_R_AddRefEntityToScene( &le->refEntity );
+		engine->trap_R_AddRefEntityToScene( &le->refEntity );
 		le->refEntity.customShader = cgs.media.onFireShader2;
-		trap_R_AddRefEntityToScene( &le->refEntity );
+		engine->trap_R_AddRefEntityToScene( &le->refEntity );
 
 		le->refEntity = backupEnt;
 	}
 
-	trap_R_AddRefEntityToScene( &le->refEntity );
+	engine->trap_R_AddRefEntityToScene( &le->refEntity );
 }
 
 // Ridah
@@ -796,7 +796,7 @@ void CG_AddSparkElements( localEntity_t *le ) {
 		// this keeps gibs from waiting at the bottom of pits of death
 		// and floating levels
 // for some reason SFM1.BSP is one big NODROP zone
-//		if ( trap_CM_PointContents( le->refEntity.origin, 0 ) & CONTENTS_NODROP ) {
+//		if ( engine->trap_CM_PointContents( le->refEntity.origin, 0 ) & CONTENTS_NODROP ) {
 //			CG_FreeLocalEntity( le );
 //			return;
 //		}
@@ -1119,14 +1119,14 @@ void CG_AddClientCritter( localEntity_t *le ) {
 
 		// now trace ahead of time, if we're going to hit something, then avoid it
 		// only avoid dangers if we don't have direct sight to the enemy
-		trap_CM_BoxTrace( &trace, le->refEntity.origin, enemyPos, NULL, NULL, 0, MASK_SOLID );
+		engine->trap_CM_BoxTrace( &trace, le->refEntity.origin, enemyPos, NULL, NULL, 0, MASK_SOLID );
 		if ( trace.fraction < 1.0 ) {
 			BG_EvaluateTrajectory( &le->pos, time + 1000, newOrigin );
 
 			// if we would go passed the enemy, don't bother
 			if ( VectorDistance( le->refEntity.origin, enemyPos ) > VectorDistance( le->refEntity.origin, newOrigin ) ) {
 
-				trap_CM_BoxTrace( &trace, le->refEntity.origin, newOrigin, NULL, NULL, 0, MASK_SOLID );
+				engine->trap_CM_BoxTrace( &trace, le->refEntity.origin, newOrigin, NULL, NULL, 0, MASK_SOLID );
 
 				if ( trace.fraction < 1.0 ) {
 					// make sure we are not heading away from the enemy too much
@@ -1210,9 +1210,9 @@ void CG_AddClientCritter( localEntity_t *le ) {
 	// add the sound
 	if ( le->loopingSound ) {
 		if ( cg.time > le->refEntity.fadeStartTime ) {
-			trap_S_AddLoopingSound( 0, le->refEntity.origin, vec3_origin, le->loopingSound, 255 - (int)( 255.0 * (float)( cg.time - le->refEntity.fadeStartTime ) / (float)( le->refEntity.fadeEndTime - le->refEntity.fadeStartTime ) ) );
+			engine->trap_S_AddLoopingSound( 0, le->refEntity.origin, vec3_origin, le->loopingSound, 255 - (int)( 255.0 * (float)( cg.time - le->refEntity.fadeStartTime ) / (float)( le->refEntity.fadeEndTime - le->refEntity.fadeStartTime ) ) );
 		} else {
-			trap_S_AddLoopingSound( 0, le->refEntity.origin, vec3_origin, le->loopingSound, 255 - (int)( 255.0 * ( 1.0 - alpha ) ) );
+			engine->trap_S_AddLoopingSound( 0, le->refEntity.origin, vec3_origin, le->loopingSound, 255 - (int)( 255.0 * ( 1.0 - alpha ) ) );
 		}
 	}
 /*
@@ -1233,13 +1233,13 @@ void CG_AddClientCritter( localEntity_t *le ) {
 			re.shaderTime = le->refEntity.shaderTime - cnt*100;
 			VectorCopy( le->oldPos[i], re.origin );
 			re.shaderRGBA[3] = (unsigned char)(255.0 * alpha);
-			trap_R_AddRefEntityToScene( &re );
+			engine->trap_R_AddRefEntityToScene( &re );
 
 			if (--i<0) i=MAX_OLD_POS-1;
 			cnt++;
 		}
 	} else {
-*/  trap_R_AddRefEntityToScene( &le->refEntity );
+*/  engine->trap_R_AddRefEntityToScene( &le->refEntity );
 //	}
 
 	// Bats, add the flame
@@ -1252,9 +1252,9 @@ void CG_AddClientCritter( localEntity_t *le ) {
 		VectorNormalize2( v, le->refEntity.fireRiseDir );
 
 		le->refEntity.customShader = cgs.media.onFireShader2;
-		trap_R_AddRefEntityToScene( &le->refEntity );
+		engine->trap_R_AddRefEntityToScene( &le->refEntity );
 		le->refEntity.shaderTime = 1434;
-		trap_R_AddRefEntityToScene( &le->refEntity );
+		engine->trap_R_AddRefEntityToScene( &le->refEntity );
 
 		le->refEntity.customShader = 0;
 		le->refEntity.shaderTime = 0;
@@ -1332,7 +1332,7 @@ void CG_AddDebrisElements( localEntity_t *le ) {
 		// if it is in a nodrop zone, remove it
 		// this keeps gibs from waiting at the bottom of pits of death
 		// and floating levels
-//		if ( trap_CM_PointContents( trace.endpos, 0 ) & CONTENTS_NODROP ) {
+//		if ( engine->trap_CM_PointContents( trace.endpos, 0 ) & CONTENTS_NODROP ) {
 //			CG_FreeLocalEntity( le );
 //			return;
 //		}
@@ -1377,10 +1377,10 @@ void CG_AddShrapnel( localEntity_t *le ) {
 			le->refEntity.renderfx |= RF_LIGHTING_ORIGIN;
 			oldZ = le->refEntity.origin[2];
 			le->refEntity.origin[2] -= 16 * ( 1.0 - (float)t / SINK_TIME );
-			trap_R_AddRefEntityToScene( &le->refEntity );
+			engine->trap_R_AddRefEntityToScene( &le->refEntity );
 			le->refEntity.origin[2] = oldZ;
 		} else {
-			trap_R_AddRefEntityToScene( &le->refEntity );
+			engine->trap_R_AddRefEntityToScene( &le->refEntity );
 			CG_AddParticleShrapnel( le );
 		}
 
@@ -1403,7 +1403,7 @@ void CG_AddShrapnel( localEntity_t *le ) {
 			AnglesToAxis( angles, le->refEntity.axis );
 		}
 
-		trap_R_AddRefEntityToScene( &le->refEntity );
+		engine->trap_R_AddRefEntityToScene( &le->refEntity );
 		CG_AddParticleShrapnel( le );
 		return;
 	}
@@ -1411,7 +1411,7 @@ void CG_AddShrapnel( localEntity_t *le ) {
 	// if it is in a nodrop zone, remove it
 	// this keeps gibs from waiting at the bottom of pits of death
 	// and floating levels
-	if ( trap_CM_PointContents( trace.endpos, 0 ) & CONTENTS_NODROP ) {
+	if ( engine->trap_CM_PointContents( trace.endpos, 0 ) & CONTENTS_NODROP ) {
 		CG_FreeLocalEntity( le );
 		return;
 	}
@@ -1425,7 +1425,7 @@ void CG_AddShrapnel( localEntity_t *le ) {
 	// reflect the velocity on the trace plane
 	CG_ReflectVelocity( le, &trace );
 
-	trap_R_AddRefEntityToScene( &le->refEntity );
+	engine->trap_R_AddRefEntityToScene( &le->refEntity );
 	CG_AddParticleShrapnel( le );
 }
 // done.
@@ -1458,7 +1458,7 @@ void CG_AddFadeRGB( localEntity_t *le ) {
 	re->shaderRGBA[2] = le->color[2] * c;
 	re->shaderRGBA[3] = le->color[3] * c;
 
-	trap_R_AddRefEntityToScene( re );
+	engine->trap_R_AddRefEntityToScene( re );
 }
 
 /*
@@ -1506,7 +1506,7 @@ static void CG_AddMoveScaleFade( localEntity_t *le ) {
 		return;
 	}
 
-	trap_R_AddRefEntityToScene( re );
+	engine->trap_R_AddRefEntityToScene( re );
 }
 
 
@@ -1544,7 +1544,7 @@ static void CG_AddScaleFade( localEntity_t *le ) {
 		return;
 	}
 
-	trap_R_AddRefEntityToScene( re );
+	engine->trap_R_AddRefEntityToScene( re );
 }
 
 
@@ -1584,7 +1584,7 @@ static void CG_AddFallScaleFade( localEntity_t *le ) {
 		return;
 	}
 
-	trap_R_AddRefEntityToScene( re );
+	engine->trap_R_AddRefEntityToScene( re );
 }
 
 
@@ -1602,7 +1602,7 @@ static void CG_AddExplosion( localEntity_t *ex ) {
 	// add the entity
 	// RF, don't add if shader is invalid
 	if ( ent->customShader >= 0 ) {
-		trap_R_AddRefEntityToScene( ent );
+		engine->trap_R_AddRefEntityToScene( ent );
 	}
 
 	// add the dlight
@@ -1616,7 +1616,7 @@ static void CG_AddExplosion( localEntity_t *ex ) {
 			light = 1.0 - ( light - 0.5 ) * 2;
 		}
 		light = ex->light * light;
-		trap_R_AddLightToScene( ent->origin, light, ex->lightColor[0], ex->lightColor[1], ex->lightColor[2], 0 );
+		engine->trap_R_AddLightToScene( ent->origin, light, ex->lightColor[0], ex->lightColor[1], ex->lightColor[2], 0 );
 	}
 }
 
@@ -1650,7 +1650,7 @@ static void CG_AddSpriteExplosion( localEntity_t *le ) {
 
 	// RF, don't add if shader is invalid
 	if ( re.customShader >= 0 ) {
-		trap_R_AddRefEntityToScene( &re );
+		engine->trap_R_AddRefEntityToScene( &re );
 	}
 
 	// add the dlight
@@ -1666,7 +1666,7 @@ static void CG_AddSpriteExplosion( localEntity_t *le ) {
 			light = 1.0 - ( light - 0.5 ) * 2;
 		}
 		light = le->light * light;
-		trap_R_AddLightToScene(re.origin, light, le->lightColor[0], le->lightColor[1], le->lightColor[2], 0 );
+		engine->trap_R_AddLightToScene(re.origin, light, le->lightColor[0], le->lightColor[1], le->lightColor[2], 0 );
 		*/
 		light = (float)( cg.time - le->startTime ) / ( le->endTime - le->startTime );
 		if ( light < 0.5 ) {
@@ -1674,7 +1674,7 @@ static void CG_AddSpriteExplosion( localEntity_t *le ) {
 		} else {
 			light = 1.0 - ( light - 0.5 ) * 2;
 		}
-		trap_R_AddLightToScene( re.origin, le->light, light * le->lightColor[0], light * le->lightColor[1], light * le->lightColor[2], 0 );
+		engine->trap_R_AddLightToScene( re.origin, le->light, light * le->lightColor[0], light * le->lightColor[1], light * le->lightColor[2], 0 );
 		// done.
 	}
 }

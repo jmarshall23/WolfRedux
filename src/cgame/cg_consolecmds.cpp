@@ -48,8 +48,8 @@ void CG_TargetCommand_f( void ) {
 		return;
 	}
 
-	trap_Argv( 1, test, 4 );
-	trap_SendConsoleCommand( va( "gc %i %i", targetNum, atoi( test ) ) );
+	engine->trap_Argv( 1, test, 4 );
+	engine->trap_SendConsoleCommand( va( "gc %i %i", targetNum, atoi( test ) ) );
 }
 
 
@@ -62,7 +62,7 @@ Keybinding command
 =================
 */
 static void CG_SizeUp_f( void ) {
-	trap_Cvar_Set( "cg_viewsize", va( "%i",(int)( cg_viewsize.integer + 10 ) ) );
+	engine->trap_Cvar_Set( "cg_viewsize", va( "%i",(int)( cg_viewsize.integer + 10 ) ) );
 }
 
 
@@ -74,7 +74,7 @@ Keybinding command
 =================
 */
 static void CG_SizeDown_f( void ) {
-	trap_Cvar_Set( "cg_viewsize", va( "%i",(int)( cg_viewsize.integer - 10 ) ) );
+	engine->trap_Cvar_Set( "cg_viewsize", va( "%i",(int)( cg_viewsize.integer - 10 ) ) );
 }
 
 
@@ -97,7 +97,7 @@ static void CG_ScoresDown_f( void ) {
 		// the scores are more than two seconds out of data,
 		// so request new ones
 		cg.scoresRequestTime = cg.time;
-		trap_SendClientCommand( "score" );
+		engine->trap_SendClientCommand( "score" );
 
 		// leave the current scores up if they were already
 		// displayed, but if this is the first hit, clear them out
@@ -131,7 +131,7 @@ static void CG_LoadHud_f( void ) {
 	String_Init();
 	Menu_Reset();
 
-	trap_Cvar_VariableStringBuffer( "cg_hudFiles", buff, sizeof( buff ) );
+	engine->trap_Cvar_VariableStringBuffer( "cg_hudFiles", buff, sizeof( buff ) );
 	hudSet = buff;
 	if ( hudSet[0] == '\0' ) {
 		hudSet = "ui/hud.txt";
@@ -162,24 +162,24 @@ static void CG_scrollScoresUp_f( void) {
 
 
 static void CG_spWin_f( void) {
-	trap_Cvar_Set("cg_cameraOrbit", "2");
-	trap_Cvar_Set("cg_cameraOrbitDelay", "35");
-	trap_Cvar_Set("cg_thirdPerson", "1");
-	trap_Cvar_Set("cg_thirdPersonAngle", "0");
-	trap_Cvar_Set("cg_thirdPersonRange", "100");
+	engine->trap_Cvar_Set("cg_cameraOrbit", "2");
+	engine->trap_Cvar_Set("cg_cameraOrbitDelay", "35");
+	engine->trap_Cvar_Set("cg_thirdPerson", "1");
+	engine->trap_Cvar_Set("cg_thirdPersonAngle", "0");
+	engine->trap_Cvar_Set("cg_thirdPersonRange", "100");
 //	CG_AddBufferedSound(cgs.media.winnerSound);
-	//trap_S_StartLocalSound(cgs.media.winnerSound, CHAN_ANNOUNCER);
+	//engine->trap_S_StartLocalSound(cgs.media.winnerSound, CHAN_ANNOUNCER);
 	CG_CenterPrint("YOU WIN!", SCREEN_HEIGHT * .30, 0);
 }
 
 static void CG_spLose_f( void) {
-	trap_Cvar_Set("cg_cameraOrbit", "2");
-	trap_Cvar_Set("cg_cameraOrbitDelay", "35");
-	trap_Cvar_Set("cg_thirdPerson", "1");
-	trap_Cvar_Set("cg_thirdPersonAngle", "0");
-	trap_Cvar_Set("cg_thirdPersonRange", "100");
+	engine->trap_Cvar_Set("cg_cameraOrbit", "2");
+	engine->trap_Cvar_Set("cg_cameraOrbitDelay", "35");
+	engine->trap_Cvar_Set("cg_thirdPerson", "1");
+	engine->trap_Cvar_Set("cg_thirdPersonAngle", "0");
+	engine->trap_Cvar_Set("cg_thirdPersonRange", "100");
 //	CG_AddBufferedSound(cgs.media.loserSound);
-	//trap_S_StartLocalSound(cgs.media.loserSound, CHAN_ANNOUNCER);
+	//engine->trap_S_StartLocalSound(cgs.media.loserSound, CHAN_ANNOUNCER);
 	CG_CenterPrint("YOU LOSE...", SCREEN_HEIGHT * .30, 0);
 }
 */
@@ -206,9 +206,9 @@ static void CG_TellTarget_f( void ) {
 		return;
 	}
 
-	trap_Args( message, 128 );
+	engine->trap_Args( message, 128 );
 	Com_sprintf( command, 128, "tell %i %s", clientNum, message );
-	trap_SendClientCommand( command );
+	engine->trap_SendClientCommand( command );
 }
 
 static void CG_TellAttacker_f( void ) {
@@ -221,9 +221,9 @@ static void CG_TellAttacker_f( void ) {
 		return;
 	}
 
-	trap_Args( message, 128 );
+	engine->trap_Args( message, 128 );
 	Com_sprintf( command, 128, "tell %i %s", clientNum, message );
-	trap_SendClientCommand( command );
+	engine->trap_SendClientCommand( command );
 }
 
 // TTimo: unused
@@ -246,7 +246,7 @@ int CG_LoadCamera( const char *name ) {
 	int i;
 	for ( i = 1; i < MAX_CAMERAS; i++ ) {    // start at '1' since '0' is always taken by the cutscene camera
 		if ( !cameraInuse[i] ) {
-			if ( trap_loadCamera( i, name ) ) {
+			if ( engine->trap_loadCamera( i, name ) ) {
 				cameraInuse[i] = qtrue;
 				return i;
 			}
@@ -273,21 +273,21 @@ void CG_StartCamera( const char *name, qboolean startBlack ) {
 	COM_StripExtension( name, lname );    //----(SA)	added
 	strcat( lname, ".camera" );
 
-	if ( trap_loadCamera( CAM_PRIMARY, va( "cameras/%s", lname ) ) ) {
+	if ( engine->trap_loadCamera( CAM_PRIMARY, va( "cameras/%s", lname ) ) ) {
 		cg.cameraMode = qtrue;                  // camera on in cgame
 		if ( startBlack ) {
 			CG_Fade( 0, 0, 0, 255, cg.time, 0 );  // go black
 		}
-		trap_Cvar_Set( "cg_letterbox", "1" ); // go letterbox
-		trap_SendClientCommand( "startCamera" );   // camera on in game
-		trap_startCamera( CAM_PRIMARY, cg.time ); // camera on in client
+		engine->trap_Cvar_Set( "cg_letterbox", "1" ); // go letterbox
+		engine->trap_SendClientCommand( "startCamera" );   // camera on in game
+		engine->trap_startCamera( CAM_PRIMARY, cg.time ); // camera on in client
 	} else {
 //----(SA)	removed check for cams in main dir
 		cg.cameraMode = qfalse;                 // camera off in cgame
-		trap_SendClientCommand( "stopCamera" );    // camera off in game
-		trap_stopCamera( CAM_PRIMARY );           // camera off in client
+		engine->trap_SendClientCommand( "stopCamera" );    // camera off in game
+		engine->trap_stopCamera( CAM_PRIMARY );           // camera off in client
 		CG_Fade( 0, 0, 0, 0, cg.time, 0 );        // ensure fadeup
-		trap_Cvar_Set( "cg_letterbox", "0" );
+		engine->trap_Cvar_Set( "cg_letterbox", "0" );
 		CG_Printf( "Unable to load camera %s\n",lname );
 	}
 }
@@ -299,9 +299,9 @@ CG_SopCamera
 */
 void CG_StopCamera( void ) {
 	cg.cameraMode = qfalse;                 // camera off in cgame
-	trap_SendClientCommand( "stopCamera" );    // camera off in game
-	trap_stopCamera( CAM_PRIMARY );           // camera off in client
-	trap_Cvar_Set( "cg_letterbox", "0" );
+	engine->trap_SendClientCommand( "stopCamera" );    // camera off in game
+	engine->trap_stopCamera( CAM_PRIMARY );           // camera off in client
+	engine->trap_Cvar_Set( "cg_letterbox", "0" );
 
 	// fade back into world
 	CG_Fade( 0, 0, 0, 255, 0, 0 );
@@ -311,7 +311,7 @@ void CG_StopCamera( void ) {
 
 static void CG_Camera_f( void ) {
 	char name[MAX_QPATH];
-	trap_Argv( 1, name, sizeof( name ) );
+	engine->trap_Argv( 1, name, sizeof( name ) );
 
 	CG_StartCamera( name, qfalse );
 }
@@ -320,7 +320,7 @@ static void CG_Fade_f( void ) {
 	int r, g, b, a;
 	float duration;
 
-	if ( trap_Argc() < 6 ) {
+	if ( engine->trap_Argc() < 6 ) {
 		return;
 	}
 
@@ -345,15 +345,15 @@ static void CG_PickTeam_f( void ) {
 		return;
 
 	// set map title
-	trap_Cvar_VariableStringBuffer( "sv_mapname", buf, sizeof( buf ) );
-	trap_Cvar_Set( "mp_mapTitle", "MAP" ); //buf );
+	engine->trap_Cvar_VariableStringBuffer( "sv_mapname", buf, sizeof( buf ) );
+	engine->trap_Cvar_Set( "mp_mapTitle", "MAP" ); //buf );
 
 	// set map description
 	s = CG_ConfigString( CS_MULTI_MAPDESC );
 	if ( s )
-		trap_Cvar_Set( "mp_mapDesc", s );
+		engine->trap_Cvar_Set( "mp_mapDesc", s );
 
-	trap_UI_Popup( "UIMENU_WM_PICKTEAM" );
+	engine->trap_UI_Popup( "UIMENU_WM_PICKTEAM" );
 }
 
 static void CG_PickPlayer_f( void ) {
@@ -364,15 +364,15 @@ static void CG_PickPlayer_f( void ) {
 		return;
 
 	// set map title
-	trap_Cvar_VariableStringBuffer( "sv_mapname", buf, sizeof( buf ) );
-	trap_Cvar_Set( "mp_mapTitle", "MAP" ); //buf );
+	engine->trap_Cvar_VariableStringBuffer( "sv_mapname", buf, sizeof( buf ) );
+	engine->trap_Cvar_Set( "mp_mapTitle", "MAP" ); //buf );
 
 	// set map description
 	s = CG_ConfigString( CS_MULTI_MAPDESC );
 	if ( s )
-		trap_Cvar_Set( "mp_mapDesc", s );
+		engine->trap_Cvar_Set( "mp_mapDesc", s );
 
-	trap_UI_Popup( "UIMENU_WM_PICKPLAYER" );
+	engine->trap_UI_Popup( "UIMENU_WM_PICKPLAYER" );
 }
 */
 
@@ -380,21 +380,21 @@ static void CG_QuickMessage_f( void ) {
 	if ( cgs.gametype != GT_WOLF ) {
 		return;
 	}
-	trap_UI_Popup( "UIMENU_WM_QUICKMESSAGE" );
+	engine->trap_UI_Popup( "UIMENU_WM_QUICKMESSAGE" );
 }
 
 static void CG_OpenLimbo_f( void ) {
 	if ( cgs.gametype != GT_WOLF ) {
 		return;
 	}
-	trap_UI_Popup( "UIMENU_WM_LIMBO" );
+	engine->trap_UI_Popup( "UIMENU_WM_LIMBO" );
 }
 
 static void CG_CloseLimbo_f( void ) {
 	if ( cgs.gametype != GT_WOLF ) {
 		return;
 	}
-	trap_UI_ClosePopup( "UIMENU_WM_LIMBO" );
+	engine->trap_UI_ClosePopup( "UIMENU_WM_LIMBO" );
 }
 
 static void CG_LimboMessage_f( void ) {
@@ -501,48 +501,48 @@ void CG_InitConsoleCommands( void ) {
 	int i;
 
 	for ( i = 0 ; i < sizeof( commands ) / sizeof( commands[0] ) ; i++ ) {
-		trap_AddCommand( commands[i].cmd );
+		engine->trap_AddCommand( commands[i].cmd );
 	}
 
 	//
 	// the game server will interpret these commands, which will be automatically
 	// forwarded to the server after they are not recognized locally
 	//
-	trap_AddCommand( "kill" );
-	trap_AddCommand( "say" );
-	trap_AddCommand( "say_team" );
-	trap_AddCommand( "say_limbo" );           // NERVE - SMF
-	trap_AddCommand( "tell" );
-//	trap_AddCommand ("vsay");
-//	trap_AddCommand ("vsay_team");
-//	trap_AddCommand ("vtell");
-//	trap_AddCommand ("vtaunt");
-//	trap_AddCommand ("vosay");
-//	trap_AddCommand ("vosay_team");
-//	trap_AddCommand ("votell");
-	trap_AddCommand( "give" );
-	trap_AddCommand( "god" );
-	trap_AddCommand( "notarget" );
-	trap_AddCommand( "noclip" );
-	trap_AddCommand( "team" );
-	trap_AddCommand( "follow" );
-	trap_AddCommand( "levelshot" );
-	trap_AddCommand( "addbot" );
-	trap_AddCommand( "setviewpos" );
-	trap_AddCommand( "callvote" );
-	trap_AddCommand( "vote" );
-//	trap_AddCommand ("callteamvote");
-//	trap_AddCommand ("teamvote");
-	trap_AddCommand( "stats" );
-//	trap_AddCommand ("teamtask");
-	trap_AddCommand( "loaddeferred" );        // spelling fixed (SA)
+	engine->trap_AddCommand( "kill" );
+	engine->trap_AddCommand( "say" );
+	engine->trap_AddCommand( "say_team" );
+	engine->trap_AddCommand( "say_limbo" );           // NERVE - SMF
+	engine->trap_AddCommand( "tell" );
+//	engine->trap_AddCommand ("vsay");
+//	engine->trap_AddCommand ("vsay_team");
+//	engine->trap_AddCommand ("vtell");
+//	engine->trap_AddCommand ("vtaunt");
+//	engine->trap_AddCommand ("vosay");
+//	engine->trap_AddCommand ("vosay_team");
+//	engine->trap_AddCommand ("votell");
+	engine->trap_AddCommand( "give" );
+	engine->trap_AddCommand( "god" );
+	engine->trap_AddCommand( "notarget" );
+	engine->trap_AddCommand( "noclip" );
+	engine->trap_AddCommand( "team" );
+	engine->trap_AddCommand( "follow" );
+	engine->trap_AddCommand( "levelshot" );
+	engine->trap_AddCommand( "addbot" );
+	engine->trap_AddCommand( "setviewpos" );
+	engine->trap_AddCommand( "callvote" );
+	engine->trap_AddCommand( "vote" );
+//	engine->trap_AddCommand ("callteamvote");
+//	engine->trap_AddCommand ("teamvote");
+	engine->trap_AddCommand( "stats" );
+//	engine->trap_AddCommand ("teamtask");
+	engine->trap_AddCommand( "loaddeferred" );        // spelling fixed (SA)
 
-	trap_AddCommand( "startCamera" );
-	trap_AddCommand( "stopCamera" );
-	trap_AddCommand( "setCameraOrigin" );
+	engine->trap_AddCommand( "startCamera" );
+	engine->trap_AddCommand( "stopCamera" );
+	engine->trap_AddCommand( "setCameraOrigin" );
 
 	// Rafael
-	trap_AddCommand( "nofatigue" );
+	engine->trap_AddCommand( "nofatigue" );
 
-	trap_AddCommand( "setspawnpt" );          // NERVE - SMF
+	engine->trap_AddCommand( "setspawnpt" );          // NERVE - SMF
 }

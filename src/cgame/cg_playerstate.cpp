@@ -96,7 +96,7 @@ void CG_CheckAmmo( void ) {
 
 	if ( !cg.lowAmmoWarning ) {
 		// play a sound on this transition
-		trap_S_StartLocalSound( cgs.media.noAmmoSound, CHAN_LOCAL_SOUND );
+		engine->trap_S_StartLocalSound( cgs.media.noAmmoSound, CHAN_LOCAL_SOUND );
 	}
 
 	if ( total == 0 ) {
@@ -262,15 +262,15 @@ void CG_Respawn( void ) {
 	cg.zoomval = 0;
 
 	// reset fog to world fog (if present)
-//	trap_R_SetFog(FOG_CMD_SWITCHFOG, FOG_MAP,20,0,0,0,0);
+//	engine->trap_R_SetFog(FOG_CMD_SWITCHFOG, FOG_MAP,20,0,0,0,0);
 
 	// dhm - end
 
-	trap_Cvar_Set( "cg_notebookpages", "3" );           // (SA) TEMP: clear notebook pages on spawn (cept for page 1&2)  this is temporary
-	trap_Cvar_Set( "ui_notebookCurrentPage", "0" ); // (SA) TEMP: clear notebook pages on spawn (cept for page 1)  this is temporary
+	engine->trap_Cvar_Set( "cg_notebookpages", "3" );           // (SA) TEMP: clear notebook pages on spawn (cept for page 1&2)  this is temporary
+	engine->trap_Cvar_Set( "ui_notebookCurrentPage", "0" ); // (SA) TEMP: clear notebook pages on spawn (cept for page 1)  this is temporary
 
 
-//	trap_S_FadeAllSound(1.0f, 1000);	// make sure sound fades up
+//	engine->trap_S_FadeAllSound(1.0f, 1000);	// make sure sound fades up
 
 }
 
@@ -388,9 +388,9 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 
 	// hit changes
 	if ( ps->persistant[PERS_HITS] > ops->persistant[PERS_HITS] ) {
-		trap_S_StartLocalSound( cgs.media.hitSound, CHAN_LOCAL_SOUND );
+		engine->trap_S_StartLocalSound( cgs.media.hitSound, CHAN_LOCAL_SOUND );
 	} else if ( ps->persistant[PERS_HITS] < ops->persistant[PERS_HITS] ) {
-		trap_S_StartLocalSound( cgs.media.hitTeamSound, CHAN_LOCAL_SOUND );
+		engine->trap_S_StartLocalSound( cgs.media.hitTeamSound, CHAN_LOCAL_SOUND );
 	}
 
 	// health changes of more than -1 should make pain sounds
@@ -410,22 +410,22 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 	if ( ps->persistant[PERS_REWARD_COUNT] > ops->persistant[PERS_REWARD_COUNT] ) {
 		switch ( ps->persistant[PERS_REWARD] ) {
 		case REWARD_IMPRESSIVE:
-			trap_S_StartLocalSound( cgs.media.impressiveSound, CHAN_ANNOUNCER );
+			engine->trap_S_StartLocalSound( cgs.media.impressiveSound, CHAN_ANNOUNCER );
 			cg.rewardTime = cg.time;
 			cg.rewardShader = cgs.media.medalImpressive;
 			cg.rewardCount = ps->persistant[PERS_IMPRESSIVE_COUNT];
 			break;
 		case REWARD_EXCELLENT:
-			trap_S_StartLocalSound( cgs.media.excellentSound, CHAN_ANNOUNCER );
+			engine->trap_S_StartLocalSound( cgs.media.excellentSound, CHAN_ANNOUNCER );
 			cg.rewardTime = cg.time;
 			cg.rewardShader = cgs.media.medalExcellent;
 			cg.rewardCount = ps->persistant[PERS_EXCELLENT_COUNT];
 			break;
 		case REWARD_DENIED:
-			trap_S_StartLocalSound( cgs.media.deniedSound, CHAN_ANNOUNCER );
+			engine->trap_S_StartLocalSound( cgs.media.deniedSound, CHAN_ANNOUNCER );
 			break;
 		case REWARD_GAUNTLET:
-			trap_S_StartLocalSound( cgs.media.humiliationSound, CHAN_ANNOUNCER );
+			engine->trap_S_StartLocalSound( cgs.media.humiliationSound, CHAN_ANNOUNCER );
 			// if we are the killer and not the killee, show the award
 			if ( ps->stats[STAT_HEALTH] ) {
 				cg.rewardTime = cg.time;
@@ -444,19 +444,19 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 			if ( ps->persistant[PERS_RANK] != ops->persistant[PERS_RANK] ) {
 				if ( cgs.gametype >= GT_TEAM ) {
 					if ( ps->persistant[PERS_RANK] == 2 ) {
-						trap_S_StartLocalSound( cgs.media.teamsTiedSound, CHAN_ANNOUNCER );
+						engine->trap_S_StartLocalSound( cgs.media.teamsTiedSound, CHAN_ANNOUNCER );
 					} else if (  ps->persistant[PERS_RANK] == 0 ) {
-						trap_S_StartLocalSound( cgs.media.redLeadsSound, CHAN_ANNOUNCER );
+						engine->trap_S_StartLocalSound( cgs.media.redLeadsSound, CHAN_ANNOUNCER );
 					} else if ( ps->persistant[PERS_RANK] == 1 ) {
-						trap_S_StartLocalSound( cgs.media.blueLeadsSound, CHAN_ANNOUNCER );
+						engine->trap_S_StartLocalSound( cgs.media.blueLeadsSound, CHAN_ANNOUNCER );
 					}
 				} else {
 					if (  ps->persistant[PERS_RANK] == 0 ) {
-						trap_S_StartLocalSound( cgs.media.takenLeadSound, CHAN_ANNOUNCER );
+						engine->trap_S_StartLocalSound( cgs.media.takenLeadSound, CHAN_ANNOUNCER );
 					} else if ( ps->persistant[PERS_RANK] == RANK_TIED_FLAG ) {
-						trap_S_StartLocalSound( cgs.media.tiedLeadSound, CHAN_ANNOUNCER );
+						engine->trap_S_StartLocalSound( cgs.media.tiedLeadSound, CHAN_ANNOUNCER );
 					} else if ( ( ops->persistant[PERS_RANK] & ~RANK_TIED_FLAG ) == 0 ) {
-						trap_S_StartLocalSound( cgs.media.lostLeadSound, CHAN_ANNOUNCER );
+						engine->trap_S_StartLocalSound( cgs.media.lostLeadSound, CHAN_ANNOUNCER );
 					}
 				}
 			}
@@ -471,15 +471,15 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 
 		if ( cgs.timelimit > 5 && !( cg.timelimitWarnings & 1 ) && msec > ( cgs.timelimit - 5 ) * 60 * 1000 ) {
 			cg.timelimitWarnings |= 1;
-			trap_S_StartLocalSound( cgs.media.fiveMinuteSound, CHAN_ANNOUNCER );
+			engine->trap_S_StartLocalSound( cgs.media.fiveMinuteSound, CHAN_ANNOUNCER );
 		}
 		if ( !( cg.timelimitWarnings & 2 ) && msec > ( cgs.timelimit - 1 ) * 60 * 1000 ) {
 			cg.timelimitWarnings |= 2;
-			trap_S_StartLocalSound( cgs.media.oneMinuteSound, CHAN_ANNOUNCER );
+			engine->trap_S_StartLocalSound( cgs.media.oneMinuteSound, CHAN_ANNOUNCER );
 		}
 		if ( !( cg.timelimitWarnings & 4 ) && msec > ( cgs.timelimit * 60 + 2 ) * 1000 ) {
 			cg.timelimitWarnings |= 4;
-			trap_S_StartLocalSound( cgs.media.suddenDeathSound, CHAN_ANNOUNCER );
+			engine->trap_S_StartLocalSound( cgs.media.suddenDeathSound, CHAN_ANNOUNCER );
 		}
 	}
 
@@ -488,15 +488,15 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 		highScore = cgs.scores1;
 		if ( cgs.fraglimit > 3 && !( cg.fraglimitWarnings & 1 ) && highScore == ( cgs.fraglimit - 3 ) ) {
 			cg.fraglimitWarnings |= 1;
-			trap_S_StartLocalSound( cgs.media.threeFragSound, CHAN_ANNOUNCER );
+			engine->trap_S_StartLocalSound( cgs.media.threeFragSound, CHAN_ANNOUNCER );
 		}
 		if ( cgs.fraglimit > 2 && !( cg.fraglimitWarnings & 2 ) && highScore == ( cgs.fraglimit - 2 ) ) {
 			cg.fraglimitWarnings |= 2;
-			trap_S_StartLocalSound( cgs.media.twoFragSound, CHAN_ANNOUNCER );
+			engine->trap_S_StartLocalSound( cgs.media.twoFragSound, CHAN_ANNOUNCER );
 		}
 		if ( !( cg.fraglimitWarnings & 4 ) && highScore == ( cgs.fraglimit - 1 ) ) {
 			cg.fraglimitWarnings |= 4;
-			trap_S_StartLocalSound( cgs.media.oneFragSound, CHAN_ANNOUNCER );
+			engine->trap_S_StartLocalSound( cgs.media.oneFragSound, CHAN_ANNOUNCER );
 		}
 	}
 }

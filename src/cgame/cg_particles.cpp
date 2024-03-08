@@ -187,7 +187,7 @@ void CG_ClearParticles( void ) {
 		int j;
 
 		for ( j = 0; j < shaderAnimCounts[i]; j++ ) {
-			shaderAnims[i][j] = trap_R_RegisterShader( va( "%s%i", shaderAnimNames[i], j + 1 ) );
+			shaderAnims[i][j] = engine->trap_R_RegisterShader( va( "%s%i", shaderAnimNames[i], j + 1 ) );
 		}
 	}
 	numShaderAnims = i;
@@ -913,9 +913,9 @@ void CG_AddParticleToScene( cparticle_t *p, vec3_t org, float alpha ) {
 	}
 
 	if ( p->type == P_WEATHER || p->type == P_WEATHER_TURBULENT || p->type == P_WEATHER_FLURRY ) {
-		trap_R_AddPolyToScene( p->pshader, 3, TRIverts );
+		engine->trap_R_AddPolyToScene( p->pshader, 3, TRIverts );
 	} else {
-		trap_R_AddPolyToScene( p->pshader, 4, verts );
+		engine->trap_R_AddPolyToScene( p->pshader, 4, verts );
 	}
 
 }
@@ -1512,7 +1512,7 @@ void CG_ParticleDirtBulletDebris_Core( vec3_t org, vec3_t vel, int duration,
 
 	p->rotate = 0;
 
-	p->pshader = trap_R_RegisterShader( shadername ); // JPW NERVE was "dirt_splash"
+	p->pshader = engine->trap_R_RegisterShader( shadername ); // JPW NERVE was "dirt_splash"
 
 	p->type = P_SMOKE;
 

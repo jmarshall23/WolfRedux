@@ -151,7 +151,7 @@ static void CG_MachineGunEjectBrassNew( centity_t *cent ) {
 		vec3_t end;
 		VectorCopy( cent->lerpOrigin, end );
 		end[2] -= 24;
-		contents = trap_CM_PointContents( end, 0 );
+		contents = engine->trap_CM_PointContents( end, 0 );
 		if ( contents & ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ) {
 			le->leBounceSoundType = LEBS_NONE;
 		} else {
@@ -258,7 +258,7 @@ static void CG_MachineGunEjectBrass( centity_t *cent ) {
 		vec3_t end;
 		VectorCopy( cent->lerpOrigin, end );
 		end[2] -= 24;
-		contents = trap_CM_PointContents( end, 0 );
+		contents = engine->trap_CM_PointContents( end, 0 );
 		if ( contents & ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ) {
 			le->leBounceSoundType = LEBS_NONE;
 		} else {
@@ -899,7 +899,7 @@ static qboolean CG_ParseWeaponConfig( const char *filename, weaponInfo_t *wi ) {
 	fileHandle_t f;
 
 	// load the file
-	len = trap_FS_FOpenFile( filename, &f, FS_READ );
+	len = engine->trap_FS_FOpenFile( filename, &f, FS_READ );
 	if ( len <= 0 ) {
 		return qfalse;
 	}
@@ -909,9 +909,9 @@ static qboolean CG_ParseWeaponConfig( const char *filename, weaponInfo_t *wi ) {
 		return qfalse;
 	}
 
-	trap_FS_Read( text, len, f );
+	engine->trap_FS_Read( text, len, f );
 	text[len] = 0;
-	trap_FS_FCloseFile( f );
+	engine->trap_FS_FCloseFile( f );
 
 	// parse the text
 	text_p = text;
@@ -1078,9 +1078,9 @@ void CG_RegisterWeapon( int weaponNum ) {
 	// load cmodel before model so filecache works
 
 	// alternate view weapon
-	weaponInfo->weaponModel[W_TP_MODEL] = trap_R_RegisterModel( item->world_model[W_TP_MODEL] );
-	weaponInfo->weaponModel[W_FP_MODEL] = trap_R_RegisterModel( item->world_model[W_FP_MODEL] );
-	weaponInfo->weaponModel[W_SKTP_MODEL] = trap_R_RegisterModel( item->world_model[W_SKTP_MODEL] );
+	weaponInfo->weaponModel[W_TP_MODEL] = engine->trap_R_RegisterModel( item->world_model[W_TP_MODEL] );
+	weaponInfo->weaponModel[W_FP_MODEL] = engine->trap_R_RegisterModel( item->world_model[W_FP_MODEL] );
+	weaponInfo->weaponModel[W_SKTP_MODEL] = engine->trap_R_RegisterModel( item->world_model[W_SKTP_MODEL] );
 
 	if ( !weaponInfo->weaponModel[W_FP_MODEL] || !cg_drawFPGun.integer ) {
 		weaponInfo->weaponModel[W_FP_MODEL] = weaponInfo->weaponModel[W_TP_MODEL];
@@ -1111,17 +1111,17 @@ void CG_RegisterWeapon( int weaponNum ) {
 //----(SA)	end
 
 	// calc midpoint for rotation
-	trap_R_ModelBounds( weaponInfo->weaponModel[W_TP_MODEL], mins, maxs );
+	engine->trap_R_ModelBounds( weaponInfo->weaponModel[W_TP_MODEL], mins, maxs );
 
 	for ( i = 0 ; i < 3 ; i++ ) {
 		weaponInfo->weaponMidpoint[i] = mins[i] + 0.5 * ( maxs[i] - mins[i] );
 	}
 
-	weaponInfo->weaponIcon[0] = trap_R_RegisterShader( item->icon );
-	weaponInfo->weaponIcon[1] = trap_R_RegisterShader( va( "%s_select", item->icon ) );    // get the 'selected' icon as well
+	weaponInfo->weaponIcon[0] = engine->trap_R_RegisterShader( item->icon );
+	weaponInfo->weaponIcon[1] = engine->trap_R_RegisterShader( va( "%s_select", item->icon ) );    // get the 'selected' icon as well
 
 	// JOSEPH 4-17-00
-	weaponInfo->ammoIcon = trap_R_RegisterShader( item->ammoicon );
+	weaponInfo->ammoIcon = engine->trap_R_RegisterShader( item->ammoicon );
 	// END JOSEPH
 
 	for ( ammo = bg_itemlist + 1 ; ammo->classname ; ammo++ ) {
@@ -1130,7 +1130,7 @@ void CG_RegisterWeapon( int weaponNum ) {
 		}
 	}
 	if ( ammo->classname && ammo->world_model[0] ) {
-		weaponInfo->ammoModel = trap_R_RegisterModel( ammo->world_model[0] );
+		weaponInfo->ammoModel = engine->trap_R_RegisterModel( ammo->world_model[0] );
 	}
 
 	if ( item->world_model[W_FP_MODEL] ) {
@@ -1156,7 +1156,7 @@ void CG_RegisterWeapon( int weaponNum ) {
 
 		COM_StripExtension( path, path );
 		strcat( path, "_flash.md3" );
-		weaponInfo->flashModel[i] = trap_R_RegisterModel( path );
+		weaponInfo->flashModel[i] = engine->trap_R_RegisterModel( path );
 
 
 		for ( j = 0; j < W_MAX_PARTS; j++ ) {
@@ -1171,7 +1171,7 @@ void CG_RegisterWeapon( int weaponNum ) {
 			} else {
 				strcat( path, va( "_barrel%d.md3", j + 1 ) );
 			}
-			weaponInfo->wpPartModels[i][j] = trap_R_RegisterModel( path );
+			weaponInfo->wpPartModels[i][j] = engine->trap_R_RegisterModel( path );
 		}
 
 		// used for spinning belt on venom
@@ -1183,7 +1183,7 @@ void CG_RegisterWeapon( int weaponNum ) {
 			}
 			COM_StripExtension( path, path );
 			strcat( path, "_barrel6b.md3" );
-			weaponInfo->wpPartModels[i][W_PART_7] = trap_R_RegisterModel( path );
+			weaponInfo->wpPartModels[i][W_PART_7] = engine->trap_R_RegisterModel( path );
 		}
 	}
 
@@ -1198,7 +1198,7 @@ void CG_RegisterWeapon( int weaponNum ) {
 		}
 		COM_StripExtension( path, path );
 		strcat( path, "_scope.md3" );
-		weaponInfo->modModel[0] = trap_R_RegisterModel( path );
+		weaponInfo->modModel[0] = engine->trap_R_RegisterModel( path );
 	}
 
 	if ( !item->world_model[W_FP_MODEL] ) {
@@ -1208,10 +1208,10 @@ void CG_RegisterWeapon( int weaponNum ) {
 	}
 	COM_StripExtension( path, path );
 	strcat( path, "_hand.md3" );
-	weaponInfo->handsModel = trap_R_RegisterModel( path );
+	weaponInfo->handsModel = engine->trap_R_RegisterModel( path );
 
 	if ( !weaponInfo->handsModel ) {
-		weaponInfo->handsModel = trap_R_RegisterModel( "models/weapons2/shotgun/shotgun_hand.md3" );
+		weaponInfo->handsModel = engine->trap_R_RegisterModel( "models/weapons2/shotgun/shotgun_hand.md3" );
 	}
 
 
@@ -1223,7 +1223,7 @@ void CG_RegisterWeapon( int weaponNum ) {
 	}
 	COM_StripExtension( path, path );
 	strcat( path, "_stand.md3" );
-	weaponInfo->standModel = trap_R_RegisterModel( path );
+	weaponInfo->standModel = engine->trap_R_RegisterModel( path );
 //----(SA)	end
 
 	switch ( weaponNum ) {
@@ -1236,101 +1236,101 @@ void CG_RegisterWeapon( int weaponNum ) {
 	case WP_AKIMBO: //----(SA)	added
 		// same as colt
 		MAKERGB( weaponInfo->flashDlightColor, 1.0, 0.6, 0.23 );
-		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/colt/coltf1.wav" );
-		weaponInfo->flashEchoSound[0] = trap_S_RegisterSound( "sound/weapons/mp40/mp40e1.wav" ); // use same as mp40
+		weaponInfo->flashSound[0] = engine->trap_S_RegisterSound( "sound/weapons/colt/coltf1.wav" );
+		weaponInfo->flashEchoSound[0] = engine->trap_S_RegisterSound( "sound/weapons/mp40/mp40e1.wav" ); // use same as mp40
 		weaponInfo->ejectBrassFunc = CG_MachineGunEjectBrass;
 
 		// unique
-		weaponInfo->reloadSound = trap_S_RegisterSound( "sound/weapons/colt/colt_reload2.wav" );
+		weaponInfo->reloadSound = engine->trap_S_RegisterSound( "sound/weapons/colt/colt_reload2.wav" );
 		break;
 
 	case WP_COLT:
 		MAKERGB( weaponInfo->flashDlightColor, 1.0, 0.6, 0.23 );
-		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/colt/coltf1.wav" );
-		weaponInfo->flashEchoSound[0] = trap_S_RegisterSound( "sound/weapons/mp40/mp40e1.wav" ); // use same as mp40
-		weaponInfo->reloadSound = trap_S_RegisterSound( "sound/weapons/colt/colt_reload.wav" );
+		weaponInfo->flashSound[0] = engine->trap_S_RegisterSound( "sound/weapons/colt/coltf1.wav" );
+		weaponInfo->flashEchoSound[0] = engine->trap_S_RegisterSound( "sound/weapons/mp40/mp40e1.wav" ); // use same as mp40
+		weaponInfo->reloadSound = engine->trap_S_RegisterSound( "sound/weapons/colt/colt_reload.wav" );
 		weaponInfo->ejectBrassFunc = CG_MachineGunEjectBrass;
 		break;
 
 
 	case WP_KNIFE:
-		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/knife/knife_slash1.wav" );
-		weaponInfo->flashSound[1] = trap_S_RegisterSound( "sound/weapons/knife/knife_slash2.wav" );
+		weaponInfo->flashSound[0] = engine->trap_S_RegisterSound( "sound/weapons/knife/knife_slash1.wav" );
+		weaponInfo->flashSound[1] = engine->trap_S_RegisterSound( "sound/weapons/knife/knife_slash2.wav" );
 		break;
 
 	case WP_LUGER:
 		MAKERGB( weaponInfo->flashDlightColor, 1.0, 0.6, 0.23 );
 
-		weaponInfo->switchSound[0] = trap_S_RegisterSound( "sound/weapons/luger/silencerremove.wav" );   //----(SA)	added
+		weaponInfo->switchSound[0] = engine->trap_S_RegisterSound( "sound/weapons/luger/silencerremove.wav" );   //----(SA)	added
 
-		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/luger/lugerf1.wav" );
-		weaponInfo->flashEchoSound[0] = trap_S_RegisterSound( "sound/weapons/mp40/mp40e1.wav" ); // use same as mp40
-		weaponInfo->reloadSound = trap_S_RegisterSound( "sound/weapons/luger/luger_reload.wav" );
+		weaponInfo->flashSound[0] = engine->trap_S_RegisterSound( "sound/weapons/luger/lugerf1.wav" );
+		weaponInfo->flashEchoSound[0] = engine->trap_S_RegisterSound( "sound/weapons/mp40/mp40e1.wav" ); // use same as mp40
+		weaponInfo->reloadSound = engine->trap_S_RegisterSound( "sound/weapons/luger/luger_reload.wav" );
 		weaponInfo->ejectBrassFunc = CG_MachineGunEjectBrass;
 		break;
 
 	case WP_SILENCER:   // luger mod
 		MAKERGB( weaponInfo->flashDlightColor, 1.0, 0.6, 0.23 );
 
-		weaponInfo->switchSound[0] = trap_S_RegisterSound( "sound/weapons/luger/silencerattatch.wav" );  //----(SA)	added
+		weaponInfo->switchSound[0] = engine->trap_S_RegisterSound( "sound/weapons/luger/silencerattatch.wav" );  //----(SA)	added
 
-		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/luger/silencerf1.wav" );
-		weaponInfo->reloadSound = trap_S_RegisterSound( "sound/weapons/luger/luger_reload.wav" );
+		weaponInfo->flashSound[0] = engine->trap_S_RegisterSound( "sound/weapons/luger/silencerf1.wav" );
+		weaponInfo->reloadSound = engine->trap_S_RegisterSound( "sound/weapons/luger/luger_reload.wav" );
 		weaponInfo->ejectBrassFunc = CG_MachineGunEjectBrass;
 		break;
 
 	case WP_MAUSER:
 		MAKERGB( weaponInfo->flashDlightColor, 1.0, 0.6, 0.23 );
-		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/mauser/mauserf1.wav" );
-		weaponInfo->flashEchoSound[0] = trap_S_RegisterSound( "sound/weapons/mauser/mausere1.wav" );
-		weaponInfo->lastShotSound[0] = trap_S_RegisterSound( "sound/weapons/mauser/mauserf1_last.wav" );
-		weaponInfo->reloadSound = trap_S_RegisterSound( "sound/weapons/mauser/mauser_reload.wav" );
+		weaponInfo->flashSound[0] = engine->trap_S_RegisterSound( "sound/weapons/mauser/mauserf1.wav" );
+		weaponInfo->flashEchoSound[0] = engine->trap_S_RegisterSound( "sound/weapons/mauser/mausere1.wav" );
+		weaponInfo->lastShotSound[0] = engine->trap_S_RegisterSound( "sound/weapons/mauser/mauserf1_last.wav" );
+		weaponInfo->reloadSound = engine->trap_S_RegisterSound( "sound/weapons/mauser/mauser_reload.wav" );
 		weaponInfo->ejectBrassFunc = CG_MachineGunEjectBrass;
 		break;
 	case WP_SNIPERRIFLE:
 		MAKERGB( weaponInfo->flashDlightColor, 1.0, 0.6, 0.23 );
-		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/mauser/sniperf1.wav" );
-		weaponInfo->flashEchoSound[0] = trap_S_RegisterSound( "sound/weapons/mauser/mausere1.wav" );
-		weaponInfo->reloadSound = trap_S_RegisterSound( "sound/weapons/mauser/sniper_reload.wav" );
+		weaponInfo->flashSound[0] = engine->trap_S_RegisterSound( "sound/weapons/mauser/sniperf1.wav" );
+		weaponInfo->flashEchoSound[0] = engine->trap_S_RegisterSound( "sound/weapons/mauser/mausere1.wav" );
+		weaponInfo->reloadSound = engine->trap_S_RegisterSound( "sound/weapons/mauser/sniper_reload.wav" );
 		weaponInfo->ejectBrassFunc = CG_MachineGunEjectBrass;
 		break;
 
 	case WP_GARAND:
 		MAKERGB( weaponInfo->flashDlightColor, 1.0, 0.6, 0.23 );
-		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/garand/garandf1.wav" );
-		weaponInfo->reloadSound = trap_S_RegisterSound( "sound/weapons/garand/garand_reload.wav" );
+		weaponInfo->flashSound[0] = engine->trap_S_RegisterSound( "sound/weapons/garand/garandf1.wav" );
+		weaponInfo->reloadSound = engine->trap_S_RegisterSound( "sound/weapons/garand/garand_reload.wav" );
 		weaponInfo->ejectBrassFunc = CG_MachineGunEjectBrass;
 		break;
 	case WP_SNOOPERSCOPE:
 		MAKERGB( weaponInfo->flashDlightColor, 1.0, 0.6, 0.23 );
-		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/garand/snooperf1.wav" );
-		weaponInfo->reloadSound = trap_S_RegisterSound( "sound/weapons/garand/snooper_reload.wav" );
+		weaponInfo->flashSound[0] = engine->trap_S_RegisterSound( "sound/weapons/garand/snooperf1.wav" );
+		weaponInfo->reloadSound = engine->trap_S_RegisterSound( "sound/weapons/garand/snooper_reload.wav" );
 		weaponInfo->ejectBrassFunc = CG_MachineGunEjectBrass;
 		break;
 
 	case WP_THOMPSON:
 		MAKERGB( weaponInfo->flashDlightColor, 1.0, 0.6, 0.23 );
-		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/thompson/thompson.wav" );
-		weaponInfo->flashEchoSound[0] = trap_S_RegisterSound( "sound/weapons/mp40/mp40e1.wav" ); // use same as mp40
-		weaponInfo->reloadSound = trap_S_RegisterSound( "sound/weapons/thompson/thompson_reload.wav" );
-		weaponInfo->overheatSound = trap_S_RegisterSound( "sound/weapons/thompson/thompson_overheat.wav" );
+		weaponInfo->flashSound[0] = engine->trap_S_RegisterSound( "sound/weapons/thompson/thompson.wav" );
+		weaponInfo->flashEchoSound[0] = engine->trap_S_RegisterSound( "sound/weapons/mp40/mp40e1.wav" ); // use same as mp40
+		weaponInfo->reloadSound = engine->trap_S_RegisterSound( "sound/weapons/thompson/thompson_reload.wav" );
+		weaponInfo->overheatSound = engine->trap_S_RegisterSound( "sound/weapons/thompson/thompson_overheat.wav" );
 		weaponInfo->ejectBrassFunc = CG_MachineGunEjectBrass;
 		break;
 
 	case WP_MP40:
 		MAKERGB( weaponInfo->flashDlightColor, 1.0, 0.6, 0.23 );
-		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/mp40/mp40f1.wav" );
-		weaponInfo->flashEchoSound[0] = trap_S_RegisterSound( "sound/weapons/mp40/mp40e1.wav" );
-		weaponInfo->reloadSound = trap_S_RegisterSound( "sound/weapons/mp40/mp40_reload.wav" );
-		weaponInfo->overheatSound = trap_S_RegisterSound( "sound/weapons/mp40/mp40_overheat.wav" );
+		weaponInfo->flashSound[0] = engine->trap_S_RegisterSound( "sound/weapons/mp40/mp40f1.wav" );
+		weaponInfo->flashEchoSound[0] = engine->trap_S_RegisterSound( "sound/weapons/mp40/mp40e1.wav" );
+		weaponInfo->reloadSound = engine->trap_S_RegisterSound( "sound/weapons/mp40/mp40_reload.wav" );
+		weaponInfo->overheatSound = engine->trap_S_RegisterSound( "sound/weapons/mp40/mp40_overheat.wav" );
 		weaponInfo->ejectBrassFunc = CG_MachineGunEjectBrass;
 		break;
 
 	case WP_STEN:
 		MAKERGB( weaponInfo->flashDlightColor, 1.0, 0.6, 0.23 );
-		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/sten/stenf1.wav" );
-		weaponInfo->reloadSound = trap_S_RegisterSound( "sound/weapons/sten/sten_reload.wav" );
-		weaponInfo->overheatSound = trap_S_RegisterSound( "sound/weapons/sten/sten_overheat.wav" );
+		weaponInfo->flashSound[0] = engine->trap_S_RegisterSound( "sound/weapons/sten/stenf1.wav" );
+		weaponInfo->reloadSound = engine->trap_S_RegisterSound( "sound/weapons/sten/sten_reload.wav" );
+		weaponInfo->overheatSound = engine->trap_S_RegisterSound( "sound/weapons/sten/sten_overheat.wav" );
 		weaponInfo->ejectBrassFunc = CG_MachineGunEjectBrass;
 		break;
 
@@ -1338,40 +1338,40 @@ void CG_RegisterWeapon( int weaponNum ) {
 	case WP_FG42:
 	case WP_FG42SCOPE:
 		MAKERGB( weaponInfo->flashDlightColor, 1.0, 0.6, 0.23 );
-		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/fg42/fg42f1.wav" );
-		weaponInfo->flashEchoSound[0] = trap_S_RegisterSound( "sound/weapons/fg42/fg42e1.wav" );
-		weaponInfo->reloadSound = trap_S_RegisterSound( "sound/weapons/fg42/fg42_reload.wav" );
+		weaponInfo->flashSound[0] = engine->trap_S_RegisterSound( "sound/weapons/fg42/fg42f1.wav" );
+		weaponInfo->flashEchoSound[0] = engine->trap_S_RegisterSound( "sound/weapons/fg42/fg42e1.wav" );
+		weaponInfo->reloadSound = engine->trap_S_RegisterSound( "sound/weapons/fg42/fg42_reload.wav" );
 		weaponInfo->ejectBrassFunc = CG_MachineGunEjectBrass;
 		break;
 
 
 	case WP_PANZERFAUST:
 		weaponInfo->ejectBrassFunc      = CG_PanzerFaustEjectBrass;
-		weaponInfo->missileModel        = trap_R_RegisterModel( "models/ammo/rocket/rocket.md3" );
-		weaponInfo->missileSound        = trap_S_RegisterSound( "sound/weapons/rocket/rockfly.wav" );
+		weaponInfo->missileModel        = engine->trap_R_RegisterModel( "models/ammo/rocket/rocket.md3" );
+		weaponInfo->missileSound        = engine->trap_S_RegisterSound( "sound/weapons/rocket/rockfly.wav" );
 		weaponInfo->missileTrailFunc    = CG_RocketTrail;
 		weaponInfo->missileDlight       = 200;
 		weaponInfo->wiTrailTime         = 2000;
 		weaponInfo->trailRadius         = 64;
 		MAKERGB( weaponInfo->flashDlightColor, 0.75, 0.3, 0.0 );
 		MAKERGB( weaponInfo->missileDlightColor, 0.75, 0.3, 0.0 );
-		weaponInfo->flashSound[0]       = trap_S_RegisterSound( "sound/weapons/rocket/rocklf1a.wav" );
-		weaponInfo->reloadSound         = trap_S_RegisterSound( "sound/weapons/rocket/rocklf_reload.wav" );
-		cgs.media.rocketExplosionShader = trap_R_RegisterShader( "rocketExplosion" );
+		weaponInfo->flashSound[0]       = engine->trap_S_RegisterSound( "sound/weapons/rocket/rocklf1a.wav" );
+		weaponInfo->reloadSound         = engine->trap_S_RegisterSound( "sound/weapons/rocket/rocklf_reload.wav" );
+		cgs.media.rocketExplosionShader = engine->trap_R_RegisterShader( "rocketExplosion" );
 		break;
 
 	case WP_MORTAR:
-		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/mortar/mortarf1.wav" );
+		weaponInfo->flashSound[0] = engine->trap_S_RegisterSound( "sound/weapons/mortar/mortarf1.wav" );
 		weaponInfo->missileTrailFunc = CG_GrenadeTrail;
 		weaponInfo->missileDlight = 400;
-		weaponInfo->missileSound = trap_S_RegisterSound( "sound/weapons/rocket/rockfly.wav" );
+		weaponInfo->missileSound = engine->trap_S_RegisterSound( "sound/weapons/rocket/rockfly.wav" );
 		weaponInfo->wiTrailTime = 300;
 		weaponInfo->trailRadius = 32;
 		MAKERGB( weaponInfo->flashDlightColor, 1, 0.7, 0.5 );
 		break;
 // JPW NERVE
 	case WP_GRENADE_SMOKE:
-		weaponInfo->missileModel = trap_R_RegisterModel( "models/weapons2/grenade/pineapple.md3" );
+		weaponInfo->missileModel = engine->trap_R_RegisterModel( "models/weapons2/grenade/pineapple.md3" );
 		weaponInfo->missileTrailFunc    = CG_PyroSmokeTrail;
 		weaponInfo->missileDlight       = 200;
 		weaponInfo->wiTrailTime         = 4000;
@@ -1381,16 +1381,16 @@ void CG_RegisterWeapon( int weaponNum ) {
 // DHM - Nerve - temp effects
 	case WP_CLASS_SPECIAL:
 	case WP_MEDIC_HEAL:
-		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/knife/knife_slash1.wav" );
-		weaponInfo->flashSound[1] = trap_S_RegisterSound( "sound/weapons/knife/knife_slash2.wav" );
+		weaponInfo->flashSound[0] = engine->trap_S_RegisterSound( "sound/weapons/knife/knife_slash1.wav" );
+		weaponInfo->flashSound[1] = engine->trap_S_RegisterSound( "sound/weapons/knife/knife_slash2.wav" );
 		break;
 // dhm
 	case WP_GRENADE_LAUNCHER:
 	case WP_GRENADE_PINEAPPLE:
 		if ( weaponNum == WP_GRENADE_LAUNCHER ) {
-			weaponInfo->missileModel = trap_R_RegisterModel( "models/ammo/grenade1.md3" );
+			weaponInfo->missileModel = engine->trap_R_RegisterModel( "models/ammo/grenade1.md3" );
 		} else {
-			weaponInfo->missileModel = trap_R_RegisterModel( "models/weapons2/grenade/pineapple.md3" );
+			weaponInfo->missileModel = engine->trap_R_RegisterModel( "models/weapons2/grenade/pineapple.md3" );
 		}
 		weaponInfo->missileTrailFunc = CG_GrenadeTrail;
 		weaponInfo->wiTrailTime = 700;
@@ -1398,25 +1398,25 @@ void CG_RegisterWeapon( int weaponNum ) {
 		weaponInfo->wiTrailTime = 1000;
 		weaponInfo->trailRadius = 32;
 		MAKERGB( weaponInfo->flashDlightColor, 1, 0.7, 0.5 );
-		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/grenade/grenlf1a.wav" );
-		weaponInfo->reloadSound = trap_S_RegisterSound( "sound/weapons/grenade/grenlf_reload.wav" );
-		cgs.media.grenadeExplosionShader = trap_R_RegisterShader( "grenadeExplosion" );
+		weaponInfo->flashSound[0] = engine->trap_S_RegisterSound( "sound/weapons/grenade/grenlf1a.wav" );
+		weaponInfo->reloadSound = engine->trap_S_RegisterSound( "sound/weapons/grenade/grenlf_reload.wav" );
+		cgs.media.grenadeExplosionShader = engine->trap_R_RegisterShader( "grenadeExplosion" );
 		break;
 
 	case WP_DYNAMITE:
-		weaponInfo->missileModel = trap_R_RegisterModel( "models/ammo/dynamite.md3" );
-//		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/grenade/grenlf1a.wav" );
-//		weaponInfo->reloadSound = trap_S_RegisterSound( "sound/weapons/grenade/grenlf_reload.wav" );
-		cgs.media.grenadeExplosionShader = trap_R_RegisterShader( "grenadeExplosion" );
+		weaponInfo->missileModel = engine->trap_R_RegisterModel( "models/ammo/dynamite.md3" );
+//		weaponInfo->flashSound[0] = engine->trap_S_RegisterSound( "sound/weapons/grenade/grenlf1a.wav" );
+//		weaponInfo->reloadSound = engine->trap_S_RegisterSound( "sound/weapons/grenade/grenlf_reload.wav" );
+		cgs.media.grenadeExplosionShader = engine->trap_R_RegisterShader( "grenadeExplosion" );
 		break;
 
 	case WP_VENOM:
 		MAKERGB( weaponInfo->flashDlightColor, 1.0, 0.6, 0.23 );
-		weaponInfo->spinupSound = trap_S_RegisterSound( "sound/weapons/venom/venomsu1.wav" );    //----(SA)	added
-		weaponInfo->spindownSound = trap_S_RegisterSound( "sound/weapons/venom/venomsd1.wav" );  //----(SA)	added
-		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/venom/venomf1.wav" );
-		weaponInfo->reloadSound = trap_S_RegisterSound( "sound/weapons/venom/venom_reload.wav" );
-		weaponInfo->overheatSound = trap_S_RegisterSound( "sound/weapons/venom/venom_overheat.wav" );
+		weaponInfo->spinupSound = engine->trap_S_RegisterSound( "sound/weapons/venom/venomsu1.wav" );    //----(SA)	added
+		weaponInfo->spindownSound = engine->trap_S_RegisterSound( "sound/weapons/venom/venomsd1.wav" );  //----(SA)	added
+		weaponInfo->flashSound[0] = engine->trap_S_RegisterSound( "sound/weapons/venom/venomf1.wav" );
+		weaponInfo->reloadSound = engine->trap_S_RegisterSound( "sound/weapons/venom/venom_reload.wav" );
+		weaponInfo->overheatSound = engine->trap_S_RegisterSound( "sound/weapons/venom/venom_overheat.wav" );
 		weaponInfo->ejectBrassFunc = CG_MachineGunEjectBrass;
 		break;
 
@@ -1426,21 +1426,21 @@ void CG_RegisterWeapon( int weaponNum ) {
 
 	case WP_TESLA:
 		MAKERGB( weaponInfo->flashDlightColor, 0.2, 0.6, 1 );
-		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/tesla/teslaf1.wav" );
-		weaponInfo->reloadSound = trap_S_RegisterSound( "sound/weapons/tesla/tesla_reload.wav" );
-		weaponInfo->overheatSound = trap_S_RegisterSound( "sound/weapons/tesla/tesla_overheat.wav" );
+		weaponInfo->flashSound[0] = engine->trap_S_RegisterSound( "sound/weapons/tesla/teslaf1.wav" );
+		weaponInfo->reloadSound = engine->trap_S_RegisterSound( "sound/weapons/tesla/tesla_reload.wav" );
+		weaponInfo->overheatSound = engine->trap_S_RegisterSound( "sound/weapons/tesla/tesla_overheat.wav" );
 		break;
 
 
 	case WP_GAUNTLET:
 		MAKERGB( weaponInfo->flashDlightColor, 0.6, 0.6, 1 );
-		//weaponInfo->firingSound = trap_S_RegisterSound( "sound/weapons/melee/fstrun.wav" );
-		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/melee/fstatck.wav" );
+		//weaponInfo->firingSound = engine->trap_S_RegisterSound( "sound/weapons/melee/fstrun.wav" );
+		weaponInfo->flashSound[0] = engine->trap_S_RegisterSound( "sound/weapons/melee/fstatck.wav" );
 		break;
 
 	default:
 		MAKERGB( weaponInfo->flashDlightColor, 1, 1, 1 );
-		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/rocket/rocklf1a.wav" );
+		weaponInfo->flashSound[0] = engine->trap_S_RegisterSound( "sound/weapons/rocket/rocklf1a.wav" );
 		break;
 	}
 }
@@ -1473,14 +1473,14 @@ void CG_RegisterItemVisuals( int itemNum ) {
 	//	itemInfo->registered = qtrue;
 
 	for ( i = 0; i < MAX_ITEM_MODELS; i++ )
-		itemInfo->models[i] = trap_R_RegisterModel( item->world_model[i] );
+		itemInfo->models[i] = engine->trap_R_RegisterModel( item->world_model[i] );
 
 
-	itemInfo->icons[0] = trap_R_RegisterShader( item->icon );
+	itemInfo->icons[0] = engine->trap_R_RegisterShader( item->icon );
 	if ( item->giType == IT_HOLDABLE ) {
 		// (SA) register alternate icons (since holdables can have multiple uses, they might have different icons to represent how many uses are left)
 		for ( i = 1; i < MAX_ITEM_ICONS; i++ )
-			itemInfo->icons[i] = trap_R_RegisterShader( va( "%s%i", item->icon, i + 1 ) );
+			itemInfo->icons[i] = engine->trap_R_RegisterShader( va( "%s%i", item->icon, i + 1 ) );
 	}
 
 	if ( item->giType == IT_WEAPON ) {
@@ -1489,21 +1489,21 @@ void CG_RegisterItemVisuals( int itemNum ) {
 
 	itemInfo->registered = qtrue;   //----(SA)	moved this down after the registerweapon()
 
-	wolfkickModel = trap_R_RegisterModel( "models/weapons2/foot/v_wolfoot_10f.md3" );
-	hWeaponSnd = trap_S_RegisterSound( "sound/weapons/mg42/37mm.wav" );
+	wolfkickModel = engine->trap_R_RegisterModel( "models/weapons2/foot/v_wolfoot_10f.md3" );
+	hWeaponSnd = engine->trap_S_RegisterSound( "sound/weapons/mg42/37mm.wav" );
 
-	hflakWeaponSnd = trap_S_RegisterSound( "sound/weapons/flak/flak.wav" );
+	hflakWeaponSnd = engine->trap_S_RegisterSound( "sound/weapons/flak/flak.wav" );
 
-	notebookModel = trap_R_RegisterModel( "models/mapobjects/book/book.md3" );
+	notebookModel = engine->trap_R_RegisterModel( "models/mapobjects/book/book.md3" );
 
-	propellerModel = trap_R_RegisterModel( "models/mapobjects/vehicles/m109_prop.md3" );
+	propellerModel = engine->trap_R_RegisterModel( "models/mapobjects/vehicles/m109_prop.md3" );
 
 // JPW NERVE had to put this somewhere, this seems OK
 	if ( cg_gameType.integer != GT_WOLF ) {
 		maxWeapBanks = MAX_WEAP_BANKS;
 		maxWeapsInBank = MAX_WEAPS_IN_BANK;
 	} else {
-		trap_R_RegisterModel( "models/mapobjects/vehicles/m109.md3" );
+		engine->trap_R_RegisterModel( "models/mapobjects/vehicles/m109.md3" );
 		CG_RegisterWeapon( WP_GRENADE_SMOKE ); // register WP_CLASS_SPECIAL visuals here
 		CG_RegisterWeapon( WP_MEDIC_HEAL );
 		maxWeapBanks = MAX_WEAP_BANKS_MP;
@@ -1527,7 +1527,7 @@ void CG_RegisterItemVisuals( int itemNum ) {
 //	if ( item->giType == IT_POWERUP || item->giType == IT_HEALTH ||
 //		item->giType == IT_ARMOR || item->giType == IT_HOLDABLE ) {
 //		if ( item->world_model[W_FP_MODEL] ) {
-//			itemInfo->models[W_FP_MODEL] = trap_R_RegisterModel( item->world_model[W_FP_MODEL] );
+//			itemInfo->models[W_FP_MODEL] = engine->trap_R_RegisterModel( item->world_model[W_FP_MODEL] );
 //		}
 //	}
 }
@@ -2047,11 +2047,11 @@ static float CG_VenomSpinAngle( centity_t *cent ) {
 		// just switching between not spinning and spinning, play the appropriate weapon sound
 		if ( cent->pe.barrelSpinning ) {
 			if ( cg_weapons[WP_VENOM].spinupSound ) {
-				trap_S_StartSoundEx( NULL, cent->currentState.number, CHAN_WEAPON, cg_weapons[WP_VENOM].spinupSound, SND_OKTOCUT );
+				engine->trap_S_StartSoundEx( NULL, cent->currentState.number, CHAN_WEAPON, cg_weapons[WP_VENOM].spinupSound, SND_OKTOCUT );
 			}
 		} else {
 			if ( cg_weapons[WP_VENOM].spindownSound ) {
-				trap_S_StartSound( NULL, cent->currentState.number, CHAN_WEAPON, cg_weapons[WP_VENOM].spindownSound );
+				engine->trap_S_StartSound( NULL, cent->currentState.number, CHAN_WEAPON, cg_weapons[WP_VENOM].spindownSound );
 			}
 		}
 
@@ -2095,17 +2095,17 @@ static void CG_AddWeaponWithPowerups( refEntity_t *gun, int powerups, playerStat
 	// add powerup effects
 	if ( powerups & ( 1 << PW_INVIS ) ) {
 		gun->customShader = cgs.media.invisShader;
-		trap_R_AddRefEntityToScene( gun );
+		engine->trap_R_AddRefEntityToScene( gun );
 	} else {
-		trap_R_AddRefEntityToScene( gun );
+		engine->trap_R_AddRefEntityToScene( gun );
 
 		if ( powerups & ( 1 << PW_BATTLESUIT ) ) {
 			gun->customShader = cgs.media.battleWeaponShader;
-			trap_R_AddRefEntityToScene( gun );
+			engine->trap_R_AddRefEntityToScene( gun );
 		}
 		if ( powerups & ( 1 << PW_QUAD ) ) {
 			gun->customShader = cgs.media.quadWeaponShader;
-			trap_R_AddRefEntityToScene( gun );
+			engine->trap_R_AddRefEntityToScene( gun );
 		}
 	}
 /*
@@ -2145,12 +2145,12 @@ alpha = 1;
 //				gun->reFlags |= REFLAG_ONLYHAND;
 gun->customShader = cgs.media.dripWetShader2;
 //				gun->customShader = cgs.media.onFireShader;
-				trap_R_AddRefEntityToScene( gun );
+				engine->trap_R_AddRefEntityToScene( gun );
 //				gun->shaderTime = 500;
-//				trap_R_AddRefEntityToScene( gun );
+//				engine->trap_R_AddRefEntityToScene( gun );
 gun->customShader = cgs.media.dripWetShader;
 //				gun->customShader = cgs.media.onFireShader2;
-				trap_R_AddRefEntityToScene( gun );
+				engine->trap_R_AddRefEntityToScene( gun );
 //				gun->reFlags &= ~REFLAG_ONLYHAND;
 			}
 		}
@@ -2394,7 +2394,7 @@ void CG_PlayerTeslaCoilFire( centity_t *cent, vec3_t flashorigin ) {
 			if ( cent->pe.lightningSoundTime < cg.time - 200 ) {
 				CG_SoundPlayIndexedScript( cgs.media.teslaZapScript, cent->pe.teslaEndPoints[i], ENTITYNUM_WORLD );
 				CG_SoundPlayIndexedScript( cgs.media.teslaZapScript, cent->lerpOrigin, ENTITYNUM_WORLD );
-				//trap_S_StartSound( cent->pe.teslaEndPoints[i], ENTITYNUM_WORLD, CHAN_AUTO, cgs.media.lightningSounds[rand()%3] );
+				//engine->trap_S_StartSound( cent->pe.teslaEndPoints[i], ENTITYNUM_WORLD, CHAN_AUTO, cgs.media.lightningSounds[rand()%3] );
 				cent->pe.lightningSoundTime = cg.time + rand() % 200;
 			}
 		}
@@ -2402,7 +2402,7 @@ void CG_PlayerTeslaCoilFire( centity_t *cent, vec3_t flashorigin ) {
 
 	if ( cg.time % 3 ) {  // break it up a bit
 		// add the looping sound
-		trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.media.teslaLoopSound, 255 );
+		engine->trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.media.teslaLoopSound, 255 );
 	}
 
 	// drop a dynamic light out infront of us
@@ -2413,13 +2413,13 @@ void CG_PlayerTeslaCoilFire( centity_t *cent, vec3_t flashorigin ) {
 
 	if ( ( cg.time / 50 ) % ( 4 + ( cg.time % 4 ) ) == 0 ) {
 		// alt light
-		trap_R_AddLightToScene( tr.endpos, 256 + 600 * tr.fraction, 0.2, 0.6, 1, 1 );
+		engine->trap_R_AddLightToScene( tr.endpos, 256 + 600 * tr.fraction, 0.2, 0.6, 1, 1 );
 	} else if ( ( cg.time / 50 ) % ( 4 + ( cg.time % 4 ) ) == 1 ) {
 		// no light
-		//trap_R_AddLightToScene( tr.endpos, 128 + 500*tr.fraction, 1, 1, 1, 10 );
+		//engine->trap_R_AddLightToScene( tr.endpos, 128 + 500*tr.fraction, 1, 1, 1, 10 );
 	} else {
 		// blue light
-		trap_R_AddLightToScene( tr.endpos, 256 + 600 * tr.fraction, 0.2, 0.6, 1, 0 );
+		engine->trap_R_AddLightToScene( tr.endpos, 256 + 600 * tr.fraction, 0.2, 0.6, 1, 0 );
 	}
 
 
@@ -2617,10 +2617,10 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 		cent->pe.lightningFiring = qfalse;
 		if ( ( cent->currentState.eFlags & EF_FIRING ) && weapon->firingSound ) {
 			// lightning gun and guantlet make a different sound when fire is held down
-			trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, weapon->firingSound, 255 );
+			engine->trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, weapon->firingSound, 255 );
 			cent->pe.lightningFiring = qtrue;
 		} else if ( weapon->readySound ) {
-			trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, weapon->readySound, 255 );
+			engine->trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, weapon->readySound, 255 );
 		}
 	}
 
@@ -2892,7 +2892,7 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 			// RF, changed this so the muzzle flash stays onscreen for long enough to be seen
 			if ( cg.time - cent->muzzleFlashTime < MUZZLE_FLASH_TIME ) {
 //			if (firing) {	// Ridah
-				trap_R_AddRefEntityToScene( &flash );
+				engine->trap_R_AddRefEntityToScene( &flash );
 			}
 		}
 	}
@@ -2913,7 +2913,7 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 
 			// make a dlight for the flash
 			if ( weapon->flashDlightColor[0] || weapon->flashDlightColor[1] || weapon->flashDlightColor[2] ) {
-				trap_R_AddLightToScene( flash.origin, 200 + ( rand() & 31 ), weapon->flashDlightColor[0],
+				engine->trap_R_AddLightToScene( flash.origin, 200 + ( rand() & 31 ), weapon->flashDlightColor[0],
 										weapon->flashDlightColor[1], weapon->flashDlightColor[2], 0 );
 			}
 		} else {
@@ -2979,7 +2979,7 @@ void CG_AddPlayerFoot( refEntity_t *parent, playerState_t *ps, centity_t *cent )
 	wolfkick.frame = frame;
 	wolfkick.oldframe = frame - 1;
 	wolfkick.backlerp = 1 - cg.frameInterpolation;
-	trap_R_AddRefEntityToScene( &wolfkick );
+	engine->trap_R_AddRefEntityToScene( &wolfkick );
 
 }
 
@@ -3157,7 +3157,7 @@ void CG_DrawWeaponSelect( void ) {
 	if ( !color ) {
 		return;
 	}
-	trap_R_SetColor( color );
+	engine->trap_R_SetColor( color );
 
 
 //----(SA)	neither of these overlap the weapon selection area anymore, so let them stay
@@ -3835,7 +3835,7 @@ void CG_PlaySwitchSound( int lastweap, int newweap ) {
 		}
 	}
 
-	trap_S_StartSound( NULL, cg.snap->ps.clientNum, CHAN_WEAPON, switchsound );
+	engine->trap_S_StartSound( NULL, cg.snap->ps.clientNum, CHAN_WEAPON, switchsound );
 }
 
 
@@ -4569,12 +4569,12 @@ void CG_MG42EFX( centity_t *cent ) {
 	vec3_t point;
 	refEntity_t flash;
 
-//	trap_S_StartSound( NULL, cent->currentState.number, CHAN_WEAPON, hWeaponSnd );
+//	engine->trap_S_StartSound( NULL, cent->currentState.number, CHAN_WEAPON, hWeaponSnd );
 
 	VectorCopy( cent->currentState.origin, point );
 	AngleVectors( cent->currentState.angles, forward, NULL, NULL );
 	VectorMA( point, 40, forward, point );
-	trap_R_AddLightToScene( point, 200 + ( rand() & 31 ),1.0, 0.6, 0.23, 0 );
+	engine->trap_R_AddLightToScene( point, 200 + ( rand() & 31 ),1.0, 0.6, 0.23, 0 );
 
 	memset( &flash, 0, sizeof( flash ) );
 	flash.renderfx = RF_LIGHTING_ORIGIN;
@@ -4583,7 +4583,7 @@ void CG_MG42EFX( centity_t *cent ) {
 	VectorCopy( point, flash.origin );
 	AnglesToAxis( cg.refdefViewAngles, flash.axis );
 
-	trap_R_AddRefEntityToScene( &flash );
+	engine->trap_R_AddRefEntityToScene( &flash );
 }
 
 void CG_FLAKEFX( centity_t *cent, int whichgun ) {
@@ -4616,7 +4616,7 @@ void CG_FLAKEFX( centity_t *cent, int whichgun ) {
 		VectorMA( point, -22, right, point );
 	}
 
-	trap_R_AddLightToScene( point, 200 + ( rand() & 31 ),1.0, 0.6, 0.23, 0 );
+	engine->trap_R_AddLightToScene( point, 200 + ( rand() & 31 ),1.0, 0.6, 0.23, 0 );
 
 	memset( &flash, 0, sizeof( flash ) );
 	flash.renderfx = RF_LIGHTING_ORIGIN;
@@ -4625,9 +4625,9 @@ void CG_FLAKEFX( centity_t *cent, int whichgun ) {
 	VectorCopy( point, flash.origin );
 	AnglesToAxis( cg.refdefViewAngles, flash.axis );
 
-	trap_R_AddRefEntityToScene( &flash );
+	engine->trap_R_AddRefEntityToScene( &flash );
 
-	trap_S_StartSound( NULL, ent->number, CHAN_WEAPON, hflakWeaponSnd );
+	engine->trap_S_StartSound( NULL, ent->number, CHAN_WEAPON, hflakWeaponSnd );
 }
 
 
@@ -4648,7 +4648,7 @@ void CG_MortarEFX( centity_t *cent ) {
 
 	if ( cent->currentState.density & 2 ) {
 		// light
-		trap_R_AddLightToScene( cent->currentState.origin, 200 + ( rand() & 31 ), 1.0, 1.0, 1.0, 0 );
+		engine->trap_R_AddLightToScene( cent->currentState.origin, 200 + ( rand() & 31 ), 1.0, 1.0, 1.0, 0 );
 
 		// muzzle flash
 		memset( &flash, 0, sizeof( flash ) );
@@ -4656,7 +4656,7 @@ void CG_MortarEFX( centity_t *cent ) {
 		flash.hModel = cgs.media.mg42muzzleflash;
 		VectorCopy( cent->currentState.origin, flash.origin );
 		AnglesToAxis( cg.refdefViewAngles, flash.axis );
-		trap_R_AddRefEntityToScene( &flash );
+		engine->trap_R_AddRefEntityToScene( &flash );
 	}
 }
 
@@ -4769,8 +4769,8 @@ void CG_FireWeapon( centity_t *cent ) {
 			return;
 		}
 
-		trap_S_StartSound( NULL, cent->currentState.number, CHAN_WEAPON, hWeaponSnd );
-		//trap_S_StartSound( NULL, ent->number, CHAN_WEAPON, hWeaponSnd );
+		engine->trap_S_StartSound( NULL, cent->currentState.number, CHAN_WEAPON, hWeaponSnd );
+		//engine->trap_S_StartSound( NULL, ent->number, CHAN_WEAPON, hWeaponSnd );
 		if ( cg_brassTime.integer > 0 ) {
 			CG_MachineGunEjectBrass( cent );
 		}
@@ -4819,7 +4819,7 @@ void CG_FireWeapon( centity_t *cent ) {
 
 	// play quad sound if needed
 	if ( cent->currentState.powerups & ( 1 << PW_QUAD ) ) {
-		trap_S_StartSound( NULL, cent->currentState.number, CHAN_ITEM, cgs.media.quadSound );
+		engine->trap_S_StartSound( NULL, cent->currentState.number, CHAN_ITEM, cgs.media.quadSound );
 	}
 
 	if ( ( cent->currentState.event & ~EV_EVENT_BITS ) == EV_FIRE_WEAPON_LASTSHOT ) {
@@ -4853,7 +4853,7 @@ void CG_FireWeapon( centity_t *cent ) {
 	if ( c > 0 ) {
 		c = rand() % c;
 		if ( firesound[c] ) {
-			trap_S_StartSound( NULL, ent->number, CHAN_WEAPON, firesound[c] );
+			engine->trap_S_StartSound( NULL, ent->number, CHAN_WEAPON, firesound[c] );
 
 			if ( fireEchosound && fireEchosound[c] ) { // check for echo
 				centity_t   *cent;
@@ -4868,7 +4868,7 @@ void CG_FireWeapon( centity_t *cent ) {
 				if ( gdist > 512 && gdist < 4096 ) {   // temp dist.  TODO: use numbers that are weapon specific
 					// use gorg as the new sound origin
 					VectorMA( cg.refdef.vieworg, 64, norm, gorg );    // sound-on-a-stick
-					trap_S_StartSoundEx( gorg, ent->number, CHAN_WEAPON, fireEchosound[c], SND_NOCUT );
+					engine->trap_S_StartSoundEx( gorg, ent->number, CHAN_WEAPON, fireEchosound[c], SND_NOCUT );
 				}
 			}
 		}
@@ -5325,7 +5325,7 @@ void CG_MissileHitWall( int weapon, int clientNum, vec3_t origin, vec3_t dir, in
 
 						sfx->s.frame = 3 + (rand()%3) ;
 
-						trap_LinkEntity (sfx);
+						engine->trap_LinkEntity (sfx);
 
 
 void CG_Shard(centity_t *cent, vec3_t origin, vec3_t dir)
@@ -5617,12 +5617,12 @@ void CG_Shard(centity_t *cent, vec3_t origin, vec3_t dir)
 	// done.
 
 	if ( sfx ) {
-		trap_S_StartSound( origin, ENTITYNUM_WORLD, CHAN_AUTO, sfx );
+		engine->trap_S_StartSound( origin, ENTITYNUM_WORLD, CHAN_AUTO, sfx );
 	}
 
 //----(SA)	added
 	if ( sfx2 ) {  // distant sounds for weapons with a broadcast fire sound (so you /always/ hear dynamite explosions)
-		trap_S_StartLocalSound( sfx2, CHAN_AUTO );
+		engine->trap_S_StartLocalSound( sfx2, CHAN_AUTO );
 	}
 //----(SA)	end
 
@@ -5721,7 +5721,7 @@ void CG_MissileHitWallSmall( int weapon, int clientNum, vec3_t origin, vec3_t di
 				  7 + rand() % 2 );     // count
 
 	if ( sfx ) {
-		trap_S_StartSound( origin, ENTITYNUM_WORLD, CHAN_AUTO, sfx );
+		engine->trap_S_StartSound( origin, ENTITYNUM_WORLD, CHAN_AUTO, sfx );
 	}
 
 	//
@@ -5764,7 +5764,7 @@ void CG_MissileHitPlayer( centity_t *cent, int weapon, vec3_t origin, vec3_t dir
 	case WP_KNIFE:
 		i = rand() % 4;
 		if ( cgs.media.sfx_knifehit[i] ) {
-			trap_S_StartSound( origin, cent->currentState.number, CHAN_WEAPON, cgs.media.sfx_knifehit[i] );
+			engine->trap_S_StartSound( origin, cent->currentState.number, CHAN_WEAPON, cgs.media.sfx_knifehit[i] );
 		}
 
 		if ( cent->currentState.number == cg.snap->ps.clientNum ) {
@@ -5860,7 +5860,7 @@ void CG_VenomFire( entityState_t *es, qboolean fullmode ) {
 		// ragepro can't alpha fade, so don't even bother with smoke
 		vec3_t up;
 
-		contents = trap_CM_PointContents( es->pos.trBase, 0 );
+		contents = engine->trap_CM_PointContents( es->pos.trBase, 0 );
 		if ( !( contents & CONTENTS_WATER ) ) {
 			VectorSet( up, 0, 0, 32 );
 			if ( fullmode ) {
@@ -5988,7 +5988,7 @@ void CG_DrawTracer( vec3_t start, vec3_t finish ) {
 	verts[3].modulate[2] = 255;
 	verts[3].modulate[3] = 255;
 
-	trap_R_AddPolyToScene( cgs.media.tracerShader, 4, verts );
+	engine->trap_R_AddPolyToScene( cgs.media.tracerShader, 4, verts );
 }
 
 /*
@@ -6025,7 +6025,7 @@ void CG_Tracer( vec3_t source, vec3_t dest, int sparks ) {
 	midpoint[2] = ( start[2] + finish[2] ) * 0.5;
 
 	// add the tracer sound
-	// trap_S_StartSound( midpoint, ENTITYNUM_WORLD, CHAN_AUTO, cgs.media.tracerSound );
+	// engine->trap_S_StartSound( midpoint, ENTITYNUM_WORLD, CHAN_AUTO, cgs.media.tracerSound );
 
 }
 
@@ -6093,8 +6093,8 @@ void CG_Bullet( vec3_t end, int sourceEntityNum, vec3_t normal, qboolean flesh, 
 	// do trail effects
 	if ( sourceEntityNum >= 0 && cg_tracerChance.value > 0 ) {
 		if ( CG_CalcMuzzlePoint( sourceEntityNum, start ) ) {
-			sourceContentType = trap_CM_PointContents( start, 0 );
-			destContentType = trap_CM_PointContents( end, 0 );
+			sourceContentType = engine->trap_CM_PointContents( start, 0 );
+			destContentType = engine->trap_CM_PointContents( end, 0 );
 
 			// do a complete bubble trail if necessary
 			if ( ( sourceContentType == destContentType ) && ( sourceContentType & CONTENTS_WATER ) ) {
@@ -6102,7 +6102,7 @@ void CG_Bullet( vec3_t end, int sourceEntityNum, vec3_t normal, qboolean flesh, 
 			}
 			// bubble trail from water into air
 			else if ( ( sourceContentType & CONTENTS_WATER ) ) {
-				trap_CM_BoxTrace( &trace, end, start, NULL, NULL, 0, CONTENTS_WATER );
+				engine->trap_CM_BoxTrace( &trace, end, start, NULL, NULL, 0, CONTENTS_WATER );
 				CG_BubbleTrail( start, trace.endpos, .5, 8 );
 			}
 			// bubble trail from air into water
@@ -6115,7 +6115,7 @@ void CG_Bullet( vec3_t end, int sourceEntityNum, vec3_t normal, qboolean flesh, 
 //							0.5, 80, 16, 0.125, "water_splash" );	// rand scale
 				// only add bubbles if effect is close to viewer
 				if ( Distance( cg.snap->ps.origin, end ) < 1024 ) {
-					trap_CM_BoxTrace( &trace, start, end, NULL, NULL, 0, CONTENTS_WATER );
+					engine->trap_CM_BoxTrace( &trace, start, end, NULL, NULL, 0, CONTENTS_WATER );
 					CG_BubbleTrail( end, trace.endpos, .5, 8 );
 				}
 			}
@@ -6175,9 +6175,9 @@ void CG_Bullet( vec3_t end, int sourceEntityNum, vec3_t normal, qboolean flesh, 
 			VectorSubtract( end, start, dir );
 			VectorNormalize( dir );
 			// upper
-			trap_RB_ZombieFXAddNewHit( cent->currentState.number, end, dir );
+			engine->trap_RB_ZombieFXAddNewHit( cent->currentState.number, end, dir );
 			// lower
-			trap_RB_ZombieFXAddNewHit( cent->currentState.number | (1<<30), end, dir );
+			engine->trap_RB_ZombieFXAddNewHit( cent->currentState.number | (1<<30), end, dir );
 			return;
 		}
 		*/
@@ -6188,7 +6188,7 @@ void CG_Bullet( vec3_t end, int sourceEntityNum, vec3_t normal, qboolean flesh, 
 				VectorSubtract( end, start, dir );
 				VectorNormalize( dir );
 				VectorMA( end, 128, dir, trend );
-				trap_CM_BoxTrace( &trace, end, trend, NULL, NULL, 0, MASK_SHOT & ~CONTENTS_BODY );
+				engine->trap_CM_BoxTrace( &trace, end, trend, NULL, NULL, 0, MASK_SHOT & ~CONTENTS_BODY );
 
 				if ( trace.fraction < 1 ) {
 					CG_ImpactMark( cgs.media.bloodDotShaders[rand() % 5], trace.endpos, trace.plane.normal, random() * 360,
@@ -6198,7 +6198,7 @@ void CG_Bullet( vec3_t end, int sourceEntityNum, vec3_t normal, qboolean flesh, 
 					// drop one on the ground?
 					VectorCopy( end, trend );
 					trend[2] -= 64;
-					trap_CM_BoxTrace( &trace, end, trend, NULL, NULL, 0, MASK_SHOT & ~CONTENTS_BODY );
+					engine->trap_CM_BoxTrace( &trace, end, trend, NULL, NULL, 0, MASK_SHOT & ~CONTENTS_BODY );
 
 					if ( trace.fraction < 1 ) {
 						CG_ImpactMark( cgs.media.bloodDotShaders[rand() % 5], trace.endpos, trace.plane.normal, random() * 360,
@@ -6238,7 +6238,7 @@ void CG_Bullet( vec3_t end, int sourceEntityNum, vec3_t normal, qboolean flesh, 
 			VectorNormalize( dir );
 			VectorMA( end, -4, dir, start2 );   // back off a little so it doesn't start in solid
 			VectorMA( end, 64, dir, dir );
-			trap_CM_BoxTrace( &trace, start2, dir, NULL, NULL, 0, MASK_SHOT );
+			engine->trap_CM_BoxTrace( &trace, start2, dir, NULL, NULL, 0, MASK_SHOT );
 
 			if ( ( trace.surfaceFlags & SURF_METAL ) || !( rand() % 10 ) || ( otherEntNum2 != ENTITYNUM_NONE ) ) {
 				// JPW NERVE compute new spark direction from normal & dir (rotate -dir 180 degrees about normal)
@@ -6252,7 +6252,7 @@ void CG_Bullet( vec3_t end, int sourceEntityNum, vec3_t normal, qboolean flesh, 
 //				CG_MissileHitWall( fromweap, 0, end, normal, trace.surfaceFlags );	// sparks	//	(SA) modified to send missilehitwall surface parameters
 			}
 			if ( !( sourceContentType & CONTENTS_WATER ) && ( destContentType & ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ) ) {   // only when shooting /into/ water
-				trap_CM_BoxTrace( &trace, start, end, NULL, NULL, 0, MASK_WATER );
+				engine->trap_CM_BoxTrace( &trace, start, end, NULL, NULL, 0, MASK_WATER );
 //				CG_Trace(&trace, start, NULL, NULL, end, -1, MASK_WATER);
 //				if (!(trace.surfaceFlags & SURF_NOMARKS)) {	// check to see if the surface should draw splashes
 				CG_MissileHitWall( fromweap, 2, trace.endpos, trace.plane.normal, trace.surfaceFlags );
@@ -6297,7 +6297,7 @@ void CG_ClientDamage( int entnum, int enemynum, int id ) {
 	}
 	// -NERVE - SMF
 	else {
-		trap_SendClientCommand( va( "cld %i %i %i", entnum, enemynum, id ) );
+		engine->trap_SendClientCommand( va( "cld %i %i %i", entnum, enemynum, id ) );
 	}
 }
 

@@ -56,7 +56,7 @@ void CG_PositionEntityOnTag( refEntity_t *entity, const refEntity_t *parent,
 	orientation_t lerped;
 
 	// lerp the tag
-	trap_R_LerpTag( &lerped, parent, tagName, startIndex );
+	engine->trap_R_LerpTag( &lerped, parent, tagName, startIndex );
 
 	// FIXME: allow origin offsets along tag?	//----(SA) Yes! Adding.
 
@@ -95,7 +95,7 @@ void CG_PositionRotatedEntityOnTag( refEntity_t *entity, const refEntity_t *pare
 
 //AxisClear( entity->axis );
 	// lerp the tag
-	trap_R_LerpTag( &lerped, parent, tagName, 0 );
+	engine->trap_R_LerpTag( &lerped, parent, tagName, 0 );
 
 	// FIXME: allow origin offsets along tag?
 	VectorCopy( parent->origin, entity->origin );
@@ -380,9 +380,9 @@ void CG_SetEntitySoundPosition( centity_t *cent ) {
 
 		v = cgs.inlineModelMidpoints[ cent->currentState.modelindex ];
 		VectorAdd( cent->lerpOrigin, v, origin );
-		trap_S_UpdateEntityPosition( cent->currentState.number, origin );
+		engine->trap_S_UpdateEntityPosition( cent->currentState.number, origin );
 	} else {
-		trap_S_UpdateEntityPosition( cent->currentState.number, cent->lerpOrigin );
+		engine->trap_S_UpdateEntityPosition( cent->currentState.number, cent->lerpOrigin );
 	}
 }
 
@@ -436,7 +436,7 @@ void CG_AddLightstyle( centity_t *cent ) {
 		if ( cent->dl_oldframe >= stringlength ) {
 			cent->dl_oldframe = ( cent->dl_oldframe ) % stringlength;
 			if ( cent->dl_oldframe < 3 && cent->dl_sound ) { // < 3 so if an alarm comes back into the pvs it will only start a sound if it's going to be closely synced with the light, otherwise wait till the next cycle
-				trap_S_StartSound( NULL, cent->currentState.number, CHAN_AUTO, cgs.gameSounds[cent->dl_sound] );
+				engine->trap_S_StartSound( NULL, cent->currentState.number, CHAN_AUTO, cgs.gameSounds[cent->dl_sound] );
 			}
 		}
 
@@ -463,7 +463,7 @@ void CG_AddLightstyle( centity_t *cent ) {
 	g = ( cl >> 8 ) & 255;
 	b = ( cl >> 16 ) & 255;
 
-	trap_R_AddLightToScene( cent->lerpOrigin, lightval, (float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f, 0 ); // overdraw forced to 0 for now
+	engine->trap_R_AddLightToScene( cent->lerpOrigin, lightval, (float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f, 0 ); // overdraw forced to 0 for now
 }
 
 
@@ -489,12 +489,12 @@ static void CG_EntityEffects( centity_t *cent ) {
 
 		if ( cent->currentState.eType == ET_SPEAKER ) {
 			/*if(cent->currentState.density == 1) {	// NO_PVS
-				trap_S_AddRealLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.gameSounds[ cent->currentState.loopSound ] );
+				engine->trap_S_AddRealLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.gameSounds[ cent->currentState.loopSound ] );
 			}
 			else*/if ( cent->currentState.dmgFlags ) { // range is set
-				trap_S_AddRangedLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.gameSounds[ cent->currentState.loopSound ], cent->currentState.dmgFlags );
+				engine->trap_S_AddRangedLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.gameSounds[ cent->currentState.loopSound ], cent->currentState.dmgFlags );
 			} else {
-				trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.gameSounds[ cent->currentState.loopSound ], 255 );
+				engine->trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.gameSounds[ cent->currentState.loopSound ], 255 );
 			}
 		} else if ( cent->currentState.solid == SOLID_BMODEL )   {
 			vec3_t origin;
@@ -504,20 +504,20 @@ static void CG_EntityEffects( centity_t *cent ) {
 			VectorAdd( cent->lerpOrigin, v, origin );
 
 			if ( cgs.gameSoundTypes[ cent->currentState.loopSound ] == 1 ) {   // old style
-				trap_S_AddLoopingSound( cent->currentState.number, origin, vec3_origin, cgs.gameSounds[ cent->currentState.loopSound ], 255 );
+				engine->trap_S_AddLoopingSound( cent->currentState.number, origin, vec3_origin, cgs.gameSounds[ cent->currentState.loopSound ], 255 );
 			} else {                                                        // from script
 				int soundIndex;
 				soundIndex = soundScripts[cgs.gameSounds[ cent->currentState.loopSound ] - 1 ].soundList->sfxHandle;
-				trap_S_AddLoopingSound( cent->currentState.number, origin, vec3_origin, soundIndex, 255 );
+				engine->trap_S_AddLoopingSound( cent->currentState.number, origin, vec3_origin, soundIndex, 255 );
 			}
 		} else {
-			trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.gameSounds[ cent->currentState.loopSound ], 255 );
+			engine->trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.gameSounds[ cent->currentState.loopSound ], 255 );
 		}
 	} /*else {
 		// stop NO_PVS speakers if they've been turned off
 		if(cent->currentState.eType == ET_SPEAKER) {
 			if(cent->currentState.density == 1) {
-				trap_S_StopLoopingSound(cent->currentState.number);
+				engine->trap_S_StopLoopingSound(cent->currentState.number);
 			}
 		}
 	}*/
@@ -539,16 +539,16 @@ static void CG_EntityEffects( centity_t *cent ) {
 			b = ( cl >> 16 ) & 255;
 			i = ( ( cl >> 24 ) & 255 ) * 4;
 
-			trap_R_AddLightToScene( cent->lerpOrigin, i, (float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f, 0 );
+			engine->trap_R_AddLightToScene( cent->lerpOrigin, i, (float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f, 0 );
 		}
 	}
 
 	// Ridah, flaming sounds
 	if ( CG_EntOnFire( cent ) ) {
 		// play a flame blow sound when moving
-		trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.media.flameBlowSound, (int)( 255.0 * ( 1.0 - fabs( cent->fireRiseDir[2] ) ) ) );
+		engine->trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.media.flameBlowSound, (int)( 255.0 * ( 1.0 - fabs( cent->fireRiseDir[2] ) ) ) );
 		// play a burning sound when not moving
-		trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.media.flameSound, (int)( 0.3 * 255.0 * ( pow( cent->fireRiseDir[2],2 ) ) ) );
+		engine->trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.media.flameSound, (int)( 0.3 * 255.0 * ( pow( cent->fireRiseDir[2],2 ) ) ) );
 	}
 
 }
@@ -628,7 +628,7 @@ static void CG_General( centity_t *cent ) {
 	}
 
 	// add to refresh list
-	trap_R_AddRefEntityToScene( &ent );
+	engine->trap_R_AddRefEntityToScene( &ent );
 
 	memcpy( &cent->refEnt, &ent, sizeof( refEntity_t ) );
 }
@@ -649,7 +649,7 @@ static void CG_Speaker( centity_t *cent ) {
 		return;
 	}
 
-	trap_S_StartSound( NULL, cent->currentState.number, CHAN_ITEM, cgs.gameSounds[cent->currentState.eventParm] );
+	engine->trap_S_StartSound( NULL, cent->currentState.number, CHAN_ITEM, cgs.gameSounds[cent->currentState.eventParm] );
 
 	//	ent->s.frame = ent->wait * 10;
 	//	ent->s.clientNum = ent->random * 10;
@@ -683,7 +683,7 @@ void CG_DrawHoldableSelect( void ) {
 	if ( !color ) {
 		return;
 	}
-	trap_R_SetColor( color );
+	engine->trap_R_SetColor( color );
 
 	// showing select clears pickup item display, but not the blend blob
 	cg.itemPickupTime = 0;
@@ -769,7 +769,7 @@ void CG_DrawHoldableSelect( void ) {
 		}
 	}
 
-	trap_R_SetColor( NULL );
+	engine->trap_R_SetColor( NULL );
 }
 
 
@@ -989,7 +989,7 @@ static void CG_Item( centity_t *cent ) {
 		ent.shaderRGBA[1] = 255;
 		ent.shaderRGBA[2] = 255;
 		ent.shaderRGBA[3] = 255;
-		trap_R_AddRefEntityToScene( &ent );
+		engine->trap_R_AddRefEntityToScene( &ent );
 		return;
 	}
 
@@ -1110,7 +1110,7 @@ static void CG_Item( centity_t *cent ) {
 		vec3_t mins, maxs, offset;
 		int i;
 
-		trap_R_ModelBounds( ent.hModel, mins, maxs );           // get bounds
+		engine->trap_R_ModelBounds( ent.hModel, mins, maxs );           // get bounds
 
 		for ( i = 0 ; i < 3 ; i++ ) {
 			offset[i] = mins[i] + 0.5 * ( maxs[i] - mins[i] );  // find object-space center
@@ -1144,11 +1144,11 @@ static void CG_Item( centity_t *cent ) {
 			highlight = qtrue;
 
 			if ( item->giType == IT_TREASURE ) {
-				trap_R_AddCoronaToScene( cent->highlightOrigin, 1, 0.85, 0.5, 2, cent->currentState.number, 1 );     //----(SA)	add corona to treasure
+				engine->trap_R_AddCoronaToScene( cent->highlightOrigin, 1, 0.85, 0.5, 2, cent->currentState.number, 1 );     //----(SA)	add corona to treasure
 			}
 		} else {
 			if ( item->giType == IT_TREASURE ) {
-				trap_R_AddCoronaToScene( cent->highlightOrigin, 1, 0.85, 0.5, 2, cent->currentState.number, 0 ); //----(SA)	"empty corona" for proper fades
+				engine->trap_R_AddCoronaToScene( cent->highlightOrigin, 1, 0.85, 0.5, 2, cent->currentState.number, 0 ); //----(SA)	"empty corona" for proper fades
 			}
 		}
 
@@ -1179,7 +1179,7 @@ static void CG_Item( centity_t *cent ) {
 
 
 	// add to refresh list
-	trap_R_AddRefEntityToScene( &ent );
+	engine->trap_R_AddRefEntityToScene( &ent );
 }
 
 //============================================================================
@@ -1218,7 +1218,7 @@ static void CG_Missile( centity_t *cent ) {
 
 	// add dynamic light
 	if ( weapon->missileDlight ) {
-		trap_R_AddLightToScene( cent->lerpOrigin, weapon->missileDlight,
+		engine->trap_R_AddLightToScene( cent->lerpOrigin, weapon->missileDlight,
 								weapon->missileDlightColor[0], weapon->missileDlightColor[1], weapon->missileDlightColor[2], 0 );
 	}
 
@@ -1229,7 +1229,7 @@ static void CG_Missile( centity_t *cent ) {
 		vec3_t velocity;
 
 		BG_EvaluateTrajectoryDelta( &cent->currentState.pos, cg.time, velocity );
-		trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, velocity, weapon->missileSound, 255 );
+		engine->trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, velocity, weapon->missileSound, 255 );
 	}
 
 	// create the render entity
@@ -1344,8 +1344,8 @@ static void CG_Bat( centity_t *cent ) {
 	memset( &refent, 0, sizeof( refent ) );
 
 //CG_Printf("remove me!!");
-//cgs.media.zombieSpiritLoopSound = trap_S_RegisterSound( "sound/zombie/attack/spirit_loop.wav" );
-//cgs.media.ssSpiritSkullModel = trap_R_RegisterModel( "models/players/supersoldier/ssghost.md3" );
+//cgs.media.zombieSpiritLoopSound = engine->trap_S_RegisterSound( "sound/zombie/attack/spirit_loop.wav" );
+//cgs.media.ssSpiritSkullModel = engine->trap_R_RegisterModel( "models/players/supersoldier/ssghost.md3" );
 
 	// add the visible entity and trail
 	memset( &refent, 0, sizeof( refent ) );
@@ -1357,9 +1357,9 @@ static void CG_Bat( centity_t *cent ) {
 	VectorCopy( cent->lerpOrigin, refent.origin );
 	AnglesToAxis( cent->currentState.angles, refent.axis );
 	// draw it
-	trap_R_AddRefEntityToScene( &refent );
+	engine->trap_R_AddRefEntityToScene( &refent );
 	// emit a sound
-	trap_S_AddLoopingSound( 0, refent.origin, vec3_origin, cgs.media.zombieSpiritLoopSound, 255 );
+	engine->trap_S_AddLoopingSound( 0, refent.origin, vec3_origin, cgs.media.zombieSpiritLoopSound, 255 );
 }
 
 /*
@@ -1559,7 +1559,7 @@ static void CG_Trap( centity_t *cent ) {
 
 	AnglesToAxis( cent->lerpAngles, ent.axis );
 
-	trap_R_AddRefEntityToScene( &ent );
+	engine->trap_R_AddRefEntityToScene( &ent );
 
 	memcpy( &cent->refEnt, &ent, sizeof( refEntity_t ) );
 }
@@ -1621,7 +1621,7 @@ static void CG_Corona( centity_t *cent ) {
 			flags = 1;
 		}
 
-		trap_R_AddCoronaToScene( cent->lerpOrigin, (float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f, (float)cent->currentState.density / 255.0f, cent->currentState.number, flags );
+		engine->trap_R_AddCoronaToScene( cent->lerpOrigin, (float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f, (float)cent->currentState.density / 255.0f, cent->currentState.number, flags );
 	}
 }
 
@@ -1712,7 +1712,7 @@ static void CG_Efx( centity_t *cent ) {
 				r = dli & 255;
 				g = ( dli >> 8 ) & 255;
 				b = ( dli >> 16 ) & 255;
-				trap_R_AddLightToScene( cent->currentState.origin, cent->currentState.time, (float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f, 0 );
+				engine->trap_R_AddLightToScene( cent->currentState.origin, cent->currentState.time, (float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f, 0 );
 			}
 		}
 	} else if ( cent->currentState.eType == ET_SPOTLIGHT_EF )     {
@@ -1738,7 +1738,7 @@ static void CG_Efx( centity_t *cent ) {
 				VectorNormalize2( cent->lerpAngles, angNorm );
 				//		(origin, dir, speed, duration, count, 'randscale')
 				CG_AddBulletParticles( cent->lerpOrigin, angNorm, 2, 800, 4, 16.0f );
-				trap_S_StartSound( NULL, cent->currentState.number, CHAN_AUTO, cgs.media.sparkSounds[0] );
+				engine->trap_S_StartSound( NULL, cent->currentState.number, CHAN_AUTO, cgs.media.sparkSounds[0] );
 			}
 
 			// smoking dead light
@@ -1753,15 +1753,15 @@ static void CG_Efx( centity_t *cent ) {
 			cs = (char *)CG_ConfigString( CS_SPLINES + cent->currentState.density );
 			cent->overheatTime = splinetarget = CG_LoadCamera( va( "cameras/%s.camera", cs ) );
 			if ( splinetarget != -1 ) {
-				trap_startCamera( splinetarget, cg.time );
+				engine->trap_startCamera( splinetarget, cg.time );
 			}
 		} else {
 			vec3_t angles;
 			if ( splinetarget != -1 ) {
-				if ( trap_getCameraInfo( splinetarget, time, &targetpos, &angles, &fov ) ) {
+				if ( engine->trap_getCameraInfo( splinetarget, time, (float *) & targetpos, (float*)&angles, &fov)) {
 				} else {    // loop
-					trap_startCamera( splinetarget, cg.time );
-					trap_getCameraInfo( splinetarget, cg.time, &targetpos, &angles, &fov );
+					engine->trap_startCamera( splinetarget, cg.time );
+					engine->trap_getCameraInfo( splinetarget, cg.time, (float*)&targetpos, (float*)&angles, &fov );
 				}
 			}
 		}
@@ -1880,15 +1880,15 @@ static void CG_Explosive( centity_t *cent ) {
 	}
 
 	// add to refresh list
-	// trap_R_AddRefEntityToScene(&ent);
+	// engine->trap_R_AddRefEntityToScene(&ent);
 
 	// add the secondary model
 	if ( s1->modelindex2 ) {
 		ent.skinNum = 0;
 		ent.hModel = cgs.gameModels[s1->modelindex2];
-		trap_R_AddRefEntityToScene( &ent );
+		engine->trap_R_AddRefEntityToScene( &ent );
 	} else {
-		trap_R_AddRefEntityToScene( &ent );
+		engine->trap_R_AddRefEntityToScene( &ent );
 	}
 
 }
@@ -1928,7 +1928,7 @@ static void CG_Mover( centity_t *cent ) {
 	}
 
 	// add to refresh list
-	//trap_R_AddRefEntityToScene(&ent);
+	//engine->trap_R_AddRefEntityToScene(&ent);
 
 
 	// Rafael
@@ -1961,10 +1961,10 @@ static void CG_Mover( centity_t *cent ) {
 			ent.oldframe -= 1;
 			ent.backlerp = 1 - cg.frameInterpolation;
 		}
-		trap_R_AddRefEntityToScene( &ent );
+		engine->trap_R_AddRefEntityToScene( &ent );
 		memcpy( &cent->refEnt, &ent, sizeof( refEntity_t ) );
 	} else {
-		trap_R_AddRefEntityToScene( &ent );
+		engine->trap_R_AddRefEntityToScene( &ent );
 	}
 
 	// add propeller and sfx to me109
@@ -1985,7 +1985,7 @@ static void CG_Mover( centity_t *cent ) {
 
 		CG_PositionRotatedEntityOnTag( &propeller, &ent, "tag_prop" );
 
-		trap_R_AddRefEntityToScene( &propeller );
+		engine->trap_R_AddRefEntityToScene( &propeller );
 
 		if ( cent->currentState.density == 8 ) {
 			refEntity_t flash;
@@ -2002,8 +2002,8 @@ static void CG_Mover( centity_t *cent ) {
 			AnglesToAxis( angles, flash.axis );
 			CG_PositionRotatedEntityOnTag( &flash, &ent, "tag_gun1" );
 
-			trap_R_AddRefEntityToScene( &flash );
-			trap_R_AddLightToScene( flash.origin, 200 + ( rand() & 31 ),1.0, 0.6, 0.23, 0 );
+			engine->trap_R_AddRefEntityToScene( &flash );
+			engine->trap_R_AddLightToScene( flash.origin, 200 + ( rand() & 31 ),1.0, 0.6, 0.23, 0 );
 
 			memset( &flash, 0, sizeof( flash ) );
 			flash.renderfx = ent.shadowPlane;
@@ -2013,8 +2013,8 @@ static void CG_Mover( centity_t *cent ) {
 			AnglesToAxis( angles, flash.axis );
 			CG_PositionRotatedEntityOnTag( &flash, &ent, "tag_gun02" );
 
-			trap_R_AddRefEntityToScene( &flash );
-			trap_R_AddLightToScene( flash.origin, 200 + ( rand() & 31 ),1.0, 0.6, 0.23, 0 );
+			engine->trap_R_AddRefEntityToScene( &flash );
+			engine->trap_R_AddLightToScene( flash.origin, 200 + ( rand() & 31 ),1.0, 0.6, 0.23, 0 );
 		}
 	}
 
@@ -2032,7 +2032,7 @@ static void CG_Mover( centity_t *cent ) {
 				VectorNormalize2( cent->lerpAngles, angNorm );
 				//		(origin, dir, speed, duration, count, 'randscale')
 				CG_AddBulletParticles( cent->lerpOrigin, angNorm, 2, 800, 4, 16.0f );
-				trap_S_StartSound( NULL, cent->currentState.number, CHAN_AUTO, cgs.media.sparkSounds[0] );
+				engine->trap_S_StartSound( NULL, cent->currentState.number, CHAN_AUTO, cgs.media.sparkSounds[0] );
 			}
 		}
 	}
@@ -2062,7 +2062,7 @@ void CG_Beam( centity_t *cent ) {
 	ent.renderfx = RF_NOSHADOW;
 
 	// add to refresh list
-	trap_R_AddRefEntityToScene( &ent );
+	engine->trap_R_AddRefEntityToScene( &ent );
 }
 
 
@@ -2094,7 +2094,7 @@ static void CG_Portal( centity_t *cent ) {
 	ent.skinNum = s1->clientNum / 256.0 * 360;    // roll offset
 
 	// add to refresh list
-	trap_R_AddRefEntityToScene( &ent );
+	engine->trap_R_AddRefEntityToScene( &ent );
 }
 
 /*
@@ -2177,17 +2177,17 @@ static void CG_Prop( centity_t *cent ) {
 	}
 
 	// add to refresh list
-	//trap_R_AddRefEntityToScene(&ent);
+	//engine->trap_R_AddRefEntityToScene(&ent);
 
 	// add the secondary model
 	if ( s1->modelindex2 ) {
 		ent.skinNum = 0;
 		ent.hModel = cgs.gameModels[s1->modelindex2];
 		ent.frame = s1->frame;
-		trap_R_AddRefEntityToScene( &ent );
+		engine->trap_R_AddRefEntityToScene( &ent );
 		memcpy( &cent->refEnt, &ent, sizeof( refEntity_t ) );
 	} else {
-		trap_R_AddRefEntityToScene( &ent );
+		engine->trap_R_AddRefEntityToScene( &ent );
 	}
 
 }

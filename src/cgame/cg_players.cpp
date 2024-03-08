@@ -99,7 +99,7 @@ sfxHandle_t CG_CustomSound( int clientNum, const char *soundName ) {
 	int i;
 
 	if ( soundName[0] != '*' ) {
-		return trap_S_RegisterSound( soundName );
+		return engine->trap_S_RegisterSound( soundName );
 	}
 
 	if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
@@ -145,7 +145,7 @@ static qboolean CG_ParseGibModels( const char *filename, clientInfo_t *ci ) {
 	memset( ci->gibModels, 0, sizeof( ci->gibModels ) );
 
 	// load the file
-	len = trap_FS_FOpenFile( filename, &f, FS_READ );
+	len = engine->trap_FS_FOpenFile( filename, &f, FS_READ );
 	if ( len <= 0 ) {
 		return qfalse;
 	}
@@ -153,9 +153,9 @@ static qboolean CG_ParseGibModels( const char *filename, clientInfo_t *ci ) {
 		CG_Printf( "File %s too long\n", filename );
 		return qfalse;
 	}
-	trap_FS_Read( text, len, f );
+	engine->trap_FS_Read( text, len, f );
 	text[len] = 0;
-	trap_FS_FCloseFile( f );
+	engine->trap_FS_FCloseFile( f );
 
 	// parse the text
 	text_p = text;
@@ -166,7 +166,7 @@ static qboolean CG_ParseGibModels( const char *filename, clientInfo_t *ci ) {
 			break;
 		}
 		// cache this model
-		ci->gibModels[i] = trap_R_RegisterModel( token );
+		ci->gibModels[i] = engine->trap_R_RegisterModel( token );
 	}
 
 	return qtrue;
@@ -212,7 +212,7 @@ void CG_CalcMoveSpeeds( clientInfo_t *ci ) {
 		refent.oldframe = refent.frame;
 		// for each foot
 		for ( k = 0; k < 2; k++ ) {
-			if ( trap_R_LerpTag( &o[k], &refent, tags[k], 0 ) < 0 ) {
+			if ( engine->trap_R_LerpTag( &o[k], &refent, tags[k], 0 ) < 0 ) {
 				CG_Error( "CG_CalcMoveSpeeds: unable to find tag %s, cannot calculate movespeed", tags[k] );
 			}
 		}
@@ -241,7 +241,7 @@ void CG_CalcMoveSpeeds( clientInfo_t *ci ) {
 
 			// for each foot
 			for ( k = 0; k < 2; k++ ) {
-				if ( trap_R_LerpTag( &o[k], &refent, tags[k], 0 ) < 0 ) {
+				if ( engine->trap_R_LerpTag( &o[k], &refent, tags[k], 0 ) < 0 ) {
 					CG_Error( "CG_CalcMoveSpeeds: unable to find tag %s, cannot calculate movespeed", tags[k] );
 				}
 			}
@@ -336,7 +336,7 @@ static qboolean CG_ParseAnimationFiles( const char *modelname, clientInfo_t *ci,
 
 	// load the cfg file
 	Com_sprintf( filename, sizeof( filename ), "models/players/%s/wolfanim.cfg", modelname );
-	len = trap_FS_FOpenFile( filename, &f, FS_READ );
+	len = engine->trap_FS_FOpenFile( filename, &f, FS_READ );
 	if ( len <= 0 ) {
 		return qfalse;
 	}
@@ -344,9 +344,9 @@ static qboolean CG_ParseAnimationFiles( const char *modelname, clientInfo_t *ci,
 		CG_Printf( "File %s too long\n", filename );
 		return qfalse;
 	}
-	trap_FS_Read( text, len, f );
+	engine->trap_FS_Read( text, len, f );
 	text[len] = 0;
-	trap_FS_FCloseFile( f );
+	engine->trap_FS_FCloseFile( f );
 
 	// parse the text
 	BG_AnimParseAnimConfig( ci->modelInfo, filename, text );
@@ -360,14 +360,14 @@ static qboolean CG_ParseAnimationFiles( const char *modelname, clientInfo_t *ci,
 
 	// load the script file
 	Com_sprintf( filename, sizeof( filename ), "models/players/%s/wolfanim.script", modelname );
-	len = trap_FS_FOpenFile( filename, &f, FS_READ );
+	len = engine->trap_FS_FOpenFile( filename, &f, FS_READ );
 	if ( len <= 0 ) {
 		if ( ci->modelInfo->version > 1 ) {
 			return qfalse;
 		}
 		// try loading the default script for old legacy models
 		Com_sprintf( filename, sizeof( filename ), "models/players/default.script", modelname );
-		len = trap_FS_FOpenFile( filename, &f, FS_READ );
+		len = engine->trap_FS_FOpenFile( filename, &f, FS_READ );
 		if ( len <= 0 ) {
 			return qfalse;
 		}
@@ -376,9 +376,9 @@ static qboolean CG_ParseAnimationFiles( const char *modelname, clientInfo_t *ci,
 		CG_Printf( "File %s too long\n", filename );
 		return qfalse;
 	}
-	trap_FS_Read( text, len, f );
+	engine->trap_FS_Read( text, len, f );
 	text[len] = 0;
-	trap_FS_FCloseFile( f );
+	engine->trap_FS_FCloseFile( f );
 
 	// parse the text
 	BG_AnimParseAnimScript( ci->modelInfo, &cgs.animScriptData, ci->clientNum, filename, text );
@@ -399,17 +399,17 @@ static qboolean CG_RegisterClientSkin( clientInfo_t *ci, const char *modelName, 
 
 	// RF, try and register the new "body_*.skin" file for skeletal animation
 	Com_sprintf( filename, sizeof( filename ), "models/players/%s/body_%s.skin", modelName, skinName );
-	ci->legsSkin = trap_R_RegisterSkin( filename );
+	ci->legsSkin = engine->trap_R_RegisterSkin( filename );
 	if ( ci->legsSkin ) { // skeletal model
 		ci->torsoSkin = ci->legsSkin;
 		return qtrue;
 	}
 
 	Com_sprintf( filename, sizeof( filename ), "models/players/%s/lower_%s.skin", modelName, skinName );
-	ci->legsSkin = trap_R_RegisterSkin( filename );
+	ci->legsSkin = engine->trap_R_RegisterSkin( filename );
 
 	Com_sprintf( filename, sizeof( filename ), "models/players/%s/upper_%s.skin", modelName, skinName );
-	ci->torsoSkin = trap_R_RegisterSkin( filename );
+	ci->torsoSkin = engine->trap_R_RegisterSkin( filename );
 
 	if ( !ci->legsSkin || !ci->torsoSkin ) {
 		return qfalse;
@@ -427,7 +427,7 @@ static qboolean CG_RegisterClientHeadSkin( clientInfo_t *ci, const char *modelNa
 	char filename[MAX_QPATH];
 
 	Com_sprintf( filename, sizeof( filename ), "models/players/%s/head_%s.skin", modelName, hSkinName );
-	ci->headSkin = trap_R_RegisterSkin( filename );
+	ci->headSkin = engine->trap_R_RegisterSkin( filename );
 
 	if ( !ci->headSkin ) {
 		return qfalse;
@@ -457,10 +457,10 @@ static qboolean CG_RegisterAcc( clientInfo_t *ci, const char *modelName, const c
 
 	// FIXME: have the check the last 4 chars rather than strstr()
 	if ( !strstr( skinName, ".md3" ) ) {          // try to find a skin in the acc folder that matches
-		*skin = trap_R_RegisterSkin( va( "%s/%s.skin", modelName, skinName ) );
+		*skin = engine->trap_R_RegisterSkin( va( "%s/%s.skin", modelName, skinName ) );
 
 		if ( *skin ) {
-			if ( trap_R_GetSkinModel( *skin, "md3_part", &namefromskin[0] ) ) {
+			if ( engine->trap_R_GetSkinModel( *skin, "md3_part", &namefromskin[0] ) ) {
 				Com_sprintf( filename, sizeof( filename ), "%s/acc/%s", modelName, namefromskin );
 				// NOTE: FIXME: this will currently only work with accessories in the <modelName>/acc directory.
 				//				It will have to strip the directory off the end and then use the remaining
@@ -478,7 +478,7 @@ static qboolean CG_RegisterAcc( clientInfo_t *ci, const char *modelName, const c
 	}
 
 
-	*model = trap_R_RegisterModel( filename );
+	*model = engine->trap_R_RegisterModel( filename );
 
 	if ( *model ) {
 		return qtrue;
@@ -521,7 +521,7 @@ qboolean CG_CheckForExistingModelInfo( clientInfo_t *ci, char *modelName, animMo
 			// if we fell down to here, then we have found a free slot
 
 			// request it from the server (game module)
-			if ( trap_GetModelInfo( ci->clientNum, modelName, &cgs.animScriptData.modelInfo[i] ) ) {
+			if ( engine->trap_GetModelInfo( ci->clientNum, modelName, &cgs.animScriptData.modelInfo[i] ) ) {
 
 				// success
 				cgs.animScriptData.clientModels[ci->clientNum] = i + 1;
@@ -567,16 +567,16 @@ static qboolean CG_RegisterClientModelname( clientInfo_t *ci, const char *modelN
 
 	// load cmodels before models so filecache works
 
-	if ( trap_R_GetSkinModel( ci->legsSkin, "md3_part", &namefromskin[0] ) ) {
+	if ( engine->trap_R_GetSkinModel( ci->legsSkin, "md3_part", &namefromskin[0] ) ) {
 		Com_sprintf( filename, sizeof( filename ), "models/players/%s/%s", modelName, namefromskin );
-		ci->legsModel = trap_R_RegisterModel( filename );
+		ci->legsModel = engine->trap_R_RegisterModel( filename );
 	} else {    // try skeletal model
 		Com_sprintf( filename, sizeof( filename ), "models/players/%s/body.mds", modelName );
-		ci->legsModel = trap_R_RegisterModel( filename );
+		ci->legsModel = engine->trap_R_RegisterModel( filename );
 
 		if ( !ci->legsModel ) {   // revert to mesh animation
 			Com_sprintf( filename, sizeof( filename ), "models/players/%s/lower.md3", modelName );
-			ci->legsModel = trap_R_RegisterModel( filename );
+			ci->legsModel = engine->trap_R_RegisterModel( filename );
 		} else {                // found skeletal model
 			ci->isSkeletal = qtrue;
 			ci->torsoModel = ci->legsModel;
@@ -590,13 +590,13 @@ static qboolean CG_RegisterClientModelname( clientInfo_t *ci, const char *modelN
 			return qfalse;
 		}
 
-		if ( trap_R_GetSkinModel( ci->torsoSkin, "md3_part", &namefromskin[0] ) ) {
+		if ( engine->trap_R_GetSkinModel( ci->torsoSkin, "md3_part", &namefromskin[0] ) ) {
 			Com_sprintf( filename, sizeof( filename ), "models/players/%s/%s", modelName, namefromskin );
 		} else {
 			Com_sprintf( filename, sizeof( filename ), "models/players/%s/upper.md3", modelName );
 		}
 
-		ci->torsoModel = trap_R_RegisterModel( filename );
+		ci->torsoModel = engine->trap_R_RegisterModel( filename );
 
 		if ( !ci->torsoModel ) {
 			Com_Printf( "Failed to load torso model file %s\n", filename );
@@ -614,7 +614,7 @@ static qboolean CG_RegisterClientModelname( clientInfo_t *ci, const char *modelN
 
 		string_p = scaleString;
 
-		if ( trap_R_GetSkinModel( ci->legsSkin, "playerscale", &scaleString[0] ) ) {
+		if ( engine->trap_R_GetSkinModel( ci->legsSkin, "playerscale", &scaleString[0] ) ) {
 			scaleToken = COM_Parse( &string_p );
 			if ( !scaleToken ) {
 				badscale = qtrue;   // and drop to "if(badscale)" below
@@ -650,28 +650,28 @@ static qboolean CG_RegisterClientModelname( clientInfo_t *ci, const char *modelN
 
 
 	// try all the accessories
-	if ( trap_R_GetSkinModel( ci->legsSkin, "md3_beltr", &namefromskin[0] ) ) {
+	if ( engine->trap_R_GetSkinModel( ci->legsSkin, "md3_beltr", &namefromskin[0] ) ) {
 		CG_RegisterAcc( ci, va( "models/players/%s", modelName ), namefromskin, &ci->accModels[ACC_BELT_LEFT], &ci->accSkins[ACC_BELT_LEFT] );
 	}
-	if ( trap_R_GetSkinModel( ci->legsSkin, "md3_beltl", &namefromskin[0] ) ) {
+	if ( engine->trap_R_GetSkinModel( ci->legsSkin, "md3_beltl", &namefromskin[0] ) ) {
 		CG_RegisterAcc( ci, va( "models/players/%s", modelName ), namefromskin, &ci->accModels[ACC_BELT_RIGHT], &ci->accSkins[ACC_BELT_RIGHT] );
 	}
-	if ( trap_R_GetSkinModel( ci->torsoSkin, "md3_belt", &namefromskin[0] ) ) {
+	if ( engine->trap_R_GetSkinModel( ci->torsoSkin, "md3_belt", &namefromskin[0] ) ) {
 		CG_RegisterAcc( ci, va( "models/players/%s", modelName ), namefromskin, &ci->accModels[ACC_BELT], &ci->accSkins[ACC_BELT] );
 	}
-	if ( trap_R_GetSkinModel( ci->torsoSkin, "md3_back", &namefromskin[0] ) ) {
+	if ( engine->trap_R_GetSkinModel( ci->torsoSkin, "md3_back", &namefromskin[0] ) ) {
 		CG_RegisterAcc( ci, va( "models/players/%s", modelName ), namefromskin, &ci->accModels[ACC_BACK], &ci->accSkins[ACC_BACK] );
 	}
-	if ( trap_R_GetSkinModel( ci->torsoSkin, "md3_weapon", &namefromskin[0] ) ) {
+	if ( engine->trap_R_GetSkinModel( ci->torsoSkin, "md3_weapon", &namefromskin[0] ) ) {
 		CG_RegisterAcc( ci, va( "models/players/%s", modelName ), namefromskin, &ci->accModels[ACC_WEAPON], &ci->accSkins[ACC_WEAPON] );
 	}
-	if ( trap_R_GetSkinModel( ci->torsoSkin, "md3_weapon2", &namefromskin[0] ) ) {
+	if ( engine->trap_R_GetSkinModel( ci->torsoSkin, "md3_weapon2", &namefromskin[0] ) ) {
 		CG_RegisterAcc( ci, va( "models/players/%s", modelName ), namefromskin, &ci->accModels[ACC_WEAPON2], &ci->accSkins[ACC_WEAPON2] );
 	}
 //----(SA)	added
 	// try anim script parts
 	for ( i = 0; i < 8; i++ ) {
-		if ( trap_R_GetSkinModel( ci->torsoSkin, va( "md3_animscript%d", i ), &namefromskin[0] ) ) {
+		if ( engine->trap_R_GetSkinModel( ci->torsoSkin, va( "md3_animscript%d", i ), &namefromskin[0] ) ) {
 			CG_RegisterAcc( ci, va( "models/players/%s", modelName ), namefromskin, &ci->partModels[ACC_WEAPON], &ci->partSkins[ACC_WEAPON] );
 		}
 	}
@@ -687,128 +687,128 @@ static qboolean CG_RegisterClientModelname( clientInfo_t *ci, const char *modelN
 */
 		// special case, only cache certain shaders/models for certain characters
 		if ( !Q_strcasecmp( (char *)modelName, "zombie" ) ) {
-			cgs.media.zombieSpiritWallShader = trap_R_RegisterShader( "zombieDeathWindTrail" );
-			cgs.media.zombieSpiritTrailShader = trap_R_RegisterShader( "zombieSpiritTrail" );
-			cgs.media.zombieSpiritSkullShader = trap_R_RegisterShader( "zombieSpiritSkull" );
-			//cgs.media.zombieDeathDustShader = trap_R_RegisterShader( "zombieDeathDust" );
-			//cgs.media.zombieBodyFadeShader = trap_R_RegisterShader( "zombieBodyFade" );
-			//cgs.media.zombieHeadFadeShader = trap_R_RegisterShader( "zombieHeadFade" );
+			cgs.media.zombieSpiritWallShader = engine->trap_R_RegisterShader( "zombieDeathWindTrail" );
+			cgs.media.zombieSpiritTrailShader = engine->trap_R_RegisterShader( "zombieSpiritTrail" );
+			cgs.media.zombieSpiritSkullShader = engine->trap_R_RegisterShader( "zombieSpiritSkull" );
+			//cgs.media.zombieDeathDustShader = engine->trap_R_RegisterShader( "zombieDeathDust" );
+			//cgs.media.zombieBodyFadeShader = engine->trap_R_RegisterShader( "zombieBodyFade" );
+			//cgs.media.zombieHeadFadeShader = engine->trap_R_RegisterShader( "zombieHeadFade" );
 
-			cgs.media.skeletonSkinShader = trap_R_RegisterShader( "skeletonSkin" );
-			cgs.media.skeletonLegsModel = trap_R_RegisterModel( "models/players/skel/lower.md3" );
-			cgs.media.skeletonLegsSkin = trap_R_RegisterSkin( "models/players/skel/lower_default.skin" );
-			cgs.media.skeletonTorsoModel = trap_R_RegisterModel( "models/players/skel/upper.md3" );
-			cgs.media.skeletonTorsoSkin = trap_R_RegisterSkin( "models/players/skel/upper_default.skin" );
-			cgs.media.skeletonHeadModel = trap_R_RegisterModel( "models/players/skel/head.md3" );
-			cgs.media.skeletonHeadSkin = trap_R_RegisterSkin( "models/players/skel/head_default.skin" );
+			cgs.media.skeletonSkinShader = engine->trap_R_RegisterShader( "skeletonSkin" );
+			cgs.media.skeletonLegsModel = engine->trap_R_RegisterModel( "models/players/skel/lower.md3" );
+			cgs.media.skeletonLegsSkin = engine->trap_R_RegisterSkin( "models/players/skel/lower_default.skin" );
+			cgs.media.skeletonTorsoModel = engine->trap_R_RegisterModel( "models/players/skel/upper.md3" );
+			cgs.media.skeletonTorsoSkin = engine->trap_R_RegisterSkin( "models/players/skel/upper_default.skin" );
+			cgs.media.skeletonHeadModel = engine->trap_R_RegisterModel( "models/players/skel/head.md3" );
+			cgs.media.skeletonHeadSkin = engine->trap_R_RegisterSkin( "models/players/skel/head_default.skin" );
 
-			cgs.media.zombieSpiritSound = trap_S_RegisterSound( "sound/zombie/attack/spirit_start.wav" );
-			cgs.media.zombieSpiritLoopSound = trap_S_RegisterSound( "sound/zombie/attack/spirit_loop.wav" );
-			cgs.media.zombieDeathSound = trap_S_RegisterSound( "sound/world/ceramicbreak.wav" ); // Zombie Gib
+			cgs.media.zombieSpiritSound = engine->trap_S_RegisterSound( "sound/zombie/attack/spirit_start.wav" );
+			cgs.media.zombieSpiritLoopSound = engine->trap_S_RegisterSound( "sound/zombie/attack/spirit_loop.wav" );
+			cgs.media.zombieDeathSound = engine->trap_S_RegisterSound( "sound/world/ceramicbreak.wav" ); // Zombie Gib
 
-			cgs.media.spiritSkullModel = trap_R_RegisterModel( "models/mapobjects/skull/skul2t.md3" );
+			cgs.media.spiritSkullModel = engine->trap_R_RegisterModel( "models/mapobjects/skull/skul2t.md3" );
 
 			CG_RegisterWeapon( WP_GAUNTLET );
 		} else if ( !Q_strcasecmp( (char *)modelName, "beast" ) )      {
-			cgs.media.helgaSpiritSkullShader = trap_R_RegisterShader( "helgaSpiritGhost" );
-			cgs.media.helgaSpiritTrailShader = trap_R_RegisterShader( "helgaSpiritTrail" );
-			cgs.media.helgaGhostModel = trap_R_RegisterModel( "models/players/beast/ghost.md3" );
-			cgs.media.helgaSpiritLoopSound = trap_S_RegisterSound( "sound/beast/tortured_souls_loop.wav" );
+			cgs.media.helgaSpiritSkullShader = engine->trap_R_RegisterShader( "helgaSpiritGhost" );
+			cgs.media.helgaSpiritTrailShader = engine->trap_R_RegisterShader( "helgaSpiritTrail" );
+			cgs.media.helgaGhostModel = engine->trap_R_RegisterModel( "models/players/beast/ghost.md3" );
+			cgs.media.helgaSpiritLoopSound = engine->trap_S_RegisterSound( "sound/beast/tortured_souls_loop.wav" );
 			cgs.media.helgaSpiritSound = CG_SoundScriptPrecache( "helgaSpiritStartSound" );
 			cgs.media.helgaGaspSound = CG_SoundScriptPrecache( "helgaSpiritGasp" );
 		} else if ( !Q_strcasecmp( (char *)modelName, "loper" ) )      {
-			//cgs.media.loperGroundChargeShader = trap_R_RegisterShader( "loperGroundCharge" );
+			//cgs.media.loperGroundChargeShader = engine->trap_R_RegisterShader( "loperGroundCharge" );
 		} else if ( !Q_strcasecmp( (char *)modelName, "protosoldier" ) )        {
 			cgs.media.protoArmorBreak = CG_SoundScriptPrecache( "Protosoldier_loseArmor" );
 
-			cgs.media.protoArmor[0]     = trap_R_RegisterModel( "models/players/protosoldier/armor/nodam_chest.md3" );
-			cgs.media.protoArmor[1]     = trap_R_RegisterModel( "models/players/protosoldier/armor/nodam_lftcalf.md3" );
-			cgs.media.protoArmor[2]     = trap_R_RegisterModel( "models/players/protosoldier/armor/nodam_lftforarm.md3" );
-			cgs.media.protoArmor[3]     = trap_R_RegisterModel( "models/players/protosoldier/armor/nodam_lftshoulder.md3" );
-			cgs.media.protoArmor[4]     = trap_R_RegisterModel( "models/players/protosoldier/armor/nodam_lftthigh.md3" );
-			cgs.media.protoArmor[5]     = trap_R_RegisterModel( "models/players/protosoldier/armor/nodam_rtcalf.md3" );
-			cgs.media.protoArmor[6]     = trap_R_RegisterModel( "models/players/protosoldier/armor/nodam_rtforarm.md3" );
-			cgs.media.protoArmor[7]     = trap_R_RegisterModel( "models/players/protosoldier/armor/nodam_rtshoulder.md3" );
-			cgs.media.protoArmor[8]     = trap_R_RegisterModel( "models/players/protosoldier/armor/nodam_rtthigh.md3" );
+			cgs.media.protoArmor[0]     = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/nodam_chest.md3" );
+			cgs.media.protoArmor[1]     = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/nodam_lftcalf.md3" );
+			cgs.media.protoArmor[2]     = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/nodam_lftforarm.md3" );
+			cgs.media.protoArmor[3]     = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/nodam_lftshoulder.md3" );
+			cgs.media.protoArmor[4]     = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/nodam_lftthigh.md3" );
+			cgs.media.protoArmor[5]     = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/nodam_rtcalf.md3" );
+			cgs.media.protoArmor[6]     = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/nodam_rtforarm.md3" );
+			cgs.media.protoArmor[7]     = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/nodam_rtshoulder.md3" );
+			cgs.media.protoArmor[8]     = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/nodam_rtthigh.md3" );
 
-			cgs.media.protoArmor[9]     = trap_R_RegisterModel( "models/players/protosoldier/armor/dam_chest1.md3" );
-			cgs.media.protoArmor[10]    = trap_R_RegisterModel( "models/players/protosoldier/armor/dam_lftcalf1.md3" );
-			cgs.media.protoArmor[11]    = trap_R_RegisterModel( "models/players/protosoldier/armor/dam_lftforarm1.md3" );
-			cgs.media.protoArmor[12]    = trap_R_RegisterModel( "models/players/protosoldier/armor/dam_lftshoulder1.md3" );
-			cgs.media.protoArmor[13]    = trap_R_RegisterModel( "models/players/protosoldier/armor/dam_lftthigh1.md3" );
-			cgs.media.protoArmor[14]    = trap_R_RegisterModel( "models/players/protosoldier/armor/dam_rtcalf1.md3" );
-			cgs.media.protoArmor[15]    = trap_R_RegisterModel( "models/players/protosoldier/armor/dam_rtforarm1.md3" );
-			cgs.media.protoArmor[16]    = trap_R_RegisterModel( "models/players/protosoldier/armor/dam_rtshoulder1.md3" );
-			cgs.media.protoArmor[17]    = trap_R_RegisterModel( "models/players/protosoldier/armor/dam_rtthigh1.md3" );
+			cgs.media.protoArmor[9]     = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/dam_chest1.md3" );
+			cgs.media.protoArmor[10]    = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/dam_lftcalf1.md3" );
+			cgs.media.protoArmor[11]    = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/dam_lftforarm1.md3" );
+			cgs.media.protoArmor[12]    = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/dam_lftshoulder1.md3" );
+			cgs.media.protoArmor[13]    = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/dam_lftthigh1.md3" );
+			cgs.media.protoArmor[14]    = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/dam_rtcalf1.md3" );
+			cgs.media.protoArmor[15]    = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/dam_rtforarm1.md3" );
+			cgs.media.protoArmor[16]    = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/dam_rtshoulder1.md3" );
+			cgs.media.protoArmor[17]    = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/dam_rtthigh1.md3" );
 
-			cgs.media.protoArmor[18]    = trap_R_RegisterModel( "models/players/protosoldier/armor/dam_chest2.md3" );
-			cgs.media.protoArmor[19]    = trap_R_RegisterModel( "models/players/protosoldier/armor/dam_lftcalf2.md3" );
-			cgs.media.protoArmor[20]    = trap_R_RegisterModel( "models/players/protosoldier/armor/dam_lftforarm2.md3" );
-			cgs.media.protoArmor[21]    = trap_R_RegisterModel( "models/players/protosoldier/armor/dam_lftshoulder2.md3" );
-			cgs.media.protoArmor[22]    = trap_R_RegisterModel( "models/players/protosoldier/armor/dam_lftthigh2.md3" );
-			cgs.media.protoArmor[23]    = trap_R_RegisterModel( "models/players/protosoldier/armor/dam_rtcalf2.md3" );
-			cgs.media.protoArmor[24]    = trap_R_RegisterModel( "models/players/protosoldier/armor/dam_rtforarm2.md3" );
-			cgs.media.protoArmor[25]    = trap_R_RegisterModel( "models/players/protosoldier/armor/dam_rtshoulder2.md3" );
-			cgs.media.protoArmor[26]    = trap_R_RegisterModel( "models/players/protosoldier/armor/dam_rtthigh2.md3" );
+			cgs.media.protoArmor[18]    = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/dam_chest2.md3" );
+			cgs.media.protoArmor[19]    = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/dam_lftcalf2.md3" );
+			cgs.media.protoArmor[20]    = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/dam_lftforarm2.md3" );
+			cgs.media.protoArmor[21]    = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/dam_lftshoulder2.md3" );
+			cgs.media.protoArmor[22]    = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/dam_lftthigh2.md3" );
+			cgs.media.protoArmor[23]    = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/dam_rtcalf2.md3" );
+			cgs.media.protoArmor[24]    = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/dam_rtforarm2.md3" );
+			cgs.media.protoArmor[25]    = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/dam_rtshoulder2.md3" );
+			cgs.media.protoArmor[26]    = engine->trap_R_RegisterModel( "models/players/protosoldier/armor/dam_rtthigh2.md3" );
 		} else if ( !Q_strcasecmp( (char *)modelName, "supersoldier" ) )        {
 
 			cgs.media.superArmorBreak = CG_SoundScriptPrecache( "Supersoldier_loseArmor" );
 
-			cgs.media.superArmor[0]     = trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_chest.md3" );
-			cgs.media.superArmor[1]     = trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_lftcalf.md3" );
-			cgs.media.superArmor[2]     = trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_lftforarm.md3" );
-			cgs.media.superArmor[3]     = trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_lftshoulder.md3" );
-			cgs.media.superArmor[4]     = trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_lftthigh.md3" );
-			cgs.media.superArmor[5]     = trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_rtcalf.md3" );
-			cgs.media.superArmor[6]     = trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_rtforarm.md3" );
-			cgs.media.superArmor[7]     = trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_rtshoulder.md3" );
-			cgs.media.superArmor[8]     = trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_rtthigh.md3" );
+			cgs.media.superArmor[0]     = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_chest.md3" );
+			cgs.media.superArmor[1]     = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_lftcalf.md3" );
+			cgs.media.superArmor[2]     = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_lftforarm.md3" );
+			cgs.media.superArmor[3]     = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_lftshoulder.md3" );
+			cgs.media.superArmor[4]     = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_lftthigh.md3" );
+			cgs.media.superArmor[5]     = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_rtcalf.md3" );
+			cgs.media.superArmor[6]     = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_rtforarm.md3" );
+			cgs.media.superArmor[7]     = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_rtshoulder.md3" );
+			cgs.media.superArmor[8]     = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_rtthigh.md3" );
 
-			cgs.media.superArmor[9]     = trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_lftfoot.md3" );
-			cgs.media.superArmor[10]    = trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_rtfoot.md3" );
-			cgs.media.superArmor[11]    = trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_lftuparm.md3" );
-			cgs.media.superArmor[12]    = trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_rtuparm.md3" );
-			cgs.media.superArmor[13]    = trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_waist.md3" );
-			cgs.media.superArmor[14]    = trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_lftknee.md3" );
-			cgs.media.superArmor[15]    = trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_rtknee.md3" );
+			cgs.media.superArmor[9]     = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_lftfoot.md3" );
+			cgs.media.superArmor[10]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_rtfoot.md3" );
+			cgs.media.superArmor[11]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_lftuparm.md3" );
+			cgs.media.superArmor[12]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_rtuparm.md3" );
+			cgs.media.superArmor[13]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_waist.md3" );
+			cgs.media.superArmor[14]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_lftknee.md3" );
+			cgs.media.superArmor[15]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/nodam_rtknee.md3" );
 
 
 
-			cgs.media.superArmor[16]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_chest1.md3" );
-			cgs.media.superArmor[17]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_lftcalf1.md3" );
-			cgs.media.superArmor[18]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_lftforarm1.md3" );
-			cgs.media.superArmor[19]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_lftshoulder1.md3" );
-			cgs.media.superArmor[20]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_lftthigh1.md3" );
-			cgs.media.superArmor[21]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_rtcalf1.md3" );
-			cgs.media.superArmor[22]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_rtforarm1.md3" );
-			cgs.media.superArmor[23]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_rtshoulder1.md3" );
-			cgs.media.superArmor[24]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_rtthigh1.md3" );
+			cgs.media.superArmor[16]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_chest1.md3" );
+			cgs.media.superArmor[17]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_lftcalf1.md3" );
+			cgs.media.superArmor[18]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_lftforarm1.md3" );
+			cgs.media.superArmor[19]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_lftshoulder1.md3" );
+			cgs.media.superArmor[20]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_lftthigh1.md3" );
+			cgs.media.superArmor[21]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_rtcalf1.md3" );
+			cgs.media.superArmor[22]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_rtforarm1.md3" );
+			cgs.media.superArmor[23]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_rtshoulder1.md3" );
+			cgs.media.superArmor[24]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_rtthigh1.md3" );
 
-			cgs.media.superArmor[25]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_lftfoot1.md3" );
-			cgs.media.superArmor[26]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_rtfoot1.md3" );
-			cgs.media.superArmor[27]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_lftuparm1.md3" );
-			cgs.media.superArmor[28]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_rtuparm1.md3" );
-			cgs.media.superArmor[29]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_waist1.md3" );
+			cgs.media.superArmor[25]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_lftfoot1.md3" );
+			cgs.media.superArmor[26]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_rtfoot1.md3" );
+			cgs.media.superArmor[27]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_lftuparm1.md3" );
+			cgs.media.superArmor[28]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_rtuparm1.md3" );
+			cgs.media.superArmor[29]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_waist1.md3" );
 
 			cgs.media.superArmor[30]    = 0;
 			cgs.media.superArmor[31]    = 0;
 
 
-			cgs.media.superArmor[32]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_chest2.md3" );
-			cgs.media.superArmor[33]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_lftcalf2.md3" );
-			cgs.media.superArmor[34]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_lftforarm2.md3" );
-			cgs.media.superArmor[35]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_lftshoulder2.md3" );
-			cgs.media.superArmor[36]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_lftthigh2.md3" );
-			cgs.media.superArmor[37]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_rtcalf2.md3" );
-			cgs.media.superArmor[38]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_rtforarm2.md3" );
-			cgs.media.superArmor[39]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_rtshoulder2.md3" );
-			cgs.media.superArmor[30]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_rtthigh2.md3" );
+			cgs.media.superArmor[32]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_chest2.md3" );
+			cgs.media.superArmor[33]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_lftcalf2.md3" );
+			cgs.media.superArmor[34]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_lftforarm2.md3" );
+			cgs.media.superArmor[35]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_lftshoulder2.md3" );
+			cgs.media.superArmor[36]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_lftthigh2.md3" );
+			cgs.media.superArmor[37]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_rtcalf2.md3" );
+			cgs.media.superArmor[38]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_rtforarm2.md3" );
+			cgs.media.superArmor[39]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_rtshoulder2.md3" );
+			cgs.media.superArmor[30]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_rtthigh2.md3" );
 
-			cgs.media.superArmor[31]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_lftfoot2.md3" );
-			cgs.media.superArmor[32]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_rtfoot2.md3" );
-			cgs.media.superArmor[33]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_lftuparm2.md3" );
-			cgs.media.superArmor[44]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_rtuparm2.md3" );
-			cgs.media.superArmor[45]    = trap_R_RegisterModel( "models/players/supersoldier/armor/dam_waist2.md3" );
+			cgs.media.superArmor[31]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_lftfoot2.md3" );
+			cgs.media.superArmor[32]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_rtfoot2.md3" );
+			cgs.media.superArmor[33]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_lftuparm2.md3" );
+			cgs.media.superArmor[44]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_rtuparm2.md3" );
+			cgs.media.superArmor[45]    = engine->trap_R_RegisterModel( "models/players/supersoldier/armor/dam_waist2.md3" );
 
 			cgs.media.superArmor[46]    = 0;
 			cgs.media.superArmor[47]    = 0;
@@ -845,61 +845,61 @@ nodam_rtknee          attached to tag_calfright
 
 			cgs.media.superArmorBreak = CG_SoundScriptPrecache( "Supersoldier_loseArmor" );
 
-			cgs.media.superArmor[0]     = trap_R_RegisterModel( "models/players/dark/armor/nodam_chest.md3" );
-			cgs.media.superArmor[1]     = trap_R_RegisterModel( "models/players/dark/armor/nodam_lftcalf.md3" );
-			cgs.media.superArmor[2]     = trap_R_RegisterModel( "models/players/dark/armor/nodam_lftforarm.md3" );
-			cgs.media.superArmor[3]     = trap_R_RegisterModel( "models/players/dark/armor/nodam_lftshoulder.md3" );
-			cgs.media.superArmor[4]     = trap_R_RegisterModel( "models/players/dark/armor/nodam_lftthigh.md3" );
-			cgs.media.superArmor[5]     = trap_R_RegisterModel( "models/players/dark/armor/nodam_rtcalf.md3" );
-			cgs.media.superArmor[6]     = trap_R_RegisterModel( "models/players/dark/armor/nodam_rtforarm.md3" );
-			cgs.media.superArmor[7]     = trap_R_RegisterModel( "models/players/dark/armor/nodam_rtshoulder.md3" );
-			cgs.media.superArmor[8]     = trap_R_RegisterModel( "models/players/dark/armor/nodam_rtthigh.md3" );
+			cgs.media.superArmor[0]     = engine->trap_R_RegisterModel( "models/players/dark/armor/nodam_chest.md3" );
+			cgs.media.superArmor[1]     = engine->trap_R_RegisterModel( "models/players/dark/armor/nodam_lftcalf.md3" );
+			cgs.media.superArmor[2]     = engine->trap_R_RegisterModel( "models/players/dark/armor/nodam_lftforarm.md3" );
+			cgs.media.superArmor[3]     = engine->trap_R_RegisterModel( "models/players/dark/armor/nodam_lftshoulder.md3" );
+			cgs.media.superArmor[4]     = engine->trap_R_RegisterModel( "models/players/dark/armor/nodam_lftthigh.md3" );
+			cgs.media.superArmor[5]     = engine->trap_R_RegisterModel( "models/players/dark/armor/nodam_rtcalf.md3" );
+			cgs.media.superArmor[6]     = engine->trap_R_RegisterModel( "models/players/dark/armor/nodam_rtforarm.md3" );
+			cgs.media.superArmor[7]     = engine->trap_R_RegisterModel( "models/players/dark/armor/nodam_rtshoulder.md3" );
+			cgs.media.superArmor[8]     = engine->trap_R_RegisterModel( "models/players/dark/armor/nodam_rtthigh.md3" );
 
-			cgs.media.superArmor[9]     = trap_R_RegisterModel( "models/players/dark/armor/nodam_lftfoot.md3" );
-			cgs.media.superArmor[10]    = trap_R_RegisterModel( "models/players/dark/armor/nodam_rtfoot.md3" );
-			cgs.media.superArmor[11]    = trap_R_RegisterModel( "models/players/dark/armor/nodam_lftuparm.md3" );
-			cgs.media.superArmor[12]    = trap_R_RegisterModel( "models/players/dark/armor/nodam_rtuparm.md3" );
-			cgs.media.superArmor[13]    = trap_R_RegisterModel( "models/players/dark/armor/nodam_waist.md3" );
-			cgs.media.superArmor[14]    = trap_R_RegisterModel( "models/players/dark/armor/nodam_lftknee.md3" );
-			cgs.media.superArmor[15]    = trap_R_RegisterModel( "models/players/dark/armor/nodam_rtknee.md3" );
+			cgs.media.superArmor[9]     = engine->trap_R_RegisterModel( "models/players/dark/armor/nodam_lftfoot.md3" );
+			cgs.media.superArmor[10]    = engine->trap_R_RegisterModel( "models/players/dark/armor/nodam_rtfoot.md3" );
+			cgs.media.superArmor[11]    = engine->trap_R_RegisterModel( "models/players/dark/armor/nodam_lftuparm.md3" );
+			cgs.media.superArmor[12]    = engine->trap_R_RegisterModel( "models/players/dark/armor/nodam_rtuparm.md3" );
+			cgs.media.superArmor[13]    = engine->trap_R_RegisterModel( "models/players/dark/armor/nodam_waist.md3" );
+			cgs.media.superArmor[14]    = engine->trap_R_RegisterModel( "models/players/dark/armor/nodam_lftknee.md3" );
+			cgs.media.superArmor[15]    = engine->trap_R_RegisterModel( "models/players/dark/armor/nodam_rtknee.md3" );
 
 
 
-			cgs.media.superArmor[16]    = trap_R_RegisterModel( "models/players/dark/armor/dam_chest1.md3" );
-			cgs.media.superArmor[17]    = trap_R_RegisterModel( "models/players/dark/armor/dam_lftcalf1.md3" );
-			cgs.media.superArmor[18]    = trap_R_RegisterModel( "models/players/dark/armor/dam_lftforarm1.md3" );
-			cgs.media.superArmor[19]    = trap_R_RegisterModel( "models/players/dark/armor/dam_lftshoulder1.md3" );
-			cgs.media.superArmor[20]    = trap_R_RegisterModel( "models/players/dark/armor/dam_lftthigh1.md3" );
-			cgs.media.superArmor[21]    = trap_R_RegisterModel( "models/players/dark/armor/dam_rtcalf1.md3" );
-			cgs.media.superArmor[22]    = trap_R_RegisterModel( "models/players/dark/armor/dam_rtforarm1.md3" );
-			cgs.media.superArmor[23]    = trap_R_RegisterModel( "models/players/dark/armor/dam_rtshoulder1.md3" );
-			cgs.media.superArmor[24]    = trap_R_RegisterModel( "models/players/dark/armor/dam_rtthigh1.md3" );
+			cgs.media.superArmor[16]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_chest1.md3" );
+			cgs.media.superArmor[17]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_lftcalf1.md3" );
+			cgs.media.superArmor[18]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_lftforarm1.md3" );
+			cgs.media.superArmor[19]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_lftshoulder1.md3" );
+			cgs.media.superArmor[20]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_lftthigh1.md3" );
+			cgs.media.superArmor[21]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_rtcalf1.md3" );
+			cgs.media.superArmor[22]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_rtforarm1.md3" );
+			cgs.media.superArmor[23]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_rtshoulder1.md3" );
+			cgs.media.superArmor[24]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_rtthigh1.md3" );
 
-			cgs.media.superArmor[25]    = trap_R_RegisterModel( "models/players/dark/armor/dam_lftfoot1.md3" );
-			cgs.media.superArmor[26]    = trap_R_RegisterModel( "models/players/dark/armor/dam_rtfoot1.md3" );
-			cgs.media.superArmor[27]    = trap_R_RegisterModel( "models/players/dark/armor/dam_lftuparm1.md3" );
-			cgs.media.superArmor[28]    = trap_R_RegisterModel( "models/players/dark/armor/dam_rtuparm1.md3" );
-			cgs.media.superArmor[29]    = trap_R_RegisterModel( "models/players/dark/armor/dam_waist1.md3" );
+			cgs.media.superArmor[25]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_lftfoot1.md3" );
+			cgs.media.superArmor[26]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_rtfoot1.md3" );
+			cgs.media.superArmor[27]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_lftuparm1.md3" );
+			cgs.media.superArmor[28]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_rtuparm1.md3" );
+			cgs.media.superArmor[29]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_waist1.md3" );
 
 			cgs.media.superArmor[30]    = 0;
 			cgs.media.superArmor[31]    = 0;
 
 
-			cgs.media.superArmor[32]    = trap_R_RegisterModel( "models/players/dark/armor/dam_chest2.md3" );
-			cgs.media.superArmor[33]    = trap_R_RegisterModel( "models/players/dark/armor/dam_lftcalf2.md3" );
-			cgs.media.superArmor[34]    = trap_R_RegisterModel( "models/players/dark/armor/dam_lftforarm2.md3" );
-			cgs.media.superArmor[35]    = trap_R_RegisterModel( "models/players/dark/armor/dam_lftshoulder2.md3" );
-			cgs.media.superArmor[36]    = trap_R_RegisterModel( "models/players/dark/armor/dam_lftthigh2.md3" );
-			cgs.media.superArmor[37]    = trap_R_RegisterModel( "models/players/dark/armor/dam_rtcalf2.md3" );
-			cgs.media.superArmor[38]    = trap_R_RegisterModel( "models/players/dark/armor/dam_rtforarm2.md3" );
-			cgs.media.superArmor[39]    = trap_R_RegisterModel( "models/players/dark/armor/dam_rtshoulder2.md3" );
-			cgs.media.superArmor[30]    = trap_R_RegisterModel( "models/players/dark/armor/dam_rtthigh2.md3" );
+			cgs.media.superArmor[32]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_chest2.md3" );
+			cgs.media.superArmor[33]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_lftcalf2.md3" );
+			cgs.media.superArmor[34]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_lftforarm2.md3" );
+			cgs.media.superArmor[35]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_lftshoulder2.md3" );
+			cgs.media.superArmor[36]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_lftthigh2.md3" );
+			cgs.media.superArmor[37]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_rtcalf2.md3" );
+			cgs.media.superArmor[38]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_rtforarm2.md3" );
+			cgs.media.superArmor[39]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_rtshoulder2.md3" );
+			cgs.media.superArmor[30]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_rtthigh2.md3" );
 
-			cgs.media.superArmor[31]    = trap_R_RegisterModel( "models/players/dark/armor/dam_lftfoot2.md3" );
-			cgs.media.superArmor[32]    = trap_R_RegisterModel( "models/players/dark/armor/dam_rtfoot2.md3" );
-			cgs.media.superArmor[33]    = trap_R_RegisterModel( "models/players/dark/armor/dam_lftuparm2.md3" );
-			cgs.media.superArmor[44]    = trap_R_RegisterModel( "models/players/dark/armor/dam_rtuparm2.md3" );
-			cgs.media.superArmor[45]    = trap_R_RegisterModel( "models/players/dark/armor/dam_waist2.md3" );
+			cgs.media.superArmor[31]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_lftfoot2.md3" );
+			cgs.media.superArmor[32]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_rtfoot2.md3" );
+			cgs.media.superArmor[33]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_lftuparm2.md3" );
+			cgs.media.superArmor[44]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_rtuparm2.md3" );
+			cgs.media.superArmor[45]    = engine->trap_R_RegisterModel( "models/players/dark/armor/dam_waist2.md3" );
 
 			cgs.media.superArmor[46]    = 0;
 			cgs.media.superArmor[47]    = 0;
@@ -909,89 +909,89 @@ nodam_rtknee          attached to tag_calfright
 			cgs.media.heinrichArmorBreak = CG_SoundScriptPrecache( "Heinrich_loseArmor" );
 
 			// RF, these are also used but supersoldier "spirits" in end map
-			cgs.media.zombieSpiritLoopSound = trap_S_RegisterSound( "sound/zombie/attack/spirit_loop.wav" );
-			cgs.media.ssSpiritSkullModel = trap_R_RegisterModel( "models/players/supersoldier/ssghost.md3" );
+			cgs.media.zombieSpiritLoopSound = engine->trap_S_RegisterSound( "sound/zombie/attack/spirit_loop.wav" );
+			cgs.media.ssSpiritSkullModel = engine->trap_R_RegisterModel( "models/players/supersoldier/ssghost.md3" );
 
-			cgs.media.zombieSpiritTrailShader = trap_R_RegisterShader( "zombieSpiritTrail" );
-			cgs.media.zombieSpiritLoopSound = trap_S_RegisterSound( "sound/zombie/attack/spirit_loop.wav" );
+			cgs.media.zombieSpiritTrailShader = engine->trap_R_RegisterShader( "zombieSpiritTrail" );
+			cgs.media.zombieSpiritLoopSound = engine->trap_S_RegisterSound( "sound/zombie/attack/spirit_loop.wav" );
 			cgs.media.helgaGaspSound = CG_SoundScriptPrecache( "helgaSpiritGasp" );
 
-			cgs.media.debrisHitSound = trap_S_RegisterSound( "sound/world/debris_hit.wav" );
+			cgs.media.debrisHitSound = engine->trap_S_RegisterSound( "sound/world/debris_hit.wav" );
 
-			cgs.media.heinrichArmor[0]  = trap_R_RegisterModel( "models/players/heinrich/armor/nodam_chest.md3" );
-			cgs.media.heinrichArmor[1]  = trap_R_RegisterModel( "models/players/heinrich/armor/nodam_lftcalf.md3" );
-			cgs.media.heinrichArmor[2]  = trap_R_RegisterModel( "models/players/heinrich/armor/nodam_lftforarm.md3" );
-			cgs.media.heinrichArmor[3]  = trap_R_RegisterModel( "models/players/heinrich/armor/nodam_lftshoulder.md3" );
-			cgs.media.heinrichArmor[4]  = trap_R_RegisterModel( "models/players/heinrich/armor/nodam_lftthigh.md3" );
-			cgs.media.heinrichArmor[5]  = trap_R_RegisterModel( "models/players/heinrich/armor/nodam_rtcalf.md3" );
-			cgs.media.heinrichArmor[6]  = trap_R_RegisterModel( "models/players/heinrich/armor/nodam_rtforarm.md3" );
-			cgs.media.heinrichArmor[7]  = trap_R_RegisterModel( "models/players/heinrich/armor/nodam_rtshoulder.md3" );
-			cgs.media.heinrichArmor[8]  = trap_R_RegisterModel( "models/players/heinrich/armor/nodam_rtthigh.md3" );
+			cgs.media.heinrichArmor[0]  = engine->trap_R_RegisterModel( "models/players/heinrich/armor/nodam_chest.md3" );
+			cgs.media.heinrichArmor[1]  = engine->trap_R_RegisterModel( "models/players/heinrich/armor/nodam_lftcalf.md3" );
+			cgs.media.heinrichArmor[2]  = engine->trap_R_RegisterModel( "models/players/heinrich/armor/nodam_lftforarm.md3" );
+			cgs.media.heinrichArmor[3]  = engine->trap_R_RegisterModel( "models/players/heinrich/armor/nodam_lftshoulder.md3" );
+			cgs.media.heinrichArmor[4]  = engine->trap_R_RegisterModel( "models/players/heinrich/armor/nodam_lftthigh.md3" );
+			cgs.media.heinrichArmor[5]  = engine->trap_R_RegisterModel( "models/players/heinrich/armor/nodam_rtcalf.md3" );
+			cgs.media.heinrichArmor[6]  = engine->trap_R_RegisterModel( "models/players/heinrich/armor/nodam_rtforarm.md3" );
+			cgs.media.heinrichArmor[7]  = engine->trap_R_RegisterModel( "models/players/heinrich/armor/nodam_rtshoulder.md3" );
+			cgs.media.heinrichArmor[8]  = engine->trap_R_RegisterModel( "models/players/heinrich/armor/nodam_rtthigh.md3" );
 
-			cgs.media.heinrichArmor[9]  = trap_R_RegisterModel( "models/players/heinrich/armor/nodam_lftfoot.md3" );
-			cgs.media.heinrichArmor[10] = trap_R_RegisterModel( "models/players/heinrich/armor/nodam_rtfoot.md3" );
-			cgs.media.heinrichArmor[11] = trap_R_RegisterModel( "models/players/heinrich/armor/nodam_lftuparm.md3" );
-			cgs.media.heinrichArmor[12] = trap_R_RegisterModel( "models/players/heinrich/armor/nodam_rtuparm.md3" );
-			cgs.media.heinrichArmor[13] = trap_R_RegisterModel( "models/players/heinrich/armor/nodam_waist.md3" );
-			cgs.media.heinrichArmor[14] = trap_R_RegisterModel( "models/players/heinrich/armor/nodam_lftknee.md3" );
-			cgs.media.heinrichArmor[15] = trap_R_RegisterModel( "models/players/heinrich/armor/nodam_rtknee.md3" );
+			cgs.media.heinrichArmor[9]  = engine->trap_R_RegisterModel( "models/players/heinrich/armor/nodam_lftfoot.md3" );
+			cgs.media.heinrichArmor[10] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/nodam_rtfoot.md3" );
+			cgs.media.heinrichArmor[11] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/nodam_lftuparm.md3" );
+			cgs.media.heinrichArmor[12] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/nodam_rtuparm.md3" );
+			cgs.media.heinrichArmor[13] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/nodam_waist.md3" );
+			cgs.media.heinrichArmor[14] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/nodam_lftknee.md3" );
+			cgs.media.heinrichArmor[15] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/nodam_rtknee.md3" );
 
-			cgs.media.heinrichArmor[16] = trap_R_RegisterModel( "models/players/heinrich/armor/nodam_lftelbow.md3" );
-			cgs.media.heinrichArmor[17] = trap_R_RegisterModel( "models/players/heinrich/armor/nodam_rtelbow.md3" );
-			cgs.media.heinrichArmor[18] = trap_R_RegisterModel( "models/players/heinrich/armor/nodam_lfthip.md3" );
-			cgs.media.heinrichArmor[19] = trap_R_RegisterModel( "models/players/heinrich/armor/nodam_rthip.md3" );
-			cgs.media.heinrichArmor[20] = trap_R_RegisterModel( "models/players/heinrich/armor/nodam_lftshin.md3" );
-			cgs.media.heinrichArmor[21] = trap_R_RegisterModel( "models/players/heinrich/armor/nodam_rtshin.md3" );
+			cgs.media.heinrichArmor[16] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/nodam_lftelbow.md3" );
+			cgs.media.heinrichArmor[17] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/nodam_rtelbow.md3" );
+			cgs.media.heinrichArmor[18] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/nodam_lfthip.md3" );
+			cgs.media.heinrichArmor[19] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/nodam_rthip.md3" );
+			cgs.media.heinrichArmor[20] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/nodam_lftshin.md3" );
+			cgs.media.heinrichArmor[21] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/nodam_rtshin.md3" );
 
 
-			cgs.media.heinrichArmor[22] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_chest1.md3" );
-			cgs.media.heinrichArmor[23] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftcalf1.md3" );
-			cgs.media.heinrichArmor[24] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftforarm1.md3" );
-			cgs.media.heinrichArmor[25] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftshoulder1.md3" );
-			cgs.media.heinrichArmor[26] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftthigh1.md3" );
-			cgs.media.heinrichArmor[27] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtcalf1.md3" );
-			cgs.media.heinrichArmor[28] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtforarm1.md3" );
-			cgs.media.heinrichArmor[29] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtshoulder1.md3" );
-			cgs.media.heinrichArmor[30] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtthigh1.md3" );
+			cgs.media.heinrichArmor[22] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_chest1.md3" );
+			cgs.media.heinrichArmor[23] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftcalf1.md3" );
+			cgs.media.heinrichArmor[24] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftforarm1.md3" );
+			cgs.media.heinrichArmor[25] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftshoulder1.md3" );
+			cgs.media.heinrichArmor[26] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftthigh1.md3" );
+			cgs.media.heinrichArmor[27] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtcalf1.md3" );
+			cgs.media.heinrichArmor[28] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtforarm1.md3" );
+			cgs.media.heinrichArmor[29] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtshoulder1.md3" );
+			cgs.media.heinrichArmor[30] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtthigh1.md3" );
 
-			cgs.media.heinrichArmor[31] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftfoot1.md3" );
-			cgs.media.heinrichArmor[32] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtfoot1.md3" );
-			cgs.media.heinrichArmor[33] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftuparm1.md3" );
-			cgs.media.heinrichArmor[34] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtuparm1.md3" );
-			cgs.media.heinrichArmor[35] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_waist1.md3" );
-			cgs.media.heinrichArmor[36] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftknee1.md3" );
-			cgs.media.heinrichArmor[37] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtknee1.md3" );
+			cgs.media.heinrichArmor[31] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftfoot1.md3" );
+			cgs.media.heinrichArmor[32] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtfoot1.md3" );
+			cgs.media.heinrichArmor[33] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftuparm1.md3" );
+			cgs.media.heinrichArmor[34] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtuparm1.md3" );
+			cgs.media.heinrichArmor[35] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_waist1.md3" );
+			cgs.media.heinrichArmor[36] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftknee1.md3" );
+			cgs.media.heinrichArmor[37] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtknee1.md3" );
 
-			cgs.media.heinrichArmor[38] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftelbow1.md3" );
-			cgs.media.heinrichArmor[39] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtelbow1.md3" );
-			cgs.media.heinrichArmor[40] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_lfthip1.md3" );
-			cgs.media.heinrichArmor[41] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_rthip1.md3" );
+			cgs.media.heinrichArmor[38] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftelbow1.md3" );
+			cgs.media.heinrichArmor[39] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtelbow1.md3" );
+			cgs.media.heinrichArmor[40] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_lfthip1.md3" );
+			cgs.media.heinrichArmor[41] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_rthip1.md3" );
 			cgs.media.heinrichArmor[42] = 0;
 			cgs.media.heinrichArmor[43] = 0;
 
 
-			cgs.media.heinrichArmor[44] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_chest2.md3" );
-			cgs.media.heinrichArmor[45] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftcalf2.md3" );
-			cgs.media.heinrichArmor[46] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftforarm2.md3" );
-			cgs.media.heinrichArmor[47] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftshoulder2.md3" );
-			cgs.media.heinrichArmor[48] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftthigh2.md3" );
-			cgs.media.heinrichArmor[49] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtcalf2.md3" );
-			cgs.media.heinrichArmor[50] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtforarm2.md3" );
-			cgs.media.heinrichArmor[51] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtshoulder2.md3" );
-			cgs.media.heinrichArmor[52] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtthigh2.md3" );
+			cgs.media.heinrichArmor[44] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_chest2.md3" );
+			cgs.media.heinrichArmor[45] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftcalf2.md3" );
+			cgs.media.heinrichArmor[46] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftforarm2.md3" );
+			cgs.media.heinrichArmor[47] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftshoulder2.md3" );
+			cgs.media.heinrichArmor[48] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftthigh2.md3" );
+			cgs.media.heinrichArmor[49] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtcalf2.md3" );
+			cgs.media.heinrichArmor[50] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtforarm2.md3" );
+			cgs.media.heinrichArmor[51] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtshoulder2.md3" );
+			cgs.media.heinrichArmor[52] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtthigh2.md3" );
 
-			cgs.media.heinrichArmor[43] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftfoot2.md3" );
-			cgs.media.heinrichArmor[54] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtfoot2.md3" );
-			cgs.media.heinrichArmor[55] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftuparm2.md3" );
-			cgs.media.heinrichArmor[56] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtuparm2.md3" );
-			cgs.media.heinrichArmor[57] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_waist2.md3" );
-			cgs.media.heinrichArmor[58] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftknee2.md3" );
-			cgs.media.heinrichArmor[59] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtknee2.md3" );
+			cgs.media.heinrichArmor[43] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftfoot2.md3" );
+			cgs.media.heinrichArmor[54] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtfoot2.md3" );
+			cgs.media.heinrichArmor[55] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftuparm2.md3" );
+			cgs.media.heinrichArmor[56] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtuparm2.md3" );
+			cgs.media.heinrichArmor[57] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_waist2.md3" );
+			cgs.media.heinrichArmor[58] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftknee2.md3" );
+			cgs.media.heinrichArmor[59] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtknee2.md3" );
 
-			cgs.media.heinrichArmor[60] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftelbow2.md3" );
-			cgs.media.heinrichArmor[61] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtelbow2.md3" );
-			cgs.media.heinrichArmor[62] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_lfthip2.md3" );
-			cgs.media.heinrichArmor[63] = trap_R_RegisterModel( "models/players/heinrich/armor/dam_rthip2.md3" );
+			cgs.media.heinrichArmor[60] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_lftelbow2.md3" );
+			cgs.media.heinrichArmor[61] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_rtelbow2.md3" );
+			cgs.media.heinrichArmor[62] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_lfthip2.md3" );
+			cgs.media.heinrichArmor[63] = engine->trap_R_RegisterModel( "models/players/heinrich/armor/dam_rthip2.md3" );
 			cgs.media.heinrichArmor[64] = 0;
 			cgs.media.heinrichArmor[65] = 0;
 
@@ -1034,55 +1034,55 @@ nodam_rtshin            attached to tag_calfright
 
 			for ( i = 0; i < 4; i++ ) {
 				Com_sprintf( name, sizeof( name ), "sound/player/footsteps/eliteguard/step%i.wav", i + 1 );
-				cgs.media.footsteps[FOOTSTEP_ELITE_STEP][i] = trap_S_RegisterSound( name );
+				cgs.media.footsteps[FOOTSTEP_ELITE_STEP][i] = engine->trap_S_RegisterSound( name );
 
 				Com_sprintf( name, sizeof( name ), "sound/player/footsteps/eliteguard/clank%i.wav", i + 1 );
-				cgs.media.footsteps[FOOTSTEP_ELITE_METAL][i] = trap_S_RegisterSound( name );
+				cgs.media.footsteps[FOOTSTEP_ELITE_METAL][i] = engine->trap_S_RegisterSound( name );
 
 //				Com_sprintf (name, sizeof(name), "sound/player/footsteps/eliteguard/roof%i.wav", i+1);
-//				cgs.media.footsteps[FOOTSTEP_ELITE_ROOF][i] = trap_S_RegisterSound (name);
+//				cgs.media.footsteps[FOOTSTEP_ELITE_ROOF][i] = engine->trap_S_RegisterSound (name);
 
 				Com_sprintf( name, sizeof( name ), "sound/player/footsteps/eliteguard/wood%i.wav", i + 1 );
-				cgs.media.footsteps[FOOTSTEP_ELITE_WOOD][i] = trap_S_RegisterSound( name );
+				cgs.media.footsteps[FOOTSTEP_ELITE_WOOD][i] = engine->trap_S_RegisterSound( name );
 
 				Com_sprintf( name, sizeof( name ), "sound/player/footsteps/eliteguard/gravel%i.wav", i + 1 );
-				cgs.media.footsteps[FOOTSTEP_ELITE_GRAVEL][i] = trap_S_RegisterSound( name );
+				cgs.media.footsteps[FOOTSTEP_ELITE_GRAVEL][i] = engine->trap_S_RegisterSound( name );
 			}
 		} else if (   !Q_strcasecmp( (char *)modelName, "protosoldier" ) )     {
 			// ProtoSoldier
 			for ( i = 0; i < 4; i++ ) {
 				Com_sprintf( name, sizeof( name ), "sound/player/footsteps/protosoldier/step%i.wav", i + 1 );
-				cgs.media.footsteps[FOOTSTEP_PROTOSOLDIER_STEP][i] = trap_S_RegisterSound( name );
+				cgs.media.footsteps[FOOTSTEP_PROTOSOLDIER_STEP][i] = engine->trap_S_RegisterSound( name );
 
 				Com_sprintf( name, sizeof( name ), "sound/player/footsteps/protosoldier/clank%i.wav", i + 1 );
-				cgs.media.footsteps[FOOTSTEP_PROTOSOLDIER_METAL][i] = trap_S_RegisterSound( name );
+				cgs.media.footsteps[FOOTSTEP_PROTOSOLDIER_METAL][i] = engine->trap_S_RegisterSound( name );
 
 				Com_sprintf( name, sizeof( name ), "sound/player/footsteps/protosoldier/grass%i.wav", i + 1 );
-				cgs.media.footsteps[FOOTSTEP_PROTOSOLDIER_GRASS][i] = trap_S_RegisterSound( name );
+				cgs.media.footsteps[FOOTSTEP_PROTOSOLDIER_GRASS][i] = engine->trap_S_RegisterSound( name );
 
 				Com_sprintf( name, sizeof( name ), "sound/player/footsteps/protosoldier/gravel%i.wav", i + 1 );
-				cgs.media.footsteps[FOOTSTEP_PROTOSOLDIER_GRAVEL][i] = trap_S_RegisterSound( name );
+				cgs.media.footsteps[FOOTSTEP_PROTOSOLDIER_GRAVEL][i] = engine->trap_S_RegisterSound( name );
 
 				Com_sprintf( name, sizeof( name ), "sound/player/footsteps/protosoldier/wood%i.wav", i + 1 );
-				cgs.media.footsteps[FOOTSTEP_PROTOSOLDIER_WOOD][i] = trap_S_RegisterSound( name );
+				cgs.media.footsteps[FOOTSTEP_PROTOSOLDIER_WOOD][i] = engine->trap_S_RegisterSound( name );
 			}
 		} else if ( !Q_strcasecmp( (char *)modelName, "supersoldier" ) )        {
 			// SuperSoldier/HEINRICH
 			for ( i = 0; i < 4; i++ ) {
 				Com_sprintf( name, sizeof( name ), "sound/player/footsteps/supersoldier/step%i.wav", i + 1 );
-				cgs.media.footsteps[FOOTSTEP_SUPERSOLDIER_STEP][i] = trap_S_RegisterSound( name );
+				cgs.media.footsteps[FOOTSTEP_SUPERSOLDIER_STEP][i] = engine->trap_S_RegisterSound( name );
 
 				Com_sprintf( name, sizeof( name ), "sound/player/footsteps/supersoldier/clank%i.wav", i + 1 );
-				cgs.media.footsteps[FOOTSTEP_SUPERSOLDIER_METAL][i] = trap_S_RegisterSound( name );
+				cgs.media.footsteps[FOOTSTEP_SUPERSOLDIER_METAL][i] = engine->trap_S_RegisterSound( name );
 
 				Com_sprintf( name, sizeof( name ), "sound/player/footsteps/supersoldier/grass%i.wav", i + 1 );
-				cgs.media.footsteps[FOOTSTEP_SUPERSOLDIER_GRASS][i] = trap_S_RegisterSound( name );
+				cgs.media.footsteps[FOOTSTEP_SUPERSOLDIER_GRASS][i] = engine->trap_S_RegisterSound( name );
 
 				Com_sprintf( name, sizeof( name ), "sound/player/footsteps/supersoldier/gravel%i.wav", i + 1 );
-				cgs.media.footsteps[FOOTSTEP_SUPERSOLDIER_GRAVEL][i] = trap_S_RegisterSound( name );
+				cgs.media.footsteps[FOOTSTEP_SUPERSOLDIER_GRAVEL][i] = engine->trap_S_RegisterSound( name );
 
 				Com_sprintf( name, sizeof( name ), "sound/player/footsteps/supersoldier/wood%i.wav", i + 1 );
-				cgs.media.footsteps[FOOTSTEP_SUPERSOLDIER_WOOD][i] = trap_S_RegisterSound( name );
+				cgs.media.footsteps[FOOTSTEP_SUPERSOLDIER_WOOD][i] = engine->trap_S_RegisterSound( name );
 			}
 		}
 		// Heinrich special
@@ -1090,31 +1090,31 @@ nodam_rtshin            attached to tag_calfright
 			// SuperSoldier/HEINRICH
 			for ( i = 0; i < 4; i++ ) {
 				Com_sprintf( name, sizeof( name ), "sound/player/footsteps/heinrich/step%i.wav", i + 1 );
-				cgs.media.footsteps[FOOTSTEP_HEINRICH][i] = trap_S_RegisterSound( name );
+				cgs.media.footsteps[FOOTSTEP_HEINRICH][i] = engine->trap_S_RegisterSound( name );
 			}
 		} else if ( !Q_strcasecmp( (char *)modelName, "loper" ) )        {
 			// Loper
 			for ( i = 0; i < 4; i++ ) {
 				Com_sprintf( name, sizeof( name ), "sound/player/footsteps/loper/clank%i.wav", i + 1 );
-				cgs.media.footsteps[FOOTSTEP_LOPER_METAL][i] = trap_S_RegisterSound( name );
+				cgs.media.footsteps[FOOTSTEP_LOPER_METAL][i] = engine->trap_S_RegisterSound( name );
 
 				Com_sprintf( name, sizeof( name ), "sound/player/footsteps/loper/step%i.wav", i + 1 );
-				cgs.media.footsteps[FOOTSTEP_LOPER_STEP][i] = trap_S_RegisterSound( name );
+				cgs.media.footsteps[FOOTSTEP_LOPER_STEP][i] = engine->trap_S_RegisterSound( name );
 
 				Com_sprintf( name, sizeof( name ), "sound/player/footsteps/loper/wood%i.wav", i + 1 );
-				cgs.media.footsteps[FOOTSTEP_LOPER_WOOD][i] = trap_S_RegisterSound( name );
+				cgs.media.footsteps[FOOTSTEP_LOPER_WOOD][i] = engine->trap_S_RegisterSound( name );
 			}
 		} else if ( !Q_strcasecmp( (char *)modelName, "zombie" ) )        {
 			// Zombie
 			for ( i = 0; i < 4; i++ ) {
 				Com_sprintf( name, sizeof( name ), "sound/player/footsteps/zombie/gravel%i.wav", i + 1 );
-				cgs.media.footsteps[FOOTSTEP_ZOMBIE_GRAVEL][i] = trap_S_RegisterSound( name );
+				cgs.media.footsteps[FOOTSTEP_ZOMBIE_GRAVEL][i] = engine->trap_S_RegisterSound( name );
 
 				Com_sprintf( name, sizeof( name ), "sound/player/footsteps/zombie/step%i.wav", i + 1 );
-				cgs.media.footsteps[FOOTSTEP_ZOMBIE_STEP][i] = trap_S_RegisterSound( name );
+				cgs.media.footsteps[FOOTSTEP_ZOMBIE_STEP][i] = engine->trap_S_RegisterSound( name );
 
 				Com_sprintf( name, sizeof( name ), "sound/player/footsteps/zombie/wood%i.wav", i + 1 );
-				cgs.media.footsteps[FOOTSTEP_ZOMBIE_WOOD][i] = trap_S_RegisterSound( name );
+				cgs.media.footsteps[FOOTSTEP_ZOMBIE_WOOD][i] = engine->trap_S_RegisterSound( name );
 			}
 		} else if ( !Q_strcasecmp( (char *)modelName, "beast" ) )        {
 			// Helga Boss
@@ -1124,9 +1124,9 @@ nodam_rtshin            attached to tag_calfright
 
 	// whoops!  this stuff would never get set if it found one existing already!!
 	if ( !Q_strcasecmp( (char *)modelName, "loper" ) ) {
-		ci->partModels[8] = trap_R_RegisterModel( va( "models/players/%s/spinner.md3", modelName ) );
+		ci->partModels[8] = engine->trap_R_RegisterModel( va( "models/players/%s/spinner.md3", modelName ) );
 	} else if ( !Q_strcasecmp( (char *)modelName, "sealoper" ) )      {
-		ci->partModels[8] = trap_R_RegisterModel( va( "models/players/%s/spinner.md3", modelName ) );
+		ci->partModels[8] = engine->trap_R_RegisterModel( va( "models/players/%s/spinner.md3", modelName ) );
 	}
 
 
@@ -1148,24 +1148,24 @@ static qboolean CG_RegisterClientHeadname( clientInfo_t *ci, const char *modelNa
 		return qfalse;
 	}
 
-	if ( trap_R_GetSkinModel( ci->headSkin, "md3_part", &namefromskin[0] ) ) {
+	if ( engine->trap_R_GetSkinModel( ci->headSkin, "md3_part", &namefromskin[0] ) ) {
 		Com_sprintf( filename, sizeof( filename ), "models/players/%s/%s", modelName, namefromskin );
 	} else {
 		Com_sprintf( filename, sizeof( filename ), "models/players/%s/head.md3", modelName );
 	}
 
-	ci->headModel = trap_R_RegisterModel( filename );
+	ci->headModel = engine->trap_R_RegisterModel( filename );
 	if ( !ci->headModel ) {
 		Com_Printf( "Failed to load head model file %s\n", filename );    //----(SA)
 		return qfalse;
 	}
 
-	if ( trap_R_GetSkinModel( ci->headSkin, "md3_hat", &namefromskin[0] ) ) {
+	if ( engine->trap_R_GetSkinModel( ci->headSkin, "md3_hat", &namefromskin[0] ) ) {
 		CG_RegisterAcc( ci, va( "models/players/%s", modelName ), namefromskin, &ci->accModels[ACC_HAT], &ci->accSkins[ACC_HAT] );
 	}
 
 	for ( i = 0; i < ACC_NUM_MOUTH - 1; i++ ) {
-		if ( trap_R_GetSkinModel( ci->headSkin, va( "md3_hat%d", 2 + i ), &namefromskin[0] ) ) {
+		if ( engine->trap_R_GetSkinModel( ci->headSkin, va( "md3_hat%d", 2 + i ), &namefromskin[0] ) ) {
 			CG_RegisterAcc( ci, va( "models/players/%s", modelName ), namefromskin, &ci->accModels[ACC_MOUTH2 + i], &ci->accSkins[ACC_MOUTH2 + i] );
 		}
 	}
@@ -1278,9 +1278,9 @@ void CG_LoadClientInfo( clientInfo_t *ci ) {
 		if ( !s ) {
 			break;
 		}
-		ci->sounds[i] = trap_S_RegisterSound( va( "sound/player/%s/%s", dir, s + 1 ) );
+		ci->sounds[i] = engine->trap_S_RegisterSound( va( "sound/player/%s/%s", dir, s + 1 ) );
 		if ( !ci->sounds[i] ) {
-			ci->sounds[i] = trap_S_RegisterSound( va( "sound/player/%s/%s", fallback, s + 1 ) );
+			ci->sounds[i] = engine->trap_S_RegisterSound( va( "sound/player/%s/%s", fallback, s + 1 ) );
 		}
 	}
 
@@ -1504,7 +1504,7 @@ void CG_NewClientInfo( int clientNum ) {
 		// forcemodel makes everyone use a single model
 		// to prevent load hitches
 
-		trap_Cvar_VariableStringBuffer( "head", modelStr, sizeof( modelStr ) );
+		engine->trap_Cvar_VariableStringBuffer( "head", modelStr, sizeof( modelStr ) );
 		Q_strncpyz( newInfo.hSkinName, modelStr, sizeof( newInfo.hSkinName ) );
 	}
 	else {
@@ -1523,7 +1523,7 @@ void CG_NewClientInfo( int clientNum ) {
 		char modelStr[MAX_QPATH];
 		char *skin;
 
-		trap_Cvar_VariableStringBuffer( "model", modelStr, sizeof( modelStr ) );
+		engine->trap_Cvar_VariableStringBuffer( "model", modelStr, sizeof( modelStr ) );
 		if ( ( skin = strchr( modelStr, '/' ) ) == NULL) {
 			skin = "default";
 		} else {
@@ -1567,7 +1567,7 @@ void CG_NewClientInfo( int clientNum ) {
 		// then we have a leak or havent allocated enough hunk
 		forceDefer = qfalse;
 
-//		forceDefer = trap_MemoryRemaining() < 4000000;
+//		forceDefer = engine->trap_MemoryRemaining() < 4000000;
 
 		// if we are defering loads, just have it pick the first valid
 //		if ( forceDefer || ( cg_deferPlayers.integer && !cg_buildScript.integer && !cg.loading ) ) {
@@ -1619,7 +1619,7 @@ void CG_LoadDeferredPlayers( void ) {
 	for ( i = 0, ci = cgs.clientinfo ; i < cgs.maxclients ; i++, ci++ ) {
 		if ( ci->infoValid && ci->deferred ) {
 			// if we are low on memory, leave it deferred
-			if ( trap_MemoryRemaining() < 4000000 ) {
+			if ( engine->trap_MemoryRemaining() < 4000000 ) {
 				CG_Printf( "Memory is low.  Using deferred model.\n" );
 				ci->deferred = qfalse;
 				continue;
@@ -2659,7 +2659,7 @@ static void CG_BreathPuffs( centity_t *cent, refEntity_t *head ) {
 		}
 	}
 
-	contents = trap_CM_PointContents( head->origin, 0 );
+	contents = engine->trap_CM_PointContents( head->origin, 0 );
 	if ( contents & ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ) {
 		return;
 	}
@@ -2710,7 +2710,7 @@ static void CG_TrailItem( centity_t *cent, qhandle_t hModel ) {
 	VectorScale( cg.autoAxis[1], 0.75, ent.axis[1] );
 	VectorScale( cg.autoAxis[2], 0.75, ent.axis[2] );
 	ent.hModel = hModel;
-	trap_R_AddRefEntityToScene( &ent );
+	engine->trap_R_AddRefEntityToScene( &ent );
 }
 
 
@@ -2723,7 +2723,7 @@ static void CG_PlayerPowerups( centity_t *cent ) {
 	int powerups;
 
 	if ( cent->pe.teslaDamagedTime > cg.time - 400 ) {
-		trap_R_AddLightToScene( cent->lerpOrigin, 128 + 128 * sin( cg.time * cg.time ), 0.2, 0.6, 1, 0 );
+		engine->trap_R_AddLightToScene( cent->lerpOrigin, 128 + 128 * sin( cg.time * cg.time ), 0.2, 0.6, 1, 0 );
 	}
 
 	// RF, AI don't use these effects, they are generally added manually by the game
@@ -2743,7 +2743,7 @@ static void CG_PlayerPowerups( centity_t *cent ) {
 //		VectorMA(orig, 1000, forward, li);
 //		CG_Trace(&trace, orig, NULL, NULL, li, -1, MASK_SHOT);
 //		VectorMA(trace.endpos, -5, forward, li);
-//		trap_R_AddLightToScene( li, 100 + 100*trace.fraction, 1, 1, 1, 1 );
+//		engine->trap_R_AddLightToScene( li, 100 + 100*trace.fraction, 1, 1, 1, 1 );
 //	}
 //----(SA)	end
 
@@ -2754,24 +2754,24 @@ static void CG_PlayerPowerups( centity_t *cent ) {
 
 	// quad gives a dlight
 	if ( powerups & ( 1 << PW_QUAD ) ) {
-		trap_R_AddLightToScene( cent->lerpOrigin, 200 + ( rand() & 31 ), 0.2, 0.2, 1, 0 );
+		engine->trap_R_AddLightToScene( cent->lerpOrigin, 200 + ( rand() & 31 ), 0.2, 0.2, 1, 0 );
 	}
 
 	// flight plays a looped sound
 //	if ( powerups & ( 1 << PW_FLIGHT ) ) {
-//		trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.media.flightSound, 255 );
+//		engine->trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.media.flightSound, 255 );
 //	}
 
 	// redflag
 	if ( powerups & ( 1 << PW_REDFLAG ) ) {
 		CG_TrailItem( cent, cgs.media.redFlagModel );
-		trap_R_AddLightToScene( cent->lerpOrigin, 200 + ( rand() & 31 ), 1, 0.2, 0.2, 0 );
+		engine->trap_R_AddLightToScene( cent->lerpOrigin, 200 + ( rand() & 31 ), 1, 0.2, 0.2, 0 );
 	}
 
 	// blueflag
 	if ( powerups & ( 1 << PW_BLUEFLAG ) ) {
 		CG_TrailItem( cent, cgs.media.blueFlagModel );
-		trap_R_AddLightToScene( cent->lerpOrigin, 200 + ( rand() & 31 ), 0.2, 0.2, 1, 0 );
+		engine->trap_R_AddLightToScene( cent->lerpOrigin, 200 + ( rand() & 31 ), 0.2, 0.2, 1, 0 );
 	}
 
 	// haste leaves smoke trails
@@ -2810,7 +2810,7 @@ static void CG_PlayerFloatSprite( centity_t *cent, qhandle_t shader, int height 
 	ent.shaderRGBA[1] = 255;
 	ent.shaderRGBA[2] = 255;
 	ent.shaderRGBA[3] = 255;
-	trap_R_AddRefEntityToScene( &ent );
+	engine->trap_R_AddRefEntityToScene( &ent );
 }
 
 
@@ -2932,7 +2932,7 @@ static qboolean CG_PlayerShadow( centity_t *cent, float *shadowPlane ) {
 	VectorCopy( cent->lerpOrigin, end );
 	end[2] -= SHADOW_DISTANCE;
 
-	trap_CM_BoxTrace( &trace, cent->lerpOrigin, end, NULL, NULL, 0, MASK_PLAYERSOLID );
+	engine->trap_CM_BoxTrace( &trace, cent->lerpOrigin, end, NULL, NULL, 0, MASK_PLAYERSOLID );
 
 	// no shadow if too high
 	if ( trace.fraction == 1.0 ) {
@@ -3057,7 +3057,7 @@ static void CG_PlayerSplash( centity_t *cent ) {
 
 	// if the feet aren't in liquid, don't make a mark
 	// this won't handle moving water brushes, but they wouldn't draw right anyway...
-	contents = trap_CM_PointContents( end, 0 );
+	contents = engine->trap_CM_PointContents( end, 0 );
 	if ( !( contents & ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ) ) {
 		return;
 	}
@@ -3066,13 +3066,13 @@ static void CG_PlayerSplash( centity_t *cent ) {
 	start[2] += 32;
 
 	// if the head isn't out of liquid, don't make a mark
-	contents = trap_CM_PointContents( start, 0 );
+	contents = engine->trap_CM_PointContents( start, 0 );
 	if ( contents & ( CONTENTS_SOLID | CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ) {
 		return;
 	}
 
 	// trace down to find the surface
-	trap_CM_BoxTrace( &trace, start, end, NULL, NULL, 0, ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) );
+	engine->trap_CM_BoxTrace( &trace, start, end, NULL, NULL, 0, ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) );
 
 	if ( trace.fraction == 1.0 ) {
 		return;
@@ -3119,7 +3119,7 @@ static void CG_PlayerSplash( centity_t *cent ) {
 	verts[3].modulate[2] = 255;
 	verts[3].modulate[3] = 255;
 
-	trap_R_AddPolyToScene( cgs.media.wakeMarkShader, 4, verts );
+	engine->trap_R_AddPolyToScene( cgs.media.wakeMarkShader, 4, verts );
 }
 
 //==========================================================================
@@ -3304,7 +3304,7 @@ void CG_AddZombieSpiritEffect( centity_t *cent ) {
 				VectorAdd( cent->lerpOrigin, v, p[i] );
 
 				// check for sinking into geometry
-				trap_CM_BoxTrace( &trace, p[i], p[i], NULL, NULL, 0, MASK_SOLID );
+				engine->trap_CM_BoxTrace( &trace, p[i], p[i], NULL, NULL, 0, MASK_SOLID );
 				// if we hit something, clip the velocity, but maintain speed
 				if ( trace.startsolid ) {
 					cent->pe.zombieSpiritTrailHead[i] = -2; // kill it
@@ -3386,7 +3386,7 @@ void CG_AddZombieSpiritEffect( centity_t *cent ) {
 		}
 		//
 		// add the sound
-		trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.media.zombieSpiritLoopSound, fadeRatio );
+		engine->trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.media.zombieSpiritLoopSound, fadeRatio );
 		//
 		// if this spirit is in a good position to be released and head to the enemy, then release it
 		if ( fadeRatio == 1.0 && ( lastSpiritRelease > cg.time || ( lastSpiritRelease < cg.time - 2000 ) ) ) {
@@ -3394,7 +3394,7 @@ void CG_AddZombieSpiritEffect( centity_t *cent ) {
 			VectorNormalize( v );
 			if ( DotProduct( cent->pe.zombieSpiritDir[i], v ) > 0.6 || ( cent->currentState.eFlags & EF_DEAD ) ) {
 				// check for sinking into geometry
-				trap_CM_BoxTrace( &trace, refent.origin, refent.origin, NULL, NULL, 0, MASK_SOLID );
+				engine->trap_CM_BoxTrace( &trace, refent.origin, refent.origin, NULL, NULL, 0, MASK_SOLID );
 				// if we hit something, don't release it yet
 				if ( !trace.startsolid ) {
 					if ( cent->pe.zombieSpiritSpeed[i] < 300 ) {
@@ -3410,12 +3410,12 @@ void CG_AddZombieSpiritEffect( centity_t *cent ) {
 		}
 		//
 		// if we didn't kill it, draw it
-		trap_R_AddRefEntityToScene( &refent );
+		engine->trap_R_AddRefEntityToScene( &refent );
 	}
 
 	if ( cg.time > cent->pe.nextZombieSpiritSound && cent->pe.cueZombieSpirit ) { //&& (cg.time < cent->pe.zombieSpiritStartTime + sndDuration)) {
 		// spawn a new sound
-		trap_S_StartSound( cent->lerpOrigin, -1, CHAN_AUTO, cgs.media.zombieSpiritSound );
+		engine->trap_S_StartSound( cent->lerpOrigin, -1, CHAN_AUTO, cgs.media.zombieSpiritSound );
 		cent->pe.nextZombieSpiritSound = cg.time + sndIntervalMin + (int)( (float)( sndIntervalMax - sndIntervalMin ) * random() );
 	}
 
@@ -3439,7 +3439,7 @@ void CG_AddZombieSpiritEffect( centity_t *cent ) {
 		}
 	}
 	fadeRatio *= 0.7;
-	trap_R_AddLightToScene( cent->lerpOrigin, 300.0, 1.0 * fadeRatio, 1.0 * fadeRatio, 1.0 * fadeRatio, 10 );
+	engine->trap_R_AddLightToScene( cent->lerpOrigin, 300.0, 1.0 * fadeRatio, 1.0 * fadeRatio, 1.0 * fadeRatio, 10 );
 }
 
 /*
@@ -3576,7 +3576,7 @@ void CG_AddZombieFlameEffect( centity_t *cent ) {
 		CG_GetOriginForTag( cent, &cent->pe.headRefEnt, "tag_mouth", 0, morg, maxis );
 		AxisToAngles( maxis, mang );
 		CG_FireFlameChunks( cent, morg, mang, ZOMBIE_FLAME_SCALE, qtrue, 0 );
-		trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.media.flameSound, 50 );
+		engine->trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.media.flameSound, 50 );
 	}
 }
 
@@ -3615,7 +3615,7 @@ void CG_AddZombieFlameShort( centity_t *cent ) {
 	}
 
 	CG_FireFlameChunks( cent, morg, cent->lerpAngles, 0.4, 2, 0 );
-	trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.media.flameSound, 50 );
+	engine->trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.media.flameSound, 50 );
 }
 
 //==========================================================================
@@ -3678,7 +3678,7 @@ void CG_AddLoperLightningEffect( centity_t *cent ) {
 	}
 	//VectorScale( c, alpha, c );
 	// add the light
-	trap_R_AddLightToScene( tagPos, LOPER_LIGHTNING_NORMAL_DIST * ( 2.5 + ( 1.0 + sin( cg.time ) ) / 4.0 ), c[0], c[1], c[2], 1 );
+	engine->trap_R_AddLightToScene( tagPos, LOPER_LIGHTNING_NORMAL_DIST * ( 2.5 + ( 1.0 + sin( cg.time ) ) / 4.0 ), c[0], c[1], c[2], 1 );
 
 	for ( i = 0; i < numPoints; i++ ) {
 		// if this point has timed out, find a new spot
@@ -3696,7 +3696,7 @@ void CG_AddLoperLightningEffect( centity_t *cent ) {
 			VectorCopy( testPos, cent->pe.lightningPoints[i] );
 			// play a zap sound
 			if ( cent->pe.lightningSoundTime < cg.time - 100 ) {
-				trap_S_StartSound( testPos, ENTITYNUM_WORLD, CHAN_AUTO, cgs.media.lightningZap /*cgs.media.lightningSounds[rand()%3]*/ );
+				engine->trap_S_StartSound( testPos, ENTITYNUM_WORLD, CHAN_AUTO, cgs.media.lightningZap /*cgs.media.lightningSounds[rand()%3]*/ );
 				cent->pe.lightningSoundTime = cg.time;
 			}
 		} else if ( ( !cent->pe.lightningTimes[i] ) ||
@@ -3725,7 +3725,7 @@ void CG_AddLoperLightningEffect( centity_t *cent ) {
 						// HACK, move ths sound away from the viewpos, to simulate lower volume
 						VectorSubtract( testPos, cg.refdef.vieworg, v );
 						VectorMA( cg.refdef.vieworg, 3.0, v, v );
-						trap_S_StartSound( v, ENTITYNUM_WORLD, CHAN_AUTO, cgs.media.lightningSounds[rand() % 3] );
+						engine->trap_S_StartSound( v, ENTITYNUM_WORLD, CHAN_AUTO, cgs.media.lightningSounds[rand() % 3] );
 						cent->pe.lightningSoundTime = cg.time;
 					}
 					break;
@@ -3824,8 +3824,8 @@ void CG_AddLoperGroundEffect( centity_t *cent ) {
 	}
 	VectorScale( c, alpha, c );
 	// add the light
-	trap_R_AddLightToScene( cent->lerpOrigin, LOPER_GROUNDCHARGE_RADIUS * ( 3.0 + 2.0 * ( 1.0 + sin( 0.001 * ( ( cg.time ) % ( 1000 * ( 2 + cent->currentState.number ) ) ) ) ) / 2.0 ), c[0], c[1], c[2], 1 );
-	//trap_R_AddLightToScene( cent->lerpOrigin, LOPER_GROUNDCHARGE_RADIUS*(2.0 + 1.0*(1.0+cos(0.001343*((cg.time)%(1000*(2+cent->currentState.number)))))/2.0), c[0], c[1], c[2], 0 );
+	engine->trap_R_AddLightToScene( cent->lerpOrigin, LOPER_GROUNDCHARGE_RADIUS * ( 3.0 + 2.0 * ( 1.0 + sin( 0.001 * ( ( cg.time ) % ( 1000 * ( 2 + cent->currentState.number ) ) ) ) ) / 2.0 ), c[0], c[1], c[2], 1 );
+	//engine->trap_R_AddLightToScene( cent->lerpOrigin, LOPER_GROUNDCHARGE_RADIUS*(2.0 + 1.0*(1.0+cos(0.001343*((cg.time)%(1000*(2+cent->currentState.number)))))/2.0), c[0], c[1], c[2], 0 );
 
 	if ( !alpha ) {
 		return;
@@ -3854,7 +3854,7 @@ void CG_AddLoperGroundEffect( centity_t *cent ) {
 		cent->pe.loperLastGroundChargeTime = cg.time;
 		// make a new sound
 		VectorSet( org, org[0] + crandom() * 256, org[1] + crandom() * 256, org[2] + crandom() * 256 );
-		trap_S_StartSound( org, ENTITYNUM_WORLD, CHAN_AUTO, cgs.media.lightningZap );
+		engine->trap_S_StartSound( org, ENTITYNUM_WORLD, CHAN_AUTO, cgs.media.lightningZap );
 	}
 
 }
@@ -4041,7 +4041,7 @@ void CG_AddHelgaSpiritEffect( centity_t *cent ) {
 				VectorAdd( cent->lerpOrigin, v, p[i] );
 
 				// check for sinking into geometry
-				trap_CM_BoxTrace( &trace, p[i], p[i], NULL, NULL, 0, MASK_SOLID );
+				engine->trap_CM_BoxTrace( &trace, p[i], p[i], NULL, NULL, 0, MASK_SOLID );
 				// if we hit something, clip the velocity, but maintain speed
 				if ( trace.startsolid ) {
 					cent->pe.zombieSpiritTrailHead[i] = -2; // kill it
@@ -4123,7 +4123,7 @@ void CG_AddHelgaSpiritEffect( centity_t *cent ) {
 						}
 */                                                                                                                                                                                                                           //
 		// add the sound
-		trap_S_AddLoopingSound( -1, cent->lerpOrigin, vec3_origin, cgs.media.helgaSpiritLoopSound, fadeRatio );
+		engine->trap_S_AddLoopingSound( -1, cent->lerpOrigin, vec3_origin, cgs.media.helgaSpiritLoopSound, fadeRatio );
 		//
 		// if this spirit is in a good position to be released and head to the enemy, then release it
 		if ( fadeRatio == 1.0 && ( lastSpiritRelease > cg.time || ( lastSpiritRelease < cg.time - 1000 ) ) ) {
@@ -4131,7 +4131,7 @@ void CG_AddHelgaSpiritEffect( centity_t *cent ) {
 			VectorNormalize( v );
 			if ( DotProduct( cent->pe.zombieSpiritDir[i], v ) > 0.4 || ( cent->currentState.eFlags & EF_DEAD ) ) {
 				// check for sinking into geometry
-				trap_CM_BoxTrace( &trace, refent.origin, refent.origin, NULL, NULL, 0, MASK_SOLID );
+				engine->trap_CM_BoxTrace( &trace, refent.origin, refent.origin, NULL, NULL, 0, MASK_SOLID );
 				// if we hit something, don't release it yet
 				if ( !trace.startsolid ) {
 					if ( cent->pe.zombieSpiritSpeed[i] < 300 ) {
@@ -4147,12 +4147,12 @@ void CG_AddHelgaSpiritEffect( centity_t *cent ) {
 		}
 		//
 		// if we didn't kill it, draw it
-		trap_R_AddRefEntityToScene( &refent );
+		engine->trap_R_AddRefEntityToScene( &refent );
 	}
 
 	if ( cg.time > cent->pe.nextZombieSpiritSound && cent->pe.cueZombieSpirit ) { //&& (cg.time < cent->pe.zombieSpiritStartTime + sndDuration)) {
 		// spawn a new sound
-		//trap_S_StartSound( cent->lerpOrigin, -1, CHAN_AUTO, cgs.media.helgaSpiritSound );
+		//engine->trap_S_StartSound( cent->lerpOrigin, -1, CHAN_AUTO, cgs.media.helgaSpiritSound );
 		CG_SoundPlayIndexedScript( cgs.media.helgaSpiritSound, NULL, cent->currentState.number );
 		cent->pe.nextZombieSpiritSound = cg.time + sndIntervalMin + (int)( (float)( sndIntervalMax - sndIntervalMin ) * random() );
 	}
@@ -4177,7 +4177,7 @@ void CG_AddHelgaSpiritEffect( centity_t *cent ) {
 		}
 	}
 	fadeRatio *= 0.7;
-	trap_R_AddLightToScene( cent->lerpOrigin, 500.0, 1.0 * fadeRatio, 1.0 * fadeRatio, 1.0 * fadeRatio, 10 );
+	engine->trap_R_AddLightToScene( cent->lerpOrigin, 500.0, 1.0 * fadeRatio, 1.0 * fadeRatio, 1.0 * fadeRatio, 10 );
 }
 
 //==========================================================================
@@ -4220,7 +4220,7 @@ void CG_AddRefEntityWithPowerups( refEntity_t *ent, int powerups, int team, enti
 
 	if ( powerups & ( 1 << PW_INVIS ) ) {
 		ent->customShader = cgs.media.invisShader;
-		trap_R_AddRefEntityToScene( ent );
+		engine->trap_R_AddRefEntityToScene( ent );
 #if 0
 		// -------------------------------
 		// Zombie effects
@@ -4259,7 +4259,7 @@ void CG_AddRefEntityWithPowerups( refEntity_t *ent, int powerups, int team, enti
 				ent->customShader = cgs.media.zombieHeadFadeShader;
 			}
 
-			trap_R_AddRefEntityToScene( ent );
+			engine->trap_R_AddRefEntityToScene( ent );
 
 			// add flaming effect
 			onFire = qtrue;
@@ -4280,7 +4280,7 @@ void CG_AddRefEntityWithPowerups( refEntity_t *ent, int powerups, int team, enti
 				}
 
 				ent->shaderTime = 0.001 * ( cg.time - cent->currentState.effect2Time );
-				trap_R_AddRefEntityToScene( ent );
+				engine->trap_R_AddRefEntityToScene( ent );
 /*
 				// skeleton: add legs and head parts
 				if (ent->hModel == cent->pe.legsRefEnt.hModel) {
@@ -4290,7 +4290,7 @@ void CG_AddRefEntityWithPowerups( refEntity_t *ent, int powerups, int team, enti
 
 					// legs
 					ent->hModel = cgs.media.skeletonLegsModel;
-					trap_R_AddRefEntityToScene( ent );
+					engine->trap_R_AddRefEntityToScene( ent );
 
 					// torso (just get this so we can place the head correctly)
 					parentEnt = *ent;
@@ -4301,11 +4301,11 @@ void CG_AddRefEntityWithPowerups( refEntity_t *ent, int powerups, int team, enti
 					parentEnt = *ent;
 					CG_PositionEntityOnTag( ent, &parentEnt, parentEnt.hModel, "tag_head", NULL );
 					ent->hModel = cgs.media.skeletonHeadModel;
-					trap_R_AddRefEntityToScene( ent );
+					engine->trap_R_AddRefEntityToScene( ent );
 				}
 */
 			} else {    // show it normally
-				trap_R_AddRefEntityToScene( ent );
+				engine->trap_R_AddRefEntityToScene( ent );
 			}
 		}
 
@@ -4326,21 +4326,21 @@ void CG_AddRefEntityWithPowerups( refEntity_t *ent, int powerups, int team, enti
 			// legs
 			ent->hModel = cgs.media.skeletonLegsModel;
 			ent->customSkin = cgs.media.skeletonLegsSkin;
-			trap_R_AddRefEntityToScene( ent );
+			engine->trap_R_AddRefEntityToScene( ent );
 
 			// torso
 			parentEnt = *ent;
 			CG_PositionEntityOnTag( ent, &parentEnt, parentEnt.hModel, "tag_torso", NULL );
 			ent->hModel = cgs.media.skeletonTorsoModel;
 			ent->customSkin = cgs.media.skeletonTorsoSkin;
-			trap_R_AddRefEntityToScene( ent );
+			engine->trap_R_AddRefEntityToScene( ent );
 
 			// head
 			parentEnt = *ent;
 			CG_PositionEntityOnTag( ent, &parentEnt, parentEnt.hModel, "tag_head", NULL );
 			ent->hModel = cgs.media.skeletonHeadModel;
 			ent->customSkin = cgs.media.skeletonHeadSkin;
-			trap_R_AddRefEntityToScene( ent );
+			engine->trap_R_AddRefEntityToScene( ent );
 
 			// restore previous state
 			*ent = backupRefEnt;
@@ -4371,7 +4371,7 @@ void CG_AddRefEntityWithPowerups( refEntity_t *ent, int powerups, int team, enti
 				}
 				ent->shaderTime = 1.0;
 
-				trap_R_AddRefEntityToScene( ent );
+				engine->trap_R_AddRefEntityToScene( ent );
 			}
 		}
 */
@@ -4382,7 +4382,7 @@ void CG_AddRefEntityWithPowerups( refEntity_t *ent, int powerups, int team, enti
 			ent->reFlags |= REFLAG_FORCE_LOD;
 		}
 
-		trap_R_AddRefEntityToScene( ent );
+		engine->trap_R_AddRefEntityToScene( ent );
 
 		if ( powerups & ( 1 << PW_QUAD ) ) {
 			if ( team == TEAM_RED ) {
@@ -4390,17 +4390,17 @@ void CG_AddRefEntityWithPowerups( refEntity_t *ent, int powerups, int team, enti
 			} else {
 				ent->customShader = cgs.media.quadShader;
 			}
-			trap_R_AddRefEntityToScene( ent );
+			engine->trap_R_AddRefEntityToScene( ent );
 		}
 		if ( powerups & ( 1 << PW_REGEN ) ) {
 			if ( ( ( cg.time / 100 ) % 10 ) == 1 ) {
 				ent->customShader = cgs.media.regenShader;
-				trap_R_AddRefEntityToScene( ent );
+				engine->trap_R_AddRefEntityToScene( ent );
 			}
 		}
 		if ( powerups & ( 1 << PW_BATTLESUIT ) ) {
 			ent->customShader = cgs.media.battleSuitShader;
-			trap_R_AddRefEntityToScene( ent );
+			engine->trap_R_AddRefEntityToScene( ent );
 		}
 	}
 
@@ -4436,21 +4436,21 @@ void CG_AddRefEntityWithPowerups( refEntity_t *ent, int powerups, int team, enti
 			ent->fireRiseDir[2] *= -1;
 
 		ent->customShader = cgs.media.dripWetShader2;
-		trap_R_AddRefEntityToScene( ent );
+		engine->trap_R_AddRefEntityToScene( ent );
 
 		ent->customShader = cgs.media.dripWetShader;
-		trap_R_AddRefEntityToScene( ent );
+		engine->trap_R_AddRefEntityToScene( ent );
 
 		VectorCopy( fireRiseDir, ent->fireRiseDir );
 */
 		ent->customShader = cgs.media.onFireShader;
-		trap_R_AddRefEntityToScene( ent );
+		engine->trap_R_AddRefEntityToScene( ent );
 
 		ent->customShader = cgs.media.onFireShader2;
-		trap_R_AddRefEntityToScene( ent );
+		engine->trap_R_AddRefEntityToScene( ent );
 
 		if ( ent->hModel == cent->pe.legsRefEnt.hModel ) {
-			trap_S_AddLoopingSound( es->number, ent->origin, vec3_origin, cgs.media.flameCrackSound, (int)( 40.0 * alpha ) );
+			engine->trap_S_AddLoopingSound( es->number, ent->origin, vec3_origin, cgs.media.flameCrackSound, (int)( 40.0 * alpha ) );
 		}
 	}
 
@@ -4469,7 +4469,7 @@ void CG_AddRefEntityWithPowerups( refEntity_t *ent, int powerups, int team, enti
 		} else {
 			ent->customShader = cgs.media.teslaDamageEffectShader;
 		}
-		trap_R_AddRefEntityToScene( ent );
+		engine->trap_R_AddRefEntityToScene( ent );
 	}
 
 	*ent = backupRefEnt;
@@ -4536,7 +4536,7 @@ static void CG_AddFireLight( centity_t *cent ) {
 		}
 		if (alpha <= 0.0) return;
 
-		trap_R_AddLightToScene( cent->lerpOrigin, 128 + 128*alpha, 1.000000*alpha, 0.603922*alpha, 0.207843*alpha, 0 );
+		engine->trap_R_AddLightToScene( cent->lerpOrigin, 128 + 128*alpha, 1.000000*alpha, 0.603922*alpha, 0.207843*alpha, 0 );
 	}
 */
 }
@@ -4894,7 +4894,7 @@ void CG_Player( centity_t *cent ) {
 		#define NUM_EMOTIONS            2   // 0 neutral, 1 happy, 2 angry
 		int emotion = 0;  // this should default to the entity's current emotion
 
-		gumsflappin = (float)trap_S_GetVoiceAmplitude( clientNum );
+		gumsflappin = (float)engine->trap_S_GetVoiceAmplitude( clientNum );
 		talk_frame = (int)floor( ( HEAD_EMOTION_SUBTYPES - 1 ) * ( gumsflappin / 256.0 ) );
 
 		// add the current frame to the total, so when it comes to pick a new frame, we choose the average
@@ -5510,7 +5510,7 @@ qboolean CG_GetTag( int clientNum, char *tagname, orientation_t *or ) {
 
 	refent = &cent->pe.legsRefEnt;
 
-	if ( trap_R_LerpTag( or, refent, tagname, 0 ) < 0 ) {
+	if ( engine->trap_R_LerpTag( or, refent, tagname, 0 ) < 0 ) {
 		return qfalse;
 	}
 
@@ -5566,7 +5566,7 @@ qboolean CG_GetWeaponTag( int clientNum, char *tagname, orientation_t *or ) {
 
 	refent = &cent->pe.gunRefEnt;
 
-	if ( trap_R_LerpTag( or, refent, tagname, 0 ) < 0 ) {
+	if ( engine->trap_R_LerpTag( or, refent, tagname, 0 ) < 0 ) {
 		return qfalse;
 	}
 

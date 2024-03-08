@@ -501,4 +501,9 @@ void        Controls_SetDefaults( void );
 extern uiImports_t* engine;
 #endif
 
+#ifdef CGAMEDLL
+#include "../cgame/cg_public.h"
+extern cgameImports_t* engine;
+#endif
+
 #endif

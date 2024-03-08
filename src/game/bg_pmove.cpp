@@ -41,7 +41,9 @@ int bg_pmove_gameskill_integer;
 
 // JPW NERVE -- added because I need to check single/multiplayer instances and branch accordingly
 #ifdef CGAMEDLL
+#include "../cgame/cg_public.h"
 extern vmCvar_t cg_gameType;
+extern cgameImports_t* engine;
 #endif
 #ifdef GAMEDLL
 #include "g_public.h"
