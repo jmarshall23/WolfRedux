@@ -89,7 +89,7 @@ char cl_cdkey[34] = "                                ";
 clientActive_t cl;
 clientConnection_t clc;
 clientStatic_t cls;
-vm_t                *cgvm;
+qmodule_t cgvm;
 
 // Structure containing functions exported from refresh DLL
 refexport_t re;

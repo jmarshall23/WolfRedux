@@ -89,7 +89,7 @@ typedef struct  {
 	int (*trap_CM_MarkFragments)(int numPoints, const vec3_t* points, const vec3_t projection, int maxPoints, vec3_t pointBuffer, int maxFragments, markFragment_t* fragmentBuffer);
 	void (*trap_S_StartSound)(vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfx);
 	void (*trap_S_StartLocalSound)(sfxHandle_t sfx, int channelNum);
-	void (*trap_S_ClearLoopingSounds)(qboolean killall);
+	void (*trap_S_ClearLoopingSounds)(int killall);
 	void (*trap_S_AddLoopingSound)(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx, int volume);
 	void (*trap_S_AddRealLoopingSound)(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx);
 	void (*trap_S_StopLoopingSound)(int entityNum);
@@ -114,7 +114,7 @@ typedef struct  {
 	void (*trap_R_AddPolyToScene)(qhandle_t hShader, int numVerts, const polyVert_t* verts);
 	void (*trap_R_AddPolysToScene)(qhandle_t hShader, int numVerts, const polyVert_t* verts, int numPolys);
 	void (*trap_R_AddLightToScene)(const vec3_t org, float intensity, float r, float g, float b, int overdraw);
-	void (*trap_R_AddCoronaToScene)(const vec3_t org, float r, float g, float b, float scale, int id, qboolean visible);
+	void (*trap_R_AddCoronaToScene)(const vec3_t org, float r, float g, float b, float scale, int id, int visible);
 	void (*trap_R_SetFog)(int fogvar, int var1, int var2, float r, float g, float b, float density);
 	void (*trap_R_RenderScene)(const refdef_t* fd);
 	void (*trap_R_SetColor)(const float* rgba);
@@ -129,8 +129,7 @@ typedef struct  {
 	qboolean(*trap_GetServerCommand)(int serverCommandNumber);
 	int (*trap_GetCurrentCmdNumber)(void);
 	qboolean(*trap_GetUserCmd)(int cmdNumber, usercmd_t* ucmd);
-	void (*trap_SetUserCmdValue)(int stateValue, float sensitivityScale, int fpSel, int cgvm);
-	void (*trap_SetClientLerpOrigin)(float x, float y, float z);
+	void (*trap_SetUserCmdValue)(int userCmdValue, int holdableValue, float sensitivityScale, int cld);
 	void (*trap_S_StopBackgroundTrack)(void);
 	int (*trap_RealTime)(qtime_t* qtime);
 	void (*trap_SnapVector)(float* v);
@@ -141,11 +140,11 @@ typedef struct  {
 	void (*trap_CIN_DrawCinematic)(int handle);
 	void (*trap_CIN_SetExtents)(int handle, int x, int y, int w, int h);
 	qboolean(*trap_GetEntityToken)(char* buffer, int bufferSize);
-	void (*trap_UI_Popup)(const char* arg0);
-	void (*trap_UI_LimboChat)(const char* arg0);
-	void (*trap_UI_ClosePopup)(const char* arg0);
+	void (*trap_UI_Popup)(char* arg0);
+	void (*trap_UI_LimboChat)(char* arg0);
+	void (*trap_UI_ClosePopup)(char* arg0);
 	qboolean(*trap_GetModelInfo)(int clientNum, char* modelName, animModelInfo_t** modelInfo);
-	bool (*trap_getCameraInfo)(int val, int time, float* origin, float* angles, float* fov);
+	qboolean (*trap_getCameraInfo)(int camNum, int time, vec3_t* origin, vec3_t* angles, float* fov);
 	void (*trap_Key_SetCatcher)(int catcher);
 	qboolean (*trap_loadCamera)(int, const char* name);
 	int (*trap_MemoryRemaining)(void);

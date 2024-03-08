@@ -91,7 +91,7 @@ sfxHandle_t S_RegisterSound( const char *sample );
 #else
 sfxHandle_t S_RegisterSound( const char *sample, qboolean compressed );
 #endif ///// (SA) DOOMSOUND
-
+sfxHandle_t S_RegisterSound2(const char* name);
 void S_DisplayFreeMemory( void );
 
 //

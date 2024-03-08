@@ -34,7 +34,8 @@ If you have questions concerning this license or the applicable additional terms
 void        CM_LoadMap( const char *name, qboolean clientload, int *checksum );
 clipHandle_t CM_InlineModel( int index );       // 0 = world, 1 + are bmodels
 clipHandle_t CM_TempBoxModel( const vec3_t mins, const vec3_t maxs, int capsule );
-
+clipHandle_t CM_TempBoxModelCapsule(const vec3_t mins, const vec3_t maxs);
+clipHandle_t CM_TempBoxModel2(const vec3_t mins, const vec3_t maxs);
 void        CM_ModelBounds( clipHandle_t model, vec3_t mins, vec3_t maxs );
 
 int         CM_NumClusters( void );
@@ -45,13 +46,12 @@ char        *CM_EntityString( void );
 int         CM_PointContents( const vec3_t p, clipHandle_t model );
 int         CM_TransformedPointContents( const vec3_t p, clipHandle_t model, const vec3_t origin, const vec3_t angles );
 
-void        CM_BoxTrace( trace_t *results, const vec3_t start, const vec3_t end,
-						 const vec3_t mins, const vec3_t maxs,
-						 clipHandle_t model, int brushmask, int capsule );
-void        CM_TransformedBoxTrace( trace_t *results, const vec3_t start, const vec3_t end,
-									const vec3_t mins, const vec3_t maxs,
-									clipHandle_t model, int brushmask,
-									const vec3_t origin, const vec3_t angles, int capsule );
+void        CM_BoxTrace( trace_t *results, const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, clipHandle_t model, int brushmask, int capsule );
+void        CM_TransformedBoxTrace( trace_t *results, const vec3_t start, const vec3_t end,const vec3_t mins, const vec3_t maxs,clipHandle_t model, int brushmask,const vec3_t origin, const vec3_t angles, int capsule );
+void        CM_TransformedBoxTrace2(trace_t* results, const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, clipHandle_t model, int brushmask, const vec3_t origin, const vec3_t angles);
+void		CM_TransformedCapsuleTrace(trace_t* results, const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, clipHandle_t model, int brushmask, const vec3_t origin, const vec3_t angles);
+void		CM_CapsuleTrace(trace_t* results, const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, clipHandle_t model, int brushmask);
+void		CM_BoxTrace2(trace_t* results, const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, clipHandle_t model, int brushmask);
 
 byte        *CM_ClusterPVS( int cluster );
 

@@ -849,6 +849,14 @@ clipHandle_t CM_TempBoxModel( const vec3_t mins, const vec3_t maxs, int capsule 
 	return BOX_MODEL_HANDLE;
 }
 
+clipHandle_t CM_TempBoxModel2(const vec3_t mins, const vec3_t maxs) {
+	return CM_TempBoxModel(mins, maxs, qfalse);
+}
+
+clipHandle_t CM_TempBoxModelCapsule(const vec3_t mins, const vec3_t maxs) {
+	return CM_TempBoxModel(mins, maxs, qtrue);
+}
+
 /*
 ===================
 CM_ModelBounds

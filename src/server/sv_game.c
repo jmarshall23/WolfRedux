@@ -463,8 +463,6 @@ void SV_InitGameProgs( void ) {
 	gi.trap_Cvar_Set = Cvar_Set;
 	gi.trap_Cvar_VariableIntegerValue = Cvar_VariableIntegerValue;
 	gi.trap_Cvar_VariableStringBuffer = Cvar_VariableStringBuffer;
-
-	// Continuing from gi.trap_Cvar_VariableStringBuffer
 	gi.trap_Cvar_VariableStringBuffer = Cvar_VariableStringBuffer;
 
 	// Game Data

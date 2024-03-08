@@ -524,6 +524,10 @@ sfxHandle_t S_RegisterSound( const char *name, qboolean compressed ) {
 	return sfx - s_knownSfx;
 }
 
+sfxHandle_t S_RegisterSound2(const char* name) {
+	return S_RegisterSound(name, qfalse);
+}
+
 /*
 =================
 S_memoryLoad

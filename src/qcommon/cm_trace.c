@@ -1362,6 +1362,14 @@ void CM_BoxTrace( trace_t *results, const vec3_t start, const vec3_t end,
 	CM_Trace( results, start, end, mins, maxs, model, vec3_origin, brushmask, capsule, NULL );
 }
 
+void CM_CapsuleTrace(trace_t* results, const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, clipHandle_t model, int brushmask) {
+	CM_Trace(results, start, end, mins, maxs, model, vec3_origin, brushmask, qtrue, NULL);
+}
+
+void CM_BoxTrace2(trace_t* results, const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, clipHandle_t model, int brushmask) {
+	CM_Trace(results, start, end, mins, maxs, model, vec3_origin, brushmask, qfalse, NULL);
+}
+
 /*
 ==================
 CM_TransformedBoxTrace
@@ -1459,4 +1467,12 @@ void CM_TransformedBoxTrace( trace_t *results, const vec3_t start, const vec3_t 
 	trace.endpos[2] = start[2] + trace.fraction * ( end[2] - start[2] );
 
 	*results = trace;
+}
+
+void CM_TransformedCapsuleTrace(trace_t* results, const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, clipHandle_t model, int brushmask, const vec3_t origin, const vec3_t angles) {
+	CM_TransformedBoxTrace(results, start, end, mins, maxs, model, brushmask, origin, angles, qtrue);
+}
+
+void CM_TransformedBoxTrace2(trace_t* results, const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, clipHandle_t model, int brushmask, const vec3_t origin, const vec3_t angles) {
+	CM_TransformedBoxTrace(results, start, end, mins, maxs, model, brushmask, origin, angles, qfalse);
 }

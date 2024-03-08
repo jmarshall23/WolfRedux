@@ -51,7 +51,7 @@ typedef struct  {
 	void (*trap_Cvar_VariableStringBuffer)(const char* var_name, char* buffer, int bufsize);
 	void (*trap_Cvar_SetValue)(const char* var_name, float value);
 	void (*trap_Cvar_Reset)(const char* name);
-	void (*trap_Cvar_Create)(const char* var_name, const char* var_value, int flags);
+	cvar_t *(*trap_Cvar_Create)(const char* var_name, const char* var_value, int flags);
 	void (*trap_Cvar_InfoStringBuffer)(int bit, char* buffer, int bufsize);
 	int (*trap_Argc)(void);
 	void (*trap_Argv)(int n, char* buffer, int bufferLength);
@@ -62,7 +62,7 @@ typedef struct  {
 	void (*trap_FS_Write)(const void* buffer, int len, fileHandle_t f);
 	void (*trap_FS_FCloseFile)(fileHandle_t f);
 	int (*trap_FS_GetFileList)(const char* path, const char* extension, char* listbuf, int bufsize);
-	int (*trap_FS_Delete)(const char* filename);
+	int (*trap_FS_Delete)(char* filename);
 	qhandle_t(*trap_R_RegisterModel)(const char* name);
 	qhandle_t(*trap_R_RegisterSkin)(const char* name);
 	void (*trap_R_RegisterFont)(const char* fontName, int pointSize, fontInfo_t* font);
@@ -78,7 +78,7 @@ typedef struct  {
 	void (*trap_R_ModelBounds)(clipHandle_t model, vec3_t mins, vec3_t maxs);
 	int (*trap_CM_LerpTag)(orientation_t* tag, const refEntity_t* refent, const char* tagName, int startIndex);
 	void (*trap_S_StartLocalSound)(sfxHandle_t sfx, int channelNum);
-	sfxHandle_t(*trap_S_RegisterSound)(const char* sample);
+	sfxHandle_t(*trap_S_RegisterSound)(const char* sample, qboolean);
 	void (*trap_S_FadeBackgroundTrack)(float targetvol, int time, int num);
 	void (*trap_S_FadeAllSound)(float targetvol, int time);
 	void (*trap_Key_KeynumToStringBuf)(int keynum, char* buf, int buflen);
@@ -114,9 +114,9 @@ typedef struct  {
 	void (*trap_LAN_GetServerInfo)(int source, int n, char* buf, int buflen);
 	int (*trap_LAN_GetServerPing)(int source, int n);
 	int (*trap_LAN_ServerIsVisible)(int source, int n);
-	int (*trap_LAN_ServerStatus)(const char* serverAddress, char* serverStatus, int maxLen);
-	void (*trap_LAN_SaveCachedServers)(void);
-	void (*trap_LAN_LoadCachedServers)(void);
+	int (*trap_LAN_ServerStatus)(char* serverAddress, char* serverStatus, int maxLen);
+	void (*trap_LAN_SaveCachedServers)();
+	void (*trap_LAN_LoadCachedServers)();
 	void (*trap_LAN_MarkServerVisible)(int source, int n, qboolean visible);
 	void (*trap_LAN_ResetPings)(int n);
 	int (*trap_LAN_CompareServers)(int source, int sortKey, int sortDir, int s1, int s2);
