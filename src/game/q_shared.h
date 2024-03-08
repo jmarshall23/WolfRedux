@@ -30,7 +30,7 @@ extern "C" {
 // q_shared.h -- included first by ALL program modules.
 // A user mod should never modify this file
 
-#define Q3_VERSION      "Wolf 1.41"
+#define Q3_VERSION      "Wolf 1.42"
 // ver 1.0.0	- release
 // ver 1.0.1	- post-release work
 // ver 1.1.0	- patch 1 (12/12/01)
@@ -1551,6 +1551,8 @@ short ShortSwap(short l);
 qint64 Long64NoSwap(qint64 ll);
 qint64 Long64Swap(qint64 ll);
 void Info_RemoveKey_Big(char* s, const char* key);
+
+typedef void* qmodule_t;
 
 #ifdef __cplusplus
 };

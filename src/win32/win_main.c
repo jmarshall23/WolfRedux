@@ -593,21 +593,13 @@ Sys_LoadDll
 Used to load a development dll instead of a virtual machine
 =================
 */
-extern char     *FS_BuildOSPath( const char *base, const char *game, const char *qpath );
-
-void * QDECL Sys_LoadDll( const char *name, int( QDECL **entryPoint ) ( int, ... ),
-						  int ( QDECL *systemcalls )( int, ... ) ) {
+void * Sys_LoadDll( const char *name ) {
 	static int lastWarning = 0;
 	HINSTANCE libHandle;
-	void ( QDECL * dllEntry )( int ( QDECL *syscallptr )( int, ... ) );
 	char    *basepath;
 	char    *cdpath;
 	char    *gamedir;
 	char    *fn;
-#ifdef NDEBUG
-	int timestamp;
-	int ret;
-#endif
 	char filename[MAX_QPATH];
 
 #ifdef WOLF_SP_DEMO
@@ -616,33 +608,12 @@ void * QDECL Sys_LoadDll( const char *name, int( QDECL **entryPoint ) ( int, ...
 	Com_sprintf( filename, sizeof( filename ), "%sx86.dll", name );
 #endif
 
-
-#ifdef NDEBUG
-	timestamp = Sys_Milliseconds();
-	if ( ( ( timestamp - lastWarning ) > ( 5 * 60000 ) ) && !Cvar_VariableIntegerValue( "dedicated" )
-		 && !Cvar_VariableIntegerValue( "com_blindlyLoadDLLs" ) ) {
-		if ( FS_FileExists( filename ) ) {
-			lastWarning = timestamp;
-			ret = MessageBoxEx( NULL, "You are about to load a .DLL executable that\n"
-									  "has not been verified for use with Wolfenstein.\n"
-									  "This type of file can compromise the security of\n"
-									  "your computer.\n\n"
-									  "Select 'OK' if you choose to load it anyway.",
-								"Security Warning", MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON2 | MB_TOPMOST | MB_SETFOREGROUND,
-								MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ) );
-			if ( ret != IDOK ) {
-				return NULL;
-			}
-		}
-	}
-#endif
-
 	// check current folder only if we are a developer
 	if ( 1 ) { //----(SA)	always dll
 //	if (Cvar_VariableIntegerValue( "devdll" )) {
 		libHandle = LoadLibrary( filename );
 		if ( libHandle ) {
-			goto found_dll;
+			return libHandle;
 		}
 	}
 
@@ -664,17 +635,17 @@ void * QDECL Sys_LoadDll( const char *name, int( QDECL **entryPoint ) ( int, ...
 		}
 	}
 
-found_dll:
-
-	dllEntry = ( void ( QDECL * )( int ( QDECL * )( int, ... ) ) )GetProcAddress( libHandle, "dllEntry" );
-	*entryPoint = ( int ( QDECL * )( int,... ) )GetProcAddress( libHandle, "vmMain" );
-	if ( !*entryPoint || !dllEntry ) {
-		FreeLibrary( libHandle );
-		return NULL;
-	}
-	dllEntry( systemcalls );
-
 	return libHandle;
+}
+/*
+=================
+Sys_LoadDll
+
+Used to load a development dll instead of a virtual machine
+=================
+*/
+void *Sys_GetProcAddress(void* libHandle, char* procAddress) {
+	return GetProcAddress(libHandle, procAddress);
 }
 
 

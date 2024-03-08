@@ -387,7 +387,7 @@ void AIChar_SetBBox( gentity_t *ent, cast_state_t *cs, qboolean useHeadTag ) {
 
 	// if they are linked, then relink to update bbox
 	if ( ent->r.linked ) {
-		engine->trap_LinkEntity( ent );
+		engine->trap_LinkEntity((sharedEntity_t*)ent );
 	}
 }
 
@@ -887,7 +887,7 @@ void AIChar_spawn( gentity_t *ent ) {
 		// trigger a spawn script event
 		AICast_ScriptEvent( cs, "spawn", "" );
 	} else {
-		engine->trap_UnlinkEntity( ent );
+		engine->trap_UnlinkEntity((sharedEntity_t*)ent );
 	}
 
 }

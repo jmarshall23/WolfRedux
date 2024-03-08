@@ -294,56 +294,6 @@ enum clc_ops_e {
 /*
 ==============================================================
 
-VIRTUAL MACHINE
-
-==============================================================
-*/
-
-typedef struct vm_s vm_t;
-
-typedef enum {
-	VMI_NATIVE,
-	VMI_BYTECODE,
-	VMI_COMPILED
-} vmInterpret_t;
-
-typedef enum {
-	TRAP_MEMSET = 100,
-	TRAP_MEMCPY,
-	TRAP_STRNCPY,
-	TRAP_SIN,
-	TRAP_COS,
-	TRAP_ATAN2,
-	TRAP_SQRT,
-	TRAP_MATRIXMULTIPLY,
-	TRAP_ANGLEVECTORS,
-	TRAP_PERPENDICULARVECTOR,
-	TRAP_FLOOR,
-	TRAP_CEIL,
-
-	TRAP_TESTPRINTINT,
-	TRAP_TESTPRINTFLOAT
-} sharedTraps_t;
-
-void    VM_Init( void );
-vm_t    *VM_Create( const char *module, int ( *systemCalls )( int * ),
-					vmInterpret_t interpret );
-// module should be bare: "cgame", not "cgame.dll" or "vm/cgame.qvm"
-
-void    VM_Free( vm_t *vm );
-void    VM_Clear( void );
-vm_t    *VM_Restart( vm_t *vm );
-
-int QDECL VM_Call( vm_t *vm, int callNum, ... );
-
-void    VM_Debug( int level );
-
-void    *VM_ArgPtr( int intValue );
-void    *VM_ExplicitArgPtr( vm_t *vm, int intValue );
-
-/*
-==============================================================
-
 CMD
 
 Command text buffering and command execution
@@ -937,9 +887,9 @@ void Sys_EnterCriticalSection( void *ptr );
 void Sys_LeaveCriticalSection( void *ptr );
 
 // general development dll loading for virtual machine testing
-void    * QDECL Sys_LoadDll( const char *name, int( QDECL * *entryPoint ) ( int, ... ),
-							 int ( QDECL * systemcalls )( int, ... ) );
+void*   Sys_LoadDll(const char* name);
 void    Sys_UnloadDll( void *dllHandle );
+void*	Sys_GetProcAddress(void *libHandle, char* procAddress);
 
 void    Sys_UnloadGame( void );
 void    *Sys_GetGameAPI( void *parms );
@@ -1068,5 +1018,7 @@ extern huffman_t clientHuffTables;
 #define SV_DECODE_START     12
 #define CL_ENCODE_START     12
 #define CL_DECODE_START     4
+
+extern char* FS_BuildOSPath(const char* base, const char* game, const char* qpath);
 
 #endif // _QCOMMON_H_

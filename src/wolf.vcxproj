@@ -176,9 +176,6 @@
     <ClCompile Include="qcommon\msg.c" />
     <ClCompile Include="qcommon\net_chan.c" />
     <ClCompile Include="qcommon\unzip.c" />
-    <ClCompile Include="qcommon\vm.c" />
-    <ClCompile Include="qcommon\vm_interpreted.c" />
-    <ClCompile Include="qcommon\vm_x86.c" />
     <ClCompile Include="server\sv_bot.c" />
     <ClCompile Include="server\sv_ccmds.c" />
     <ClCompile Include="server\sv_client.c" />
@@ -220,7 +217,6 @@
     <ClInclude Include="qcommon\qcommon.h" />
     <ClInclude Include="qcommon\qfiles.h" />
     <ClInclude Include="qcommon\unzip.h" />
-    <ClInclude Include="qcommon\vm_local.h" />
     <ClInclude Include="renderer\qgl.h" />
     <ClInclude Include="renderer\tr_local.h" />
     <ClInclude Include="renderer\tr_public.h" />

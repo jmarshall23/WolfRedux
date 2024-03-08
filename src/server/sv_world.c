@@ -685,6 +685,13 @@ void SV_Trace( trace_t *results, const vec3_t start, const vec3_t mins, const ve
 	*results = clip.trace;
 }
 
+void SV_Trace2(trace_t* results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask) {
+	SV_Trace(results, start, mins, maxs, end, passEntityNum, contentmask, qfalse);
+}
+
+void SV_TraceCapsule(trace_t* results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask) {
+	SV_Trace(results, start, mins, maxs, end, passEntityNum, contentmask, qtrue);
+}
 
 
 /*

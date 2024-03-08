@@ -593,7 +593,7 @@ void AIChar_AIScript_AlertEntity( gentity_t *ent ) {
 	// if the current bounding box is invalid, then wait
 	VectorAdd( ent->r.currentOrigin, ent->r.mins, mins );
 	VectorAdd( ent->r.currentOrigin, ent->r.maxs, maxs );
-	engine->trap_UnlinkEntity( ent );
+	engine->trap_UnlinkEntity( (sharedEntity_t *)ent );
 
 	numTouch = engine->trap_EntitiesInBox( mins, maxs, touch, 10 );
 
@@ -621,7 +621,7 @@ void AIChar_AIScript_AlertEntity( gentity_t *ent ) {
 	//ent->AIScript_AlertEntity = NULL;
 	cs->aiFlags &= ~AIFL_WAITINGTOSPAWN;
 	ent->aiInactive = qfalse;
-	engine->trap_LinkEntity( ent );
+	engine->trap_LinkEntity((sharedEntity_t*)ent );
 
 	// trigger a spawn script event
 	AICast_ScriptEvent( AICast_GetCastState( ent->s.number ), "spawn", "" );

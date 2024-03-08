@@ -219,7 +219,7 @@ typedef struct {
 
 extern serverStatic_t svs;                  // persistant server info across maps
 extern server_t sv;                         // cleared each map
-extern vm_t            *gvm;                // game virtual machine
+extern gameExport_t* game;
 
 #define MAX_MASTER_SERVERS  5
 
@@ -398,6 +398,11 @@ int SV_PointContents( const vec3_t p, int passEntityNum );
 
 
 void SV_Trace( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask, int capsule );
+void SV_TraceCapsule(trace_t* results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask);
+void SV_Trace2(trace_t* results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask);
+
+qboolean    SV_EntityContactCapsule(const vec3_t mins, const vec3_t maxs, const sharedEntity_t* gEnt);
+qboolean    SV_EntityContact2(const vec3_t mins, const vec3_t maxs, const sharedEntity_t* gEnt);
 // mins and maxs are relative
 
 // if the entire move stays in a solid volume, trace.allsolid will be set,

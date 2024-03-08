@@ -1,37 +1,11 @@
-/*
-===========================================================================
-
-Return to Castle Wolfenstein single player GPL Source Code
-Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
-
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
-
-RTCW SP Source Code is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-RTCW SP Source Code is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
-
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
-
-If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
-
-===========================================================================
-*/
-
 // Copyright (C) 1999-2000 Id Software, Inc.
 //
 
 // g_public.h -- game module information visible to server
 
 #define GAME_API_VERSION    8
+
+#include "bg_public.h"
 
 // entity->svFlags
 // the server does not know how to interpret most of the values
@@ -107,9 +81,6 @@ typedef struct {
 	entityShared_t r;               // shared by both the server system and game
 } sharedEntity_t;
 
-typedef struct gentity_s gentity_t;
-typedef struct gclient_s gclient_t;
-
 //===============================================================
 // Definition of gameImports_t struct
 typedef struct  {
@@ -125,7 +96,7 @@ typedef struct  {
 	int (*trap_FS_FOpenFile)(const char* qpath, fileHandle_t* f, fsMode_t mode);
 	void (*trap_FS_Read)(void* buffer, int len, fileHandle_t f);
 	int (*trap_FS_Write)(const void* buffer, int len, fileHandle_t f);
-	int (*trap_FS_Rename)(const char* from, const char* to);
+	void (*trap_FS_Rename)(const char* from, const char* to);
 	void (*trap_FS_FCloseFile)(fileHandle_t f);
 	void (*trap_FS_CopyFile)(char* from, char* to);
 	int (*trap_FS_GetFileList)(const char* path, const char* extension, char* listbuf, int bufsize);
@@ -141,7 +112,7 @@ typedef struct  {
 	void (*trap_Cvar_VariableStringBuffer)(const char* var_name, char* buffer, int bufsize);
 
 	// Game Data
-	void (*trap_LocateGameData)(gentity_t* gEnts, int numGEntities, int sizeofGEntity_t, playerState_t* clients, int sizeofGClient);
+	void (*trap_LocateGameData)(sharedEntity_t* gEnts, int numGEntities, int sizeofGEntity_t, playerState_t* clients, int sizeofGClient);
 	void (*trap_DropClient)(int clientNum, const char* reason);
 	void (*trap_SendServerCommand)(int clientNum, const char* text);
 
@@ -155,9 +126,9 @@ typedef struct  {
 	void (*trap_GetServerinfo)(char* buffer, int bufferSize);
 
 	// Entities and Models
-	void (*trap_SetBrushModel)(gentity_t* ent, const char* name);
-	void (*trap_LinkEntity)(gentity_t* ent);
-	void (*trap_UnlinkEntity)(gentity_t* ent);
+	void (*trap_SetBrushModel)(sharedEntity_t* ent, const char* name);
+	void (*trap_LinkEntity)(sharedEntity_t* ent);
+	void (*trap_UnlinkEntity)(sharedEntity_t* ent);
 
 	// Collision and Tracing
 	void (*trap_Trace)(trace_t* results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask);
@@ -167,13 +138,13 @@ typedef struct  {
 	// Visibility and Area Portal
 	qboolean(*trap_InPVS)(const vec3_t p1, const vec3_t p2);
 	qboolean(*trap_InPVSIgnorePortals)(const vec3_t p1, const vec3_t p2);
-	void (*trap_AdjustAreaPortalState)(gentity_t* ent, qboolean open);
+	void (*trap_AdjustAreaPortalState)(sharedEntity_t* ent, qboolean open);
 	qboolean(*trap_AreasConnected)(int area1, int area2);
 
 	// More entity interactions
 	int (*trap_EntitiesInBox)(const vec3_t mins, const vec3_t maxs, int* list, int maxcount);
-	qboolean(*trap_EntityContact)(const vec3_t mins, const vec3_t maxs, const gentity_t* ent);
-	qboolean(*trap_EntityContactCapsule)(const vec3_t mins, const vec3_t maxs, const gentity_t* ent);
+	qboolean(*trap_EntityContact)(const vec3_t mins, const vec3_t maxs, const sharedEntity_t* ent);
+	qboolean(*trap_EntityContactCapsule)(const vec3_t mins, const vec3_t maxs, const sharedEntity_t* ent);
 	// Bot AI and Movement
 	int (*trap_BotAllocateClient)(void);
 	void (*trap_BotFreeClient)(int clientNum);
@@ -233,9 +204,6 @@ typedef struct  {
 	void (*trap_EA_SayTeam)(int client, char* str);
 	void (*trap_EA_Command)(int client, char* command);
 
-	// More EA Functions
-	void (*trap_EA_Action)(int client, int action);
-
 	// Goal Management
 	void (*trap_BotGoalName)(int number, char* name, int size);
 	int (*trap_BotGetTopGoal)(int goalstate, void* goal);
@@ -293,6 +261,7 @@ typedef struct  {
 	void (*trap_AAS_SetAASBlockingEntity)(vec3_t absmin, vec3_t absmax, qboolean blocking);
 
 	void (*trap_EA_MoveForward)(int client);
+	void (*trap_EA_MoveBack)(int client);
 	qboolean(*trap_AAS_RT_GetHidePos)(vec3_t srcpos, int srcnum, int srcarea, vec3_t destpos, int destnum, int destarea, vec3_t returnPos);
 } gameImports_t;
 

@@ -145,6 +145,8 @@ typedef struct
 void G_Script_ScriptEvent( gentity_t *ent, char *eventStr, char *params );
 //====================================================================
 
+typedef struct gentity_s gentity_t;
+typedef struct gclient_s gclient_t;
 
 #define CFOFS( x ) ( (int)&( ( (gclient_t *)0 )->x ) )
 

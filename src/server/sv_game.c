@@ -33,6 +33,8 @@ If you have questions concerning this license or the applicable additional terms
 #include "../game/botlib.h"
 
 botlib_export_t *botlib_export;
+qmodule_t  gvm = NULL;                // game virtual machine // bk001212 init
+gameExport_t* game;
 
 void SV_GameError( const char *string ) {
 	Com_Error( ERR_DROP, "%s", string );
@@ -249,6 +251,13 @@ qboolean    SV_EntityContact( const vec3_t mins, const vec3_t maxs, const shared
 	return trace.startsolid;
 }
 
+qboolean    SV_EntityContact2(const vec3_t mins, const vec3_t maxs, const sharedEntity_t* gEnt) {
+	return SV_EntityContact(mins, maxs, gEnt, qfalse);
+}
+
+qboolean    SV_EntityContactCapsule(const vec3_t mins, const vec3_t maxs, const sharedEntity_t* gEnt) {
+	return SV_EntityContact(mins, maxs, gEnt, qtrue);
+}
 
 /*
 ===============
@@ -303,525 +312,28 @@ static int  FloatAsInt( float f ) {
 	return temp;
 }
 
-/*
-====================
-SV_GameSystemCalls
+void SV_EndGame(void)
+{
+	Com_Error(ERR_ENDGAME, "endgame");
+}
 
-The module is making a system call
-====================
-*/
-//rcg010207 - see my comments in VM_DllSyscall(), in qcommon/vm.c ...
-#if ( ( defined __linux__ ) && ( defined __powerpc__ ) )
-#define VMA( x ) ( (void *) args[x] )
-#else
-#define VMA( x ) VM_ArgPtr( args[x] )
-#endif
+qboolean SV_GetEntityToken(char* dest, int size)
+{
+	const char* s;
 
-#define VMF( x )  ( (float *)args )[x]
-
-int SV_GameSystemCalls( int *args ) {
-	switch ( args[0] ) {
-	case G_PRINT:
-		Com_Printf( "%s", VMA( 1 ) );
-		return 0;
-	case G_ERROR:
-		Com_Error( ERR_DROP, "%s", VMA( 1 ) );
-		return 0;
-	case G_ENDGAME:
-		Com_Error( ERR_ENDGAME, "endgame" );  // no message, no error print
-		return 0;
-	case G_MILLISECONDS:
-		return Sys_Milliseconds();
-	case G_CVAR_REGISTER:
-		Cvar_Register( VMA( 1 ), VMA( 2 ), VMA( 3 ), args[4] );
-		return 0;
-	case G_CVAR_UPDATE:
-		Cvar_Update( VMA( 1 ) );
-		return 0;
-	case G_CVAR_SET:
-		Cvar_Set( (const char *)VMA( 1 ), (const char *)VMA( 2 ) );
-		return 0;
-	case G_CVAR_VARIABLE_INTEGER_VALUE:
-		return Cvar_VariableIntegerValue( (const char *)VMA( 1 ) );
-	case G_CVAR_VARIABLE_STRING_BUFFER:
-		Cvar_VariableStringBuffer( VMA( 1 ), VMA( 2 ), args[3] );
-		return 0;
-	case G_ARGC:
-		return Cmd_Argc();
-	case G_ARGV:
-		Cmd_ArgvBuffer( args[1], VMA( 2 ), args[3] );
-		return 0;
-	case G_SEND_CONSOLE_COMMAND:
-		Cbuf_ExecuteText( args[1], VMA( 2 ) );
-		return 0;
-
-	case G_FS_FOPEN_FILE:
-		return FS_FOpenFileByMode( VMA( 1 ), VMA( 2 ), args[3] );
-	case G_FS_READ:
-		FS_Read( VMA( 1 ), args[2], args[3] );
-		return 0;
-	case G_FS_WRITE:
-		return FS_Write( VMA( 1 ), args[2], args[3] );
-	case G_FS_RENAME:
-		FS_Rename( VMA( 1 ), VMA( 2 ) );
-		return 0;
-	case G_FS_FCLOSE_FILE:
-		FS_FCloseFile( args[1] );
-		return 0;
-	case G_FS_COPY_FILE:
-		FS_CopyFileOS( VMA( 1 ), VMA( 2 ) );    //DAJ
-		return 0;
-	case G_FS_GETFILELIST:
-		return FS_GetFileList( VMA( 1 ), VMA( 2 ), VMA( 3 ), args[4] );
-
-	case G_LOCATE_GAME_DATA:
-		SV_LocateGameData( VMA( 1 ), args[2], args[3], VMA( 4 ), args[5] );
-		return 0;
-	case G_DROP_CLIENT:
-		SV_GameDropClient( args[1], VMA( 2 ) );
-		return 0;
-	case G_SEND_SERVER_COMMAND:
-		SV_GameSendServerCommand( args[1], VMA( 2 ) );
-		return 0;
-	case G_LINKENTITY:
-		SV_LinkEntity( VMA( 1 ) );
-		return 0;
-	case G_UNLINKENTITY:
-		SV_UnlinkEntity( VMA( 1 ) );
-		return 0;
-	case G_ENTITIES_IN_BOX:
-		return SV_AreaEntities( VMA( 1 ), VMA( 2 ), VMA( 3 ), args[4] );
-	case G_ENTITY_CONTACT:
-		return SV_EntityContact( VMA( 1 ), VMA( 2 ), VMA( 3 ), /* int capsule */ qfalse );
-	case G_ENTITY_CONTACTCAPSULE:
-		return SV_EntityContact( VMA( 1 ), VMA( 2 ), VMA( 3 ), /* int capsule */ qtrue );
-	case G_TRACE:
-		SV_Trace( VMA( 1 ), VMA( 2 ), VMA( 3 ), VMA( 4 ), VMA( 5 ), args[6], args[7], /* int capsule */ qfalse );
-		return 0;
-	case G_TRACECAPSULE:
-		SV_Trace( VMA( 1 ), VMA( 2 ), VMA( 3 ), VMA( 4 ), VMA( 5 ), args[6], args[7], /* int capsule */ qtrue );
-		return 0;
-	case G_POINT_CONTENTS:
-		return SV_PointContents( VMA( 1 ), args[2] );
-	case G_SET_BRUSH_MODEL:
-		SV_SetBrushModel( VMA( 1 ), VMA( 2 ) );
-		return 0;
-	case G_IN_PVS:
-		return SV_inPVS( VMA( 1 ), VMA( 2 ) );
-	case G_IN_PVS_IGNORE_PORTALS:
-		return SV_inPVSIgnorePortals( VMA( 1 ), VMA( 2 ) );
-
-	case G_SET_CONFIGSTRING:
-		SV_SetConfigstring( args[1], VMA( 2 ) );
-		return 0;
-	case G_GET_CONFIGSTRING:
-		SV_GetConfigstring( args[1], VMA( 2 ), args[3] );
-		return 0;
-	case G_SET_USERINFO:
-		SV_SetUserinfo( args[1], VMA( 2 ) );
-		return 0;
-	case G_GET_USERINFO:
-		SV_GetUserinfo( args[1], VMA( 2 ), args[3] );
-		return 0;
-	case G_GET_SERVERINFO:
-		SV_GetServerinfo( VMA( 1 ), args[2] );
-		return 0;
-	case G_ADJUST_AREA_PORTAL_STATE:
-		SV_AdjustAreaPortalState( VMA( 1 ), args[2] );
-		return 0;
-	case G_AREAS_CONNECTED:
-		return CM_AreasConnected( args[1], args[2] );
-
-	case G_BOT_ALLOCATE_CLIENT:
-		return SV_BotAllocateClient();
-	case G_BOT_FREE_CLIENT:
-		SV_BotFreeClient( args[1] );
-		return 0;
-
-	case G_GET_USERCMD:
-		SV_GetUsercmd( args[1], VMA( 2 ) );
-		return 0;
-	case G_GET_ENTITY_TOKEN:
-	{
-		const char  *s;
-
-		s = COM_Parse( &sv.entityParsePoint );
-		Q_strncpyz( VMA( 1 ), s, args[2] );
-		if ( !sv.entityParsePoint && !s[0] ) {
-			return qfalse;
-		} else {
-			return qtrue;
-		}
+	s = COM_Parse(&sv.entityParsePoint);
+	Q_strncpyz(dest, s, size);
+	if (!sv.entityParsePoint && !s[0]) {
+		return qfalse;
+	}
+	else {
+		return qtrue;
 	}
 
-	case G_DEBUG_POLYGON_CREATE:
-		return BotImport_DebugPolygonCreate( args[1], args[2], VMA( 3 ) );
-	case G_DEBUG_POLYGON_DELETE:
-		BotImport_DebugPolygonDelete( args[1] );
-		return 0;
-	case G_REAL_TIME:
-		return Com_RealTime( VMA( 1 ) );
-	case G_SNAPVECTOR:
-		Sys_SnapVector( VMA( 1 ) );
-		return 0;
-	case G_GETTAG:
-		return SV_GetTag( args[1], VMA( 2 ), VMA( 3 ) );
+}
 
-		//====================================
-
-	case BOTLIB_SETUP:
-		return SV_BotLibSetup();
-	case BOTLIB_SHUTDOWN:
-		return SV_BotLibShutdown();
-	case BOTLIB_LIBVAR_SET:
-		return botlib_export->BotLibVarSet( VMA( 1 ), VMA( 2 ) );
-	case BOTLIB_LIBVAR_GET:
-		return botlib_export->BotLibVarGet( VMA( 1 ), VMA( 2 ), args[3] );
-
-	case BOTLIB_PC_ADD_GLOBAL_DEFINE:
-		return botlib_export->PC_AddGlobalDefine( VMA( 1 ) );
-	case BOTLIB_PC_LOAD_SOURCE:
-		return botlib_export->PC_LoadSourceHandle( VMA( 1 ) );
-	case BOTLIB_PC_FREE_SOURCE:
-		return botlib_export->PC_FreeSourceHandle( args[1] );
-	case BOTLIB_PC_READ_TOKEN:
-		return botlib_export->PC_ReadTokenHandle( args[1], VMA( 2 ) );
-	case BOTLIB_PC_SOURCE_FILE_AND_LINE:
-		return botlib_export->PC_SourceFileAndLine( args[1], VMA( 2 ), VMA( 3 ) );
-
-	case BOTLIB_START_FRAME:
-		return botlib_export->BotLibStartFrame( VMF( 1 ) );
-	case BOTLIB_LOAD_MAP:
-		return botlib_export->BotLibLoadMap( VMA( 1 ) );
-	case BOTLIB_UPDATENTITY:
-		return botlib_export->BotLibUpdateEntity( args[1], VMA( 2 ) );
-	case BOTLIB_TEST:
-		return botlib_export->Test( args[1], VMA( 2 ), VMA( 3 ), VMA( 4 ) );
-
-	case BOTLIB_GET_SNAPSHOT_ENTITY:
-		return SV_BotGetSnapshotEntity( args[1], args[2] );
-	case BOTLIB_GET_CONSOLE_MESSAGE:
-		return SV_BotGetConsoleMessage( args[1], VMA( 2 ), args[3] );
-	case BOTLIB_USER_COMMAND:
-		SV_ClientThink( &svs.clients[args[1]], VMA( 2 ) );
-		return 0;
-
-	case BOTLIB_AAS_ENTITY_INFO:
-		botlib_export->aas.AAS_EntityInfo( args[1], VMA( 2 ) );
-		return 0;
-
-	case BOTLIB_AAS_INITIALIZED:
-		return botlib_export->aas.AAS_Initialized();
-	case BOTLIB_AAS_PRESENCE_TYPE_BOUNDING_BOX:
-		botlib_export->aas.AAS_PresenceTypeBoundingBox( args[1], VMA( 2 ), VMA( 3 ) );
-		return 0;
-	case BOTLIB_AAS_TIME:
-		return FloatAsInt( botlib_export->aas.AAS_Time() );
-
-		// Ridah
-	case BOTLIB_AAS_SETCURRENTWORLD:
-		botlib_export->aas.AAS_SetCurrentWorld( args[1] );
-		return 0;
-		// done.
-
-	case BOTLIB_AAS_POINT_AREA_NUM:
-		return botlib_export->aas.AAS_PointAreaNum( VMA( 1 ) );
-	case BOTLIB_AAS_TRACE_AREAS:
-		return botlib_export->aas.AAS_TraceAreas( VMA( 1 ), VMA( 2 ), VMA( 3 ), VMA( 4 ), args[5] );
-
-	case BOTLIB_AAS_POINT_CONTENTS:
-		return botlib_export->aas.AAS_PointContents( VMA( 1 ) );
-	case BOTLIB_AAS_NEXT_BSP_ENTITY:
-		return botlib_export->aas.AAS_NextBSPEntity( args[1] );
-	case BOTLIB_AAS_VALUE_FOR_BSP_EPAIR_KEY:
-		return botlib_export->aas.AAS_ValueForBSPEpairKey( args[1], VMA( 2 ), VMA( 3 ), args[4] );
-	case BOTLIB_AAS_VECTOR_FOR_BSP_EPAIR_KEY:
-		return botlib_export->aas.AAS_VectorForBSPEpairKey( args[1], VMA( 2 ), VMA( 3 ) );
-	case BOTLIB_AAS_FLOAT_FOR_BSP_EPAIR_KEY:
-		return botlib_export->aas.AAS_FloatForBSPEpairKey( args[1], VMA( 2 ), VMA( 3 ) );
-	case BOTLIB_AAS_INT_FOR_BSP_EPAIR_KEY:
-		return botlib_export->aas.AAS_IntForBSPEpairKey( args[1], VMA( 2 ), VMA( 3 ) );
-
-	case BOTLIB_AAS_AREA_REACHABILITY:
-		return botlib_export->aas.AAS_AreaReachability( args[1] );
-
-	case BOTLIB_AAS_AREA_TRAVEL_TIME_TO_GOAL_AREA:
-		return botlib_export->aas.AAS_AreaTravelTimeToGoalArea( args[1], VMA( 2 ), args[3], args[4] );
-
-	case BOTLIB_AAS_SWIMMING:
-		return botlib_export->aas.AAS_Swimming( VMA( 1 ) );
-	case BOTLIB_AAS_PREDICT_CLIENT_MOVEMENT:
-		return botlib_export->aas.AAS_PredictClientMovement( VMA( 1 ), args[2], VMA( 3 ), args[4], args[5],
-															 VMA( 6 ), VMA( 7 ), args[8], args[9], VMF( 10 ), args[11], args[12], args[13] );
-
-		// Ridah, route-tables
-	case BOTLIB_AAS_RT_SHOWROUTE:
-		botlib_export->aas.AAS_RT_ShowRoute( VMA( 1 ), args[2], args[3] );
-		return 0;
-
-	case BOTLIB_AAS_RT_GETHIDEPOS:
-		return botlib_export->aas.AAS_RT_GetHidePos( VMA( 1 ), args[2], args[3], VMA( 4 ), args[5], args[6], VMA( 7 ) );
-
-	case BOTLIB_AAS_FINDATTACKSPOTWITHINRANGE:
-		return botlib_export->aas.AAS_FindAttackSpotWithinRange( args[1], args[2], args[3], VMF( 4 ), args[5], VMA( 6 ) );
-
-	case BOTLIB_AAS_GETROUTEFIRSTVISPOS:
-		return botlib_export->aas.AAS_GetRouteFirstVisPos( VMA( 1 ), VMA( 2 ), args[3], VMA( 4 ) );
-
-	case BOTLIB_AAS_SETAASBLOCKINGENTITY:
-		botlib_export->aas.AAS_SetAASBlockingEntity( VMA( 1 ), VMA( 2 ), args[3] );
-		return 0;
-		// done.
-
-	case BOTLIB_EA_SAY:
-		botlib_export->ea.EA_Say( args[1], VMA( 2 ) );
-		return 0;
-	case BOTLIB_EA_SAY_TEAM:
-		botlib_export->ea.EA_SayTeam( args[1], VMA( 2 ) );
-		return 0;
-	case BOTLIB_EA_USE_ITEM:
-		botlib_export->ea.EA_UseItem( args[1], VMA( 2 ) );
-		return 0;
-	case BOTLIB_EA_DROP_ITEM:
-		botlib_export->ea.EA_DropItem( args[1], VMA( 2 ) );
-		return 0;
-	case BOTLIB_EA_USE_INV:
-		botlib_export->ea.EA_UseInv( args[1], VMA( 2 ) );
-		return 0;
-	case BOTLIB_EA_DROP_INV:
-		botlib_export->ea.EA_DropInv( args[1], VMA( 2 ) );
-		return 0;
-	case BOTLIB_EA_GESTURE:
-		botlib_export->ea.EA_Gesture( args[1] );
-		return 0;
-	case BOTLIB_EA_COMMAND:
-		botlib_export->ea.EA_Command( args[1], VMA( 2 ) );
-		return 0;
-
-	case BOTLIB_EA_SELECT_WEAPON:
-		botlib_export->ea.EA_SelectWeapon( args[1], args[2] );
-		return 0;
-	case BOTLIB_EA_TALK:
-		botlib_export->ea.EA_Talk( args[1] );
-		return 0;
-	case BOTLIB_EA_ATTACK:
-		botlib_export->ea.EA_Attack( args[1] );
-		return 0;
-	case BOTLIB_EA_RELOAD:
-		botlib_export->ea.EA_Reload( args[1] );
-		return 0;
-	case BOTLIB_EA_USE:
-		botlib_export->ea.EA_Use( args[1] );
-		return 0;
-	case BOTLIB_EA_RESPAWN:
-		botlib_export->ea.EA_Respawn( args[1] );
-		return 0;
-	case BOTLIB_EA_JUMP:
-		botlib_export->ea.EA_Jump( args[1] );
-		return 0;
-	case BOTLIB_EA_DELAYED_JUMP:
-		botlib_export->ea.EA_DelayedJump( args[1] );
-		return 0;
-	case BOTLIB_EA_CROUCH:
-		botlib_export->ea.EA_Crouch( args[1] );
-		return 0;
-	case BOTLIB_EA_MOVE_UP:
-		botlib_export->ea.EA_MoveUp( args[1] );
-		return 0;
-	case BOTLIB_EA_MOVE_DOWN:
-		botlib_export->ea.EA_MoveDown( args[1] );
-		return 0;
-	case BOTLIB_EA_MOVE_FORWARD:
-		botlib_export->ea.EA_MoveForward( args[1] );
-		return 0;
-	case BOTLIB_EA_MOVE_BACK:
-		botlib_export->ea.EA_MoveBack( args[1] );
-		return 0;
-	case BOTLIB_EA_MOVE_LEFT:
-		botlib_export->ea.EA_MoveLeft( args[1] );
-		return 0;
-	case BOTLIB_EA_MOVE_RIGHT:
-		botlib_export->ea.EA_MoveRight( args[1] );
-		return 0;
-	case BOTLIB_EA_MOVE:
-		botlib_export->ea.EA_Move( args[1], VMA( 2 ), VMF( 3 ) );
-		return 0;
-	case BOTLIB_EA_VIEW:
-		botlib_export->ea.EA_View( args[1], VMA( 2 ) );
-		return 0;
-
-	case BOTLIB_EA_END_REGULAR:
-		botlib_export->ea.EA_EndRegular( args[1], VMF( 2 ) );
-		return 0;
-	case BOTLIB_EA_GET_INPUT:
-		botlib_export->ea.EA_GetInput( args[1], VMF( 2 ), VMA( 3 ) );
-		return 0;
-	case BOTLIB_EA_RESET_INPUT:
-		botlib_export->ea.EA_ResetInput( args[1], VMA( 2 ) );
-		return 0;
-	case BOTLIB_AI_RESET_GOAL_STATE:
-		botlib_export->ai.BotResetGoalState( args[1] );
-		return 0;
-	case BOTLIB_AI_RESET_AVOID_GOALS:
-		botlib_export->ai.BotResetAvoidGoals( args[1] );
-		return 0;
-	case BOTLIB_AI_REMOVE_FROM_AVOID_GOALS:
-		botlib_export->ai.BotRemoveFromAvoidGoals( args[1], args[2] );
-		return 0;
-	case BOTLIB_AI_PUSH_GOAL:
-		botlib_export->ai.BotPushGoal( args[1], VMA( 2 ) );
-		return 0;
-	case BOTLIB_AI_POP_GOAL:
-		botlib_export->ai.BotPopGoal( args[1] );
-		return 0;
-	case BOTLIB_AI_EMPTY_GOAL_STACK:
-		botlib_export->ai.BotEmptyGoalStack( args[1] );
-		return 0;
-	case BOTLIB_AI_DUMP_AVOID_GOALS:
-		botlib_export->ai.BotDumpAvoidGoals( args[1] );
-		return 0;
-	case BOTLIB_AI_DUMP_GOAL_STACK:
-		botlib_export->ai.BotDumpGoalStack( args[1] );
-		return 0;
-	case BOTLIB_AI_GOAL_NAME:
-		botlib_export->ai.BotGoalName( args[1], VMA( 2 ), args[3] );
-		return 0;
-	case BOTLIB_AI_GET_TOP_GOAL:
-		return botlib_export->ai.BotGetTopGoal( args[1], VMA( 2 ) );
-	case BOTLIB_AI_GET_SECOND_GOAL:
-		return botlib_export->ai.BotGetSecondGoal( args[1], VMA( 2 ) );
-	case BOTLIB_AI_CHOOSE_LTG_ITEM:
-		return botlib_export->ai.BotChooseLTGItem( args[1], VMA( 2 ), VMA( 3 ), args[4] );
-	case BOTLIB_AI_CHOOSE_NBG_ITEM:
-		return botlib_export->ai.BotChooseNBGItem( args[1], VMA( 2 ), VMA( 3 ), args[4], VMA( 5 ), VMF( 6 ) );
-	case BOTLIB_AI_TOUCHING_GOAL:
-		return botlib_export->ai.BotTouchingGoal( VMA( 1 ), VMA( 2 ) );
-	case BOTLIB_AI_ITEM_GOAL_IN_VIS_BUT_NOT_VISIBLE:
-		return botlib_export->ai.BotItemGoalInVisButNotVisible( args[1], VMA( 2 ), VMA( 3 ), VMA( 4 ) );
-	case BOTLIB_AI_GET_LEVEL_ITEM_GOAL:
-		return botlib_export->ai.BotGetLevelItemGoal( args[1], VMA( 2 ), VMA( 3 ) );
-	case BOTLIB_AI_GET_NEXT_CAMP_SPOT_GOAL:
-		return botlib_export->ai.BotGetNextCampSpotGoal( args[1], VMA( 2 ) );
-	case BOTLIB_AI_GET_MAP_LOCATION_GOAL:
-		return botlib_export->ai.BotGetMapLocationGoal( VMA( 1 ), VMA( 2 ) );
-	case BOTLIB_AI_AVOID_GOAL_TIME:
-		return FloatAsInt( botlib_export->ai.BotAvoidGoalTime( args[1], args[2] ) );
-	case BOTLIB_AI_INIT_LEVEL_ITEMS:
-		botlib_export->ai.BotInitLevelItems();
-		return 0;
-	case BOTLIB_AI_UPDATE_ENTITY_ITEMS:
-		botlib_export->ai.BotUpdateEntityItems();
-		return 0;
-	case BOTLIB_AI_LOAD_ITEM_WEIGHTS:
-		return botlib_export->ai.BotLoadItemWeights( args[1], VMA( 2 ) );
-	case BOTLIB_AI_FREE_ITEM_WEIGHTS:
-		botlib_export->ai.BotFreeItemWeights( args[1] );
-		return 0;
-	case BOTLIB_AI_INTERBREED_GOAL_FUZZY_LOGIC:
-		botlib_export->ai.BotInterbreedGoalFuzzyLogic( args[1], args[2], args[3] );
-		return 0;
-	case BOTLIB_AI_SAVE_GOAL_FUZZY_LOGIC:
-		botlib_export->ai.BotSaveGoalFuzzyLogic( args[1], VMA( 2 ) );
-		return 0;
-	case BOTLIB_AI_MUTATE_GOAL_FUZZY_LOGIC:
-		botlib_export->ai.BotMutateGoalFuzzyLogic( args[1], VMF( 2 ) );
-		return 0;
-	case BOTLIB_AI_ALLOC_GOAL_STATE:
-		return botlib_export->ai.BotAllocGoalState( args[1] );
-	case BOTLIB_AI_FREE_GOAL_STATE:
-		botlib_export->ai.BotFreeGoalState( args[1] );
-		return 0;
-
-	case BOTLIB_AI_RESET_MOVE_STATE:
-		botlib_export->ai.BotResetMoveState( args[1] );
-		return 0;
-	case BOTLIB_AI_MOVE_TO_GOAL:
-		botlib_export->ai.BotMoveToGoal( VMA( 1 ), args[2], VMA( 3 ), args[4] );
-		return 0;
-	case BOTLIB_AI_MOVE_IN_DIRECTION:
-		return botlib_export->ai.BotMoveInDirection( args[1], VMA( 2 ), VMF( 3 ), args[4] );
-	case BOTLIB_AI_RESET_AVOID_REACH:
-		botlib_export->ai.BotResetAvoidReach( args[1] );
-		return 0;
-	case BOTLIB_AI_RESET_LAST_AVOID_REACH:
-		botlib_export->ai.BotResetLastAvoidReach( args[1] );
-		return 0;
-	case BOTLIB_AI_REACHABILITY_AREA:
-		return botlib_export->ai.BotReachabilityArea( VMA( 1 ), args[2] );
-	case BOTLIB_AI_MOVEMENT_VIEW_TARGET:
-		return botlib_export->ai.BotMovementViewTarget( args[1], VMA( 2 ), args[3], VMF( 4 ), VMA( 5 ) );
-	case BOTLIB_AI_PREDICT_VISIBLE_POSITION:
-		return botlib_export->ai.BotPredictVisiblePosition( VMA( 1 ), args[2], VMA( 3 ), args[4], VMA( 5 ) );
-	case BOTLIB_AI_ALLOC_MOVE_STATE:
-		return botlib_export->ai.BotAllocMoveState();
-	case BOTLIB_AI_FREE_MOVE_STATE:
-		botlib_export->ai.BotFreeMoveState( args[1] );
-		return 0;
-	case BOTLIB_AI_INIT_MOVE_STATE:
-		botlib_export->ai.BotInitMoveState( args[1], VMA( 2 ) );
-		return 0;
-		// Ridah
-	case BOTLIB_AI_INIT_AVOID_REACH:
-		botlib_export->ai.BotInitAvoidReach( args[1] );
-		return 0;
-		// done.
-
-	case G_FS_READFILE:
-		return FS_ReadFile(VMA(1), VMA(2));
-
-	case G_FS_FREEFILE:
-		FS_FreeFile(VMA(1));
-		return 0;
-
-	case BOTLIB_AI_GENETIC_PARENTS_AND_CHILD_SELECTION:
-		return botlib_export->ai.GeneticParentsAndChildSelection( args[1], VMA( 2 ), VMA( 3 ), VMA( 4 ), VMA( 5 ) );
-
-	case TRAP_MEMSET:
-		memset( VMA( 1 ), args[2], args[3] );
-		return 0;
-
-	case TRAP_MEMCPY:
-		memcpy( VMA( 1 ), VMA( 2 ), args[3] );
-		return 0;
-
-	case TRAP_STRNCPY:
-		return (int)strncpy( VMA( 1 ), VMA( 2 ), args[3] );
-
-	case TRAP_SIN:
-		return FloatAsInt( sin( VMF( 1 ) ) );
-
-	case TRAP_COS:
-		return FloatAsInt( cos( VMF( 1 ) ) );
-
-	case TRAP_ATAN2:
-		return FloatAsInt( atan2( VMF( 1 ), VMF( 2 ) ) );
-
-	case TRAP_SQRT:
-		return FloatAsInt( sqrt( VMF( 1 ) ) );
-
-	case TRAP_MATRIXMULTIPLY:
-		MatrixMultiply( VMA( 1 ), VMA( 2 ), VMA( 3 ) );
-		return 0;
-
-	case TRAP_ANGLEVECTORS:
-		AngleVectors( VMA( 1 ), VMA( 2 ), VMA( 3 ), VMA( 4 ) );
-		return 0;
-
-	case TRAP_PERPENDICULARVECTOR:
-		PerpendicularVector( VMA( 1 ), VMA( 2 ) );
-		return 0;
-
-	case TRAP_FLOOR:
-		return FloatAsInt( floor( VMF( 1 ) ) );
-
-	case TRAP_CEIL:
-		return FloatAsInt( ceil( VMF( 1 ) ) );
-
-
-	default:
-		Com_Error( ERR_DROP, "Bad game system trap: %i", args[0] );
-	}
-	return -1;
+void SV_InitGameImports() {
+	
 }
 
 /*
@@ -835,8 +347,9 @@ void SV_ShutdownGameProgs( void ) {
 	if ( !gvm ) {
 		return;
 	}
-	VM_Call( gvm, GAME_SHUTDOWN, qfalse );
-	VM_Free( gvm );
+	
+	game->G_ShutdownGame(qfalse);
+	Sys_UnloadDll(gvm);
 	gvm = NULL;
 }
 
@@ -855,7 +368,7 @@ static void SV_InitGameVM( qboolean restart ) {
 
 	// use the current msec count for a random seed
 	// init for this gamestate
-	VM_Call( gvm, GAME_INIT, svs.time, Com_Milliseconds(), restart );
+	game->G_InitGame(svs.time, Com_Milliseconds(), restart );
 
 	// clear all gentity pointers that might still be set from
 	// a previous level
@@ -877,10 +390,11 @@ void SV_RestartGameProgs( void ) {
 	if ( !gvm ) {
 		return;
 	}
-	VM_Call( gvm, GAME_SHUTDOWN, qtrue );
+	//VM_Call( gvm, GAME_SHUTDOWN, qtrue );
+	game->G_ShutdownGame(qtrue);
 
 	// do a restart instead of a free
-	gvm = VM_Restart( gvm );
+	//gvm = VM_Restart( gvm );
 	if ( !gvm ) { // bk001212 - as done below
 		Com_Error( ERR_FATAL, "VM_Restart on game failed" );
 	}
@@ -888,6 +402,19 @@ void SV_RestartGameProgs( void ) {
 	SV_InitGameVM( qtrue );
 }
 
+/*
+===============
+SV_GameErrorDrop
+===============
+*/
+void SV_GameErrorDrop(const char* fmt)
+{
+	Com_Error(ERR_DROP, fmt);
+}
+
+void SV_UserCommand(int client, usercmd_t* cmd) {
+	SV_ClientThink(&svs.clients[client], cmd);
+}
 
 /*
 ===============
@@ -897,24 +424,273 @@ Called on a normal map change, not on a map_restart
 ===============
 */
 void SV_InitGameProgs( void ) {
-	cvar_t  *var;
+	cvar_t* var;
+	static gameImports_t gi;
+
 	//FIXME these are temp while I make bots run in vm
 	extern int bot_enable;
 
-	var = Cvar_Get( "bot_enable", "1", CVAR_LATCH );
-	if ( var ) {
+	var = Cvar_Get("bot_enable", "1", CVAR_LATCH);
+	if (var) {
 		bot_enable = var->integer;
-	} else {
+	}
+	else {
 		bot_enable = 0;
 	}
 
+	gi.trap_Printf = Com_Printf;
+	gi.trap_Error = SV_GameErrorDrop;
+	gi.trap_Endgame = SV_EndGame;
+	gi.trap_Milliseconds = Sys_Milliseconds;
+	gi.trap_Argc = Cmd_Argc;
+	gi.trap_Argv = Cmd_ArgvBuffer;
+
+	// File System Operations
+	gi.trap_FS_FOpenFile = FS_FOpenFileByMode;
+	gi.trap_FS_Read = FS_Read;
+	gi.trap_FS_Write = FS_Write;
+	gi.trap_FS_Rename = FS_Rename;
+	gi.trap_FS_FCloseFile = FS_FCloseFile;
+	gi.trap_FS_CopyFile = FS_CopyFileOS; // Note: Check actual implementation name
+	gi.trap_FS_GetFileList = FS_GetFileList;
+
+	// Console Commands
+	gi.trap_SendConsoleCommand = Cbuf_ExecuteText;
+
+	// Cvar Operations
+	gi.trap_Cvar_Register = Cvar_Register;
+	gi.trap_Cvar_Update = Cvar_Update;
+	gi.trap_Cvar_Set = Cvar_Set;
+	gi.trap_Cvar_VariableIntegerValue = Cvar_VariableIntegerValue;
+	gi.trap_Cvar_VariableStringBuffer = Cvar_VariableStringBuffer;
+
+	// Continuing from gi.trap_Cvar_VariableStringBuffer
+	gi.trap_Cvar_VariableStringBuffer = Cvar_VariableStringBuffer;
+
+	// Game Data
+	gi.trap_LocateGameData = SV_LocateGameData;
+	gi.trap_DropClient = SV_GameDropClient;
+	gi.trap_SendServerCommand = SV_GameSendServerCommand;
+
+	// Config Strings
+	gi.trap_SetConfigstring = SV_SetConfigstring;
+	gi.trap_GetConfigstring = SV_GetConfigstring;
+
+	// User Info
+	gi.trap_GetUserinfo = SV_GetUserinfo;
+	gi.trap_SetUserinfo = SV_SetUserinfo;
+	gi.trap_GetServerinfo = SV_GetServerinfo;
+
+	// Entities and Models
+	gi.trap_SetBrushModel = SV_SetBrushModel;
+	gi.trap_LinkEntity = SV_LinkEntity;
+	gi.trap_UnlinkEntity = SV_UnlinkEntity;
+
+	// Collision and Tracing
+	gi.trap_Trace = SV_Trace2;
+	gi.trap_TraceCapsule = SV_TraceCapsule;
+	gi.trap_PointContents = SV_PointContents;
+
+	// Visibility and Area Portal
+	gi.trap_InPVS = SV_inPVS;
+	gi.trap_InPVSIgnorePortals = SV_inPVSIgnorePortals;
+	gi.trap_AdjustAreaPortalState = SV_AdjustAreaPortalState;
+	gi.trap_AreasConnected = CM_AreasConnected;
+
+	// More entity interactions
+	gi.trap_EntitiesInBox = SV_AreaEntities;
+	gi.trap_EntityContact = SV_EntityContact2;
+	gi.trap_EntityContactCapsule = SV_EntityContactCapsule;
+
+	// Bot AI and Movement
+	gi.trap_BotAllocateClient = SV_BotAllocateClient;
+	gi.trap_BotFreeClient = SV_BotFreeClient;
+	gi.trap_GetUsercmd = SV_GetUsercmd;
+	gi.trap_GetEntityToken = SV_GetEntityToken;
+
+	// Debugging and Development
+	gi.trap_DebugPolygonCreate = BotImport_DebugPolygonCreate;
+	gi.trap_DebugPolygonDelete = BotImport_DebugPolygonDelete;
+	gi.trap_RealTime = Com_RealTime;
+	gi.trap_SnapVector = Sys_SnapVector;
+	gi.trap_GetTag = SV_GetTag;
+
+	// BotLib API
+	gi.trap_BotLibSetup = botlib_export->BotLibSetup;
+	gi.trap_BotLibShutdown = botlib_export->BotLibShutdown;
+	gi.trap_BotLibVarSet = botlib_export->BotLibVarSet;
+	gi.trap_BotLibVarGet = botlib_export->BotLibVarGet;
+	gi.trap_BotLibDefine = botlib_export->PC_AddGlobalDefine;
+	gi.trap_BotLibStartFrame = botlib_export->BotLibStartFrame;
+	gi.trap_BotLibLoadMap = botlib_export->BotLibLoadMap;
+	gi.trap_BotLibUpdateEntity = botlib_export->BotLibUpdateEntity;
+	gi.trap_BotLibTest = botlib_export->Test;
+
+	// Snapshot and Server Command
+	gi.trap_BotGetSnapshotEntity = SV_BotGetSnapshotEntity;
+	gi.trap_BotGetServerCommand = SV_BotGetConsoleMessage;
+
+	// User Commands
+	gi.trap_BotUserCommand = SV_UserCommand;
+
+	// AAS Interface
+	gi.trap_AAS_EntityInfo = botlib_export->aas.AAS_EntityInfo;
+	gi.trap_AAS_Initialized = botlib_export->aas.AAS_Initialized;
+	gi.trap_AAS_PresenceTypeBoundingBox = botlib_export->aas.AAS_PresenceTypeBoundingBox;
+	gi.trap_AAS_Time = botlib_export->aas.AAS_Time;
+
+	// AAS World Indexing
+	gi.trap_AAS_SetCurrentWorld = botlib_export->aas.AAS_SetCurrentWorld;
+	gi.trap_AAS_PointAreaNum = botlib_export->aas.AAS_PointAreaNum;
+	gi.trap_AAS_TraceAreas = botlib_export->aas.AAS_TraceAreas;
+	gi.trap_AAS_PointContents = botlib_export->aas.AAS_PointContents;
+	gi.trap_AAS_NextBSPEntity = botlib_export->aas.AAS_NextBSPEntity;
+	gi.trap_AAS_ValueForBSPEpairKey = botlib_export->aas.AAS_ValueForBSPEpairKey;
+	gi.trap_AAS_VectorForBSPEpairKey = botlib_export->aas.AAS_VectorForBSPEpairKey;
+	gi.trap_AAS_FloatForBSPEpairKey = botlib_export->aas.AAS_FloatForBSPEpairKey;
+	gi.trap_AAS_IntForBSPEpairKey = botlib_export->aas.AAS_IntForBSPEpairKey;
+
+	// AAS Routing
+	gi.trap_AAS_AreaReachability = botlib_export->aas.AAS_AreaReachability;
+	gi.trap_AAS_AreaTravelTimeToGoalArea = botlib_export->aas.AAS_AreaTravelTimeToGoalArea;
+	gi.trap_AAS_Swimming = botlib_export->aas.AAS_Swimming;
+	gi.trap_AAS_PredictClientMovement = botlib_export->aas.AAS_PredictClientMovement;
+
+	// EA Functions
+	gi.trap_EA_Say = botlib_export->ea.EA_Say;
+	gi.trap_EA_SayTeam = botlib_export->ea.EA_SayTeam;
+	gi.trap_EA_Command = botlib_export->ea.EA_Command;
+
+	// Goal Management
+	gi.trap_BotGoalName = botlib_export->ai.BotGoalName;
+	gi.trap_BotGetTopGoal = botlib_export->ai.BotGetTopGoal;
+	gi.trap_BotGetSecondGoal = botlib_export->ai.BotGetSecondGoal;
+
+	// Movement
+	gi.trap_BotResetMoveState = botlib_export->ai.BotResetMoveState;
+	gi.trap_BotMoveToGoal = botlib_export->ai.BotMoveToGoal;
+	gi.trap_BotMoveInDirection = botlib_export->ai.BotMoveInDirection;
+
+	// Item and Weapon Management
+	gi.trap_BotLoadItemWeights = botlib_export->ai.BotLoadItemWeights;
+	gi.trap_BotFreeItemWeights = botlib_export->ai.BotFreeItemWeights;
+	gi.trap_BotInterbreedGoalFuzzyLogic = botlib_export->ai.BotInterbreedGoalFuzzyLogic;
+	gi.trap_BotSaveGoalFuzzyLogic = botlib_export->ai.BotSaveGoalFuzzyLogic;
+	gi.trap_BotMutateGoalFuzzyLogic = botlib_export->ai.BotMutateGoalFuzzyLogic;
+	gi.trap_BotAllocGoalState = botlib_export->ai.BotAllocGoalState;
+	gi.trap_BotFreeGoalState = botlib_export->ai.BotFreeGoalState;
+
+	// Movement State Management
+	gi.trap_BotResetLastAvoidReach = botlib_export->ai.BotResetLastAvoidReach;
+	gi.trap_BotMovementViewTarget = botlib_export->ai.BotMovementViewTarget;
+	gi.trap_BotPredictVisiblePosition = botlib_export->ai.BotPredictVisiblePosition;
+	gi.trap_BotAllocMoveState = botlib_export->ai.BotAllocMoveState;
+	gi.trap_BotFreeMoveState = botlib_export->ai.BotFreeMoveState;
+	gi.trap_BotInitMoveState = botlib_export->ai.BotInitMoveState;
+	gi.trap_BotInitAvoidReach = botlib_export->ai.BotInitAvoidReach;
+
+	// Reading and Freeing Memory from Files
+	gi.trap_FS_ReadFile = FS_ReadFile;
+	gi.trap_FS_FreeFile = FS_FreeFile;
+
+	// Genetic Parents And Child Selection
+	gi.trap_GeneticParentsAndChildSelection = botlib_export->ai.GeneticParentsAndChildSelection;
+
+	// EA Extended Actions
+	gi.trap_EA_View = botlib_export->ea.EA_View;
+	gi.trap_EA_GetInput = botlib_export->ea.EA_GetInput;
+	gi.trap_EA_ResetInput = botlib_export->ea.EA_ResetInput;
+	gi.trap_EA_Crouch = botlib_export->ea.EA_Crouch;
+	gi.trap_EA_MoveForward = botlib_export->ea.EA_MoveForward;
+	gi.trap_EA_MoveBack = botlib_export->ea.EA_MoveBack;
+	gi.trap_EA_MoveLeft = botlib_export->ea.EA_MoveLeft;
+	gi.trap_EA_MoveRight = botlib_export->ea.EA_MoveRight;
+	gi.trap_EA_Attack = botlib_export->ea.EA_Attack;
+	gi.trap_EA_Reload = botlib_export->ea.EA_Reload;
+	gi.trap_EA_Jump = botlib_export->ea.EA_Jump;
+	gi.trap_EA_Move = botlib_export->ea.EA_Move;
+	gi.trap_EA_SelectWeapon = botlib_export->ea.EA_SelectWeapon;
+	gi.trap_EA_Gesture = botlib_export->ea.EA_Gesture;
+	//gi.trap_EA_MoveUp = EA_MoveUp;
+	//gi.trap_EA_MoveDown = EA_MoveDown;
+
+	// AAS Routing and Visibility
+	gi.trap_AAS_RT_ShowRoute = botlib_export->aas.AAS_RT_ShowRoute;
+	gi.trap_AAS_GetRouteFirstVisPos = botlib_export->aas.AAS_GetRouteFirstVisPos;
+	gi.trap_AAS_FindAttackSpotWithinRange = botlib_export->aas.AAS_FindAttackSpotWithinRange;
+	gi.trap_AAS_SetAASBlockingEntity = botlib_export->aas.AAS_SetAASBlockingEntity;
+	gi.trap_AAS_RT_GetHidePos = botlib_export->aas.AAS_RT_GetHidePos;
+	gi.trap_AAS_RT_GetHidePos = botlib_export->aas.AAS_RT_GetHidePos;
+
+	// Reading and Freeing Memory from Files
+	gi.trap_FS_ReadFile = FS_ReadFile;
+	gi.trap_FS_FreeFile = FS_FreeFile;
+
+	// AAS Interface Extended
+	gi.trap_AAS_EntityInfo = botlib_export->aas.AAS_EntityInfo;
+	gi.trap_AAS_Initialized = botlib_export->aas.AAS_Initialized;
+	gi.trap_AAS_Time = botlib_export->aas.AAS_Time;
+	gi.trap_AAS_PointAreaNum = botlib_export->aas.AAS_PointAreaNum;
+	gi.trap_AAS_PointContents = botlib_export->aas.AAS_PointContents;
+	gi.trap_AAS_NextBSPEntity = botlib_export->aas.AAS_NextBSPEntity;
+	gi.trap_AAS_ValueForBSPEpairKey = botlib_export->aas.AAS_ValueForBSPEpairKey;
+	gi.trap_AAS_VectorForBSPEpairKey = botlib_export->aas.AAS_VectorForBSPEpairKey;
+	gi.trap_AAS_FloatForBSPEpairKey = botlib_export->aas.AAS_FloatForBSPEpairKey;
+	gi.trap_AAS_IntForBSPEpairKey = botlib_export->aas.AAS_IntForBSPEpairKey;
+	gi.trap_AAS_AreaReachability = botlib_export->aas.AAS_AreaReachability;
+	gi.trap_AAS_AreaTravelTimeToGoalArea = botlib_export->aas.AAS_AreaTravelTimeToGoalArea;
+	gi.trap_AAS_Swimming = botlib_export->aas.AAS_Swimming;
+	gi.trap_AAS_PredictClientMovement = botlib_export->aas.AAS_PredictClientMovement;
+
+	// Movement
+	gi.trap_BotResetMoveState = botlib_export->ai.BotResetMoveState;
+	gi.trap_BotMoveToGoal = botlib_export->ai.BotMoveToGoal;
+	gi.trap_BotMoveInDirection = botlib_export->ai.BotMoveInDirection;
+	gi.trap_BotResetLastAvoidReach = botlib_export->ai.BotResetLastAvoidReach;
+	gi.trap_BotResetAvoidReach = botlib_export->ai.BotResetAvoidReach;
+
+	// Goal Management
+	gi.trap_BotGoalName = botlib_export->ai.BotGoalName;
+	gi.trap_BotGetTopGoal = botlib_export->ai.BotGetTopGoal;
+	gi.trap_BotGetSecondGoal = botlib_export->ai.BotGetSecondGoal;
+	//gi.trap_BotChooseLTGItem = BotChooseLTGItem;
+	//gi.trap_BotChooseNBGItem = BotChooseNBGItem;
+	//gi.trap_BotTouchingGoal = BotTouchingGoal;
+	//gi.trap_BotItemGoalInVisButNotVisible = BotItemGoalInVisButNotVisible;
+	//gi.trap_BotGetNextCampSpotGoal = BotGetNextCampSpotGoal;
+	//gi.trap_BotGetMapLocationGoal = BotGetMapLocationGoal;
+
+	// Item and Weapon Management
+	gi.trap_BotLoadItemWeights = botlib_export->ai.BotLoadItemWeights;
+	gi.trap_BotFreeItemWeights = botlib_export->ai.BotFreeItemWeights;
+	gi.trap_BotInterbreedGoalFuzzyLogic = botlib_export->ai.BotInterbreedGoalFuzzyLogic;
+	gi.trap_BotSaveGoalFuzzyLogic = botlib_export->ai.BotSaveGoalFuzzyLogic;
+	gi.trap_BotMutateGoalFuzzyLogic = botlib_export->ai.BotMutateGoalFuzzyLogic;
+	gi.trap_BotAllocGoalState = botlib_export->ai.BotAllocGoalState;
+	gi.trap_BotFreeGoalState = botlib_export->ai.BotFreeGoalState;
+
+	// Movement State Management
+	gi.trap_BotMovementViewTarget = botlib_export->ai.BotMovementViewTarget;
+	gi.trap_BotPredictVisiblePosition = botlib_export->ai.BotPredictVisiblePosition;
+	gi.trap_BotAllocMoveState = botlib_export->ai.BotAllocMoveState;
+	gi.trap_BotFreeMoveState = botlib_export->ai.BotFreeMoveState;
+	gi.trap_BotInitMoveState = botlib_export->ai.BotInitMoveState;
+	gi.trap_BotInitAvoidReach = botlib_export->ai.BotInitAvoidReach;
+
+	// Genetic Parents And Child Selection
+	gi.trap_GeneticParentsAndChildSelection = botlib_export->ai.GeneticParentsAndChildSelection;
+
 	// load the dll or bytecode
-	gvm = VM_Create( "qagame", SV_GameSystemCalls, Cvar_VariableValue( "vm_game" ) );
-	if ( !gvm ) {
-		Com_Error( ERR_FATAL, "VM_Create on game failed" );
+	gvm = Sys_LoadDll("qagame");
+	if (!gvm) {
+		Com_Error(ERR_FATAL, "VM_Create on game failed");
 	}
 
-	SV_InitGameVM( qfalse );
+	static gameExport_t* (*vmMain)(gameImports_t * imports);
+	vmMain = Sys_GetProcAddress(gvm, "vmMain");
+	game = vmMain(&gi);
+
+	SV_InitGameVM(qfalse);
 }
 
 
@@ -930,9 +706,9 @@ qboolean SV_GameCommand( void ) {
 		return qfalse;
 	}
 
-	return VM_Call( gvm, GAME_CONSOLE_COMMAND );
+	//return VM_Call( gvm, GAME_CONSOLE_COMMAND );
+	return game->ConsoleCommand();
 }
-
 
 /*
 ====================
@@ -943,7 +719,8 @@ void SV_SendMoveSpeedsToGame( int entnum, char *text ) {
 	if ( !gvm ) {
 		return;
 	}
-	VM_Call( gvm, GAME_RETRIEVE_MOVESPEEDS_FROM_CLIENT, entnum, text );
+	//VM_Call( gvm, GAME_RETRIEVE_MOVESPEEDS_FROM_CLIENT, entnum, text );
+	game->G_RetrieveMoveSpeedsFromClient(entnum, text);
 }
 
 /*
@@ -971,5 +748,6 @@ SV_GetModelInfo
 ===================
 */
 qboolean SV_GetModelInfo( int clientNum, char *modelName, animModelInfo_t **modelInfo ) {
-	return VM_Call( gvm, GAME_GETMODELINFO, clientNum, modelName, modelInfo );
+	//return VM_Call( gvm, GAME_GETMODELINFO, clientNum, modelName, modelInfo );
+	return game->G_GetModelInfo(clientNum, modelName, modelInfo);
 }
