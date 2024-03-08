@@ -107,7 +107,7 @@ qboolean SpotWouldTelefrag( gentity_t *spot ) {
 
 	VectorAdd( spot->s.origin, playerMins, mins );
 	VectorAdd( spot->s.origin, playerMaxs, maxs );
-	num = trap_EntitiesInBox( mins, maxs, touch, MAX_GENTITIES );
+	num = engine->trap_EntitiesInBox( mins, maxs, touch, MAX_GENTITIES );
 
 	for ( i = 0 ; i < num ; i++ ) {
 		hit = &g_entities[touch[i]];
@@ -301,7 +301,7 @@ After sitting around for five seconds, fall into the ground and dissapear
 void BodySink( gentity_t *ent ) {
 	if ( level.time - ent->timestamp > 6500 ) {
 		// the body ques are never actually freed, they are just unlinked
-		trap_UnlinkEntity( ent );
+		engine->trap_UnlinkEntity( ent );
 		ent->physicsObject = qfalse;
 		return;
 	}
@@ -321,10 +321,10 @@ void CopyToBodyQue( gentity_t *ent ) {
 	gentity_t       *body;
 	int contents, i;
 
-	trap_UnlinkEntity( ent );
+	engine->trap_UnlinkEntity( ent );
 
 	// if client is in a nodrop area, don't leave the body
-	contents = trap_PointContents( ent->s.origin, -1 );
+	contents = engine->trap_PointContents( ent->s.origin, -1 );
 	if ( contents & CONTENTS_NODROP ) {
 		return;
 	}
@@ -333,7 +333,7 @@ void CopyToBodyQue( gentity_t *ent ) {
 	body = level.bodyQue[ level.bodyQueIndex ];
 	level.bodyQueIndex = ( level.bodyQueIndex + 1 ) % BODY_QUEUE_SIZE;
 
-	trap_UnlinkEntity( body );
+	engine->trap_UnlinkEntity( body );
 
 	body->s = ent->s;
 	body->s.eFlags = EF_DEAD;       // clear EF_TALK, etc
@@ -408,7 +408,7 @@ void CopyToBodyQue( gentity_t *ent ) {
 
 
 	VectorCopy( body->s.pos.trBase, body->r.currentOrigin );
-	trap_LinkEntity( body );
+	engine->trap_LinkEntity( body );
 }
 
 //======================================================================
@@ -462,7 +462,7 @@ void limbo( gentity_t *ent ) {
 
 		ent->r.maxs[2] = 0;
 		ent->r.currentOrigin[2] += 8;
-		contents = trap_PointContents( ent->r.currentOrigin, -1 ); // drop stuff
+		contents = engine->trap_PointContents( ent->r.currentOrigin, -1 ); // drop stuff
 		ent->s.weapon = ent->client->limboDropWeapon; // stored in player_die()
 		if ( !( contents & CONTENTS_NODROP ) ) {
 			TossClientItems( ent );
@@ -655,14 +655,14 @@ void respawn( gentity_t *ent ) {
 		if ( !( ent->r.svFlags & SVF_CASTAI ) ) {
 			// Fast method, just do a map_restart, and then load in the savegame
 			// once everything is settled.
-			trap_SetConfigstring( CS_SCREENFADE, va( "1 %i 4000", level.time + 2000 ) );
+			engine->trap_SetConfigstring( CS_SCREENFADE, va( "1 %i 4000", level.time + 2000 ) );
 //			reloading = qtrue;
-			trap_Cvar_Set( "g_reloading", "1" );
+			engine->trap_Cvar_Set( "g_reloading", "1" );
 
 //			level.reloadDelayTime = level.time + 1500;
 			level.reloadDelayTime = level.time + 6000;
 
-			trap_SendServerCommand( -1, va( "snd_fade 0 %d", 6000 ) );  // fade sound out
+			engine->trap_SendServerCommand( -1, va( "snd_fade 0 %d", 6000 ) );  // fade sound out
 
 			return;
 		}
@@ -1220,7 +1220,7 @@ qboolean G_ParseAnimationFiles( char *modelname, gclient_t *cl ) {
 
 	// load the cfg file
 	Com_sprintf( filename, sizeof( filename ), "models/players/%s/wolfanim.cfg", modelname );
-	len = trap_FS_FOpenFile( filename, &f, FS_READ );
+	len = engine->trap_FS_FOpenFile( filename, &f, FS_READ );
 	if ( len <= 0 ) {
 		G_Printf( "G_ParseAnimationFiles(): file '%s' not found\n", filename );       //----(SA)	added
 		return qfalse;
@@ -1229,23 +1229,23 @@ qboolean G_ParseAnimationFiles( char *modelname, gclient_t *cl ) {
 		G_Printf( "File %s too long\n", filename );
 		return qfalse;
 	}
-	trap_FS_Read( text, len, f );
+	engine->trap_FS_Read( text, len, f );
 	text[len] = 0;
-	trap_FS_FCloseFile( f );
+	engine->trap_FS_FCloseFile( f );
 
 	// parse the text
 	BG_AnimParseAnimConfig( cl->modelInfo, filename, text );
 
 	// load the script file
 	Com_sprintf( filename, sizeof( filename ), "models/players/%s/wolfanim.script", modelname );
-	len = trap_FS_FOpenFile( filename, &f, FS_READ );
+	len = engine->trap_FS_FOpenFile( filename, &f, FS_READ );
 	if ( len <= 0 ) {
 		if ( cl->modelInfo->version > 1 ) {
 			return qfalse;
 		}
 		// try loading the default script for old legacy models
 		Com_sprintf( filename, sizeof( filename ), "models/players/default.script", modelname );
-		len = trap_FS_FOpenFile( filename, &f, FS_READ );
+		len = engine->trap_FS_FOpenFile( filename, &f, FS_READ );
 		if ( len <= 0 ) {
 			return qfalse;
 		}
@@ -1254,16 +1254,16 @@ qboolean G_ParseAnimationFiles( char *modelname, gclient_t *cl ) {
 		G_Printf( "File %s too long\n", filename );
 		return qfalse;
 	}
-	trap_FS_Read( text, len, f );
+	engine->trap_FS_Read( text, len, f );
 	text[len] = 0;
-	trap_FS_FCloseFile( f );
+	engine->trap_FS_FCloseFile( f );
 
 	// parse the text
 	BG_AnimParseAnimScript( cl->modelInfo, &level.animScriptData, cl->ps.clientNum, filename, text );
 
 	// ask the client to send us the movespeeds if available
 	if ( g_gametype.integer == GT_SINGLE_PLAYER && g_entities[0].client && g_entities[0].client->pers.connected == CON_CONNECTED ) {
-		trap_SendServerCommand( 0, va( "mvspd %s", modelname ) );
+		engine->trap_SendServerCommand( 0, va( "mvspd %s", modelname ) );
 	}
 
 	return qtrue;
@@ -1277,7 +1277,7 @@ ClientUserInfoChanged
 Called from ClientConnect when the player first connects and
 directly by the server system when the player updates a userinfo variable.
 
-The game can override any of the settings and call trap_SetUserinfo
+The game can override any of the settings and call engine->trap_SetUserinfo
 if desired.
 ============
 */
@@ -1299,7 +1299,7 @@ void ClientUserinfoChanged( int clientNum ) {
 
 	client->ps.clientNum = clientNum;
 
-	trap_GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
+	engine->trap_GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
 
 	// check for malformed or illegal info strings
 	if ( !Info_Validate( userinfo ) ) {
@@ -1349,7 +1349,7 @@ void ClientUserinfoChanged( int clientNum ) {
 
 	if ( client->pers.connected == CON_CONNECTED ) {
 		if ( strcmp( oldname, client->pers.netname ) ) {
-			trap_SendServerCommand( -1, va( "print \"%s" S_COLOR_WHITE " renamed to %s\n\"", oldname,
+			engine->trap_SendServerCommand( -1, va( "print \"%s" S_COLOR_WHITE " renamed to %s\n\"", oldname,
 											client->pers.netname ) );
 		}
 	}
@@ -1457,7 +1457,7 @@ void ClientUserinfoChanged( int clientNum ) {
 
 //----(SA) end
 
-	trap_SetConfigstring( CS_PLAYERS + clientNum, s );
+	engine->trap_SetConfigstring( CS_PLAYERS + clientNum, s );
 
 	G_LogPrintf( "ClientUserinfoChanged: %i %s\n", clientNum, s );
 }
@@ -1491,7 +1491,7 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 
 	ent = &g_entities[ clientNum ];
 
-	trap_GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
+	engine->trap_GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
 
 	// check to see if they are on the banned IP list
 	value = Info_ValueForKey( userinfo, "ip" );
@@ -1533,7 +1533,7 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 		// Ridah
 		if ( !ent->r.svFlags & SVF_CASTAI ) {
 			// done.
-			trap_SendServerCommand( -1, va( "print \"%s" S_COLOR_WHITE " connected\n\"", client->pers.netname ) );
+			engine->trap_SendServerCommand( -1, va( "print \"%s" S_COLOR_WHITE " connected\n\"", client->pers.netname ) );
 		}
 	}
 
@@ -1570,7 +1570,7 @@ void ClientBegin( int clientNum ) {
 	client = level.clients + clientNum;
 
 	if ( ent->r.linked ) {
-		trap_UnlinkEntity( ent );
+		engine->trap_UnlinkEntity( ent );
 	}
 	G_InitGentity( ent );
 	ent->touch = 0;
@@ -1615,7 +1615,7 @@ void ClientBegin( int clientNum ) {
 			// Ridah
 			if ( !ent->r.svFlags & SVF_CASTAI ) {
 				// done.
-				trap_SendServerCommand( -1, va( "print \"%s" S_COLOR_WHITE " entered the game\n\"", client->pers.netname ) );
+				engine->trap_SendServerCommand( -1, va( "print \"%s" S_COLOR_WHITE " entered the game\n\"", client->pers.netname ) );
 			}
 		}
 	}
@@ -1844,14 +1844,14 @@ void ClientSpawn( gentity_t *ent ) {
 	// the respawned flag will be cleared after the attack and jump keys come up
 	client->ps.pm_flags |= PMF_RESPAWNED;
 
-	trap_GetUsercmd( client - level.clients, &ent->client->pers.cmd );
+	engine->trap_GetUsercmd( client - level.clients, &ent->client->pers.cmd );
 	SetClientViewAngle( ent, spawn_angles );
 
 	if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
 
 	} else {
 		G_KillBox( ent );
-		trap_LinkEntity( ent );
+		engine->trap_LinkEntity( ent );
 
 		// force the base weapon up
 //		client->ps.weapon = WP_MP40;
@@ -1899,7 +1899,7 @@ void ClientSpawn( gentity_t *ent ) {
 	if ( ent->client->sess.sessionTeam != TEAM_SPECTATOR ) {
 		BG_PlayerStateToEntityState( &client->ps, &ent->s, qtrue );
 		VectorCopy( ent->client->ps.origin, ent->r.currentOrigin );
-		trap_LinkEntity( ent );
+		engine->trap_LinkEntity( ent );
 	}
 
 	// run the presend to set anything else
@@ -1918,7 +1918,7 @@ Called when a player drops from the server.
 Will not be called between levels.
 
 This should NOT be called directly by any game logic,
-call trap_DropClient(), which will call this and do
+call engine->trap_DropClient(), which will call this and do
 server system housekeeping.
 ============
 */
@@ -1969,7 +1969,7 @@ void ClientDisconnect( int clientNum ) {
 		ClientUserinfoChanged( level.sortedClients[0] );
 	}
 
-	trap_UnlinkEntity( ent );
+	engine->trap_UnlinkEntity( ent );
 	ent->s.modelindex = 0;
 	ent->inuse = qfalse;
 	ent->classname = "disconnected";
@@ -1977,7 +1977,7 @@ void ClientDisconnect( int clientNum ) {
 	ent->client->ps.persistant[PERS_TEAM] = TEAM_FREE;
 	ent->client->sess.sessionTeam = TEAM_FREE;
 
-	trap_SetConfigstring( CS_PLAYERS + clientNum, "" );
+	engine->trap_SetConfigstring( CS_PLAYERS + clientNum, "" );
 
 	CalculateRanks();
 

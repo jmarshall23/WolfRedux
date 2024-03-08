@@ -244,7 +244,7 @@ void SP_alarm_box( gentity_t *ent ) {
 	}
 
 	// model
-	trap_SetBrushModel( ent, ent->model );
+	engine->trap_SetBrushModel( ent, ent->model );
 	ent->s.modelindex2 = G_ModelIndex( "models/mapobjects/electronics/alarmbox.md3" );
 
 	// sound
@@ -280,7 +280,7 @@ void SP_alarm_box( gentity_t *ent ) {
 	ent->think      = alarmbox_finishspawning;
 	ent->nextthink  = level.time + FRAMETIME;
 
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 }
 
 

@@ -61,7 +61,7 @@ qboolean G_BounceMissile( gentity_t *ent, trace_t *trace ) {
 		return qfalse;
 	}
 */
-	contents = trap_PointContents( ent->s.origin, -1 );
+	contents = engine->trap_PointContents( ent->s.origin, -1 );
 
 	// reflect the velocity on the trace plane
 	hitTime = level.previousTime + ( level.time - level.previousTime ) * trace->fraction;
@@ -248,7 +248,7 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace, int impactDamage, vec3_t d
 		}
 	}
 
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 
 	// weapons with no default smoke business
@@ -362,7 +362,7 @@ void Concussive_fx( vec3_t origin ) {
 	if (!player)
 		return;
 
-	if ( trap_InPVS (player->r.currentOrigin, ent->s.origin) )
+	if ( engine->trap_InPVS (player->r.currentOrigin, ent->s.origin) )
 	{
 		tent = G_TempEntity (ent->s.origin, EV_CONCUSSIVE);
 		VectorCopy (ent->s.origin, tent->s.origin);
@@ -461,7 +461,7 @@ void G_ExplodeMissile( gentity_t *ent ) {
 		zombiespit = qtrue;
 	} else if ( !Q_stricmp( ent->classname, "flamebarrel" ) )      {
 		ent->freeAfterEvent = qtrue;
-		trap_LinkEntity( ent );
+		engine->trap_LinkEntity( ent );
 		return;
 	} else {
 		G_AddEvent( ent, EV_MISSILE_MISS, DirToByte( dir ) );
@@ -478,7 +478,7 @@ void G_ExplodeMissile( gentity_t *ent ) {
 		}
 	}
 
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 	if ( !zombiespit ) {
 		gentity_t *Msmoke;
@@ -548,7 +548,7 @@ void G_ExplodeMissilePoisonGas( gentity_t *ent ) {
 		gas->health = 100;
 		G_SetOrigin( gas, origin );
 
-		trap_LinkEntity( gas );
+		engine->trap_LinkEntity( gas );
 	}
 
 }
@@ -580,7 +580,7 @@ void G_RunMissile( gentity_t *ent ) {
 
 	// trace a line from the previous position to the current position,
 	// ignoring interactions with the missile owner
-	trap_Trace( &tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, origin,
+	engine->trap_Trace( &tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, origin,
 				ent->r.ownerNum, ent->clipmask );
 
 	VectorCopy( tr.endpos, ent->r.currentOrigin );
@@ -589,7 +589,7 @@ void G_RunMissile( gentity_t *ent ) {
 		tr.fraction = 0;
 	}
 
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 	if ( tr.fraction != 1 ) {
 		// never explode or bounce on sky
@@ -687,7 +687,7 @@ int G_PredictMissile( gentity_t *ent, int duration, vec3_t endPos, qboolean allo
 
 		// trace a line from the previous position to the current position,
 		// ignoring interactions with the missile owner
-		trap_Trace( &tr, org, ent->r.mins, ent->r.maxs, origin,
+		engine->trap_Trace( &tr, org, ent->r.mins, ent->r.maxs, origin,
 					ent->r.ownerNum, ent->clipmask );
 
 		VectorCopy( tr.endpos, org );
@@ -757,7 +757,7 @@ void G_RunSpit( gentity_t *ent ) {
 		end[1] += crandom() * 8;
 		end[2] -= 8192;
 
-		trap_Trace( &tr, ent->r.currentOrigin, NULL, NULL, end,
+		engine->trap_Trace( &tr, ent->r.currentOrigin, NULL, NULL, end,
 					ent->r.ownerNum, MASK_SHOT );
 
 		smoke = G_Spawn();
@@ -777,7 +777,7 @@ void G_RunSpit( gentity_t *ent ) {
 
 	// trace a line from the previous position to the current position,
 	// ignoring interactions with the missile owner
-	trap_Trace( &tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, origin,
+	engine->trap_Trace( &tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, origin,
 				ent->r.ownerNum, ent->clipmask );
 
 	VectorCopy( tr.endpos, ent->r.currentOrigin );
@@ -786,7 +786,7 @@ void G_RunSpit( gentity_t *ent ) {
 		tr.fraction = 0;
 	}
 
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 	if ( tr.fraction != 1 ) {
 		// never explode or bounce on sky
@@ -811,7 +811,7 @@ void G_RunSpit( gentity_t *ent ) {
 			gas->health = 10;
 			G_SetOrigin( gas, origin );
 			gas->s.density = 5;
-			trap_LinkEntity( gas );
+			engine->trap_LinkEntity( gas );
 
 			ent->freeAfterEvent = qtrue;
 
@@ -839,7 +839,7 @@ void G_RunCrowbar( gentity_t *ent ) {
 
 	// trace a line from the previous position to the current position,
 	// ignoring interactions with the missile owner
-	trap_Trace( &tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, origin,
+	engine->trap_Trace( &tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, origin,
 				ent->r.ownerNum, ent->clipmask );
 
 	VectorCopy( tr.endpos, ent->r.currentOrigin );
@@ -848,7 +848,7 @@ void G_RunCrowbar( gentity_t *ent ) {
 		tr.fraction = 0;
 	}
 
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 	if ( tr.fraction != 1 ) {
 		// never explode or bounce on sky
@@ -978,13 +978,13 @@ gentity_t *fire_grenade( gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 	case WP_DYNAMITE:
 		// oh, this is /so/ cheap...
 		// you need to pick up new code ;)
-		trap_SendServerCommand( self - g_entities, va( "dp %d", ( bolt->nextthink - level.time ) / 1000 ) );
+		engine->trap_SendServerCommand( self - g_entities, va( "dp %d", ( bolt->nextthink - level.time ) / 1000 ) );
 // JPW NERVE
 		if ( g_gametype.integer != GT_SINGLE_PLAYER ) {
 // check if player is in trigger objective field -- swiped from G_TouchTriggers()
 			VectorSubtract( self->client->ps.origin, range, mins );
 			VectorAdd( self->client->ps.origin, range, maxs );
-			num = trap_EntitiesInBox( mins, maxs, touch, MAX_GENTITIES );
+			num = engine->trap_EntitiesInBox( mins, maxs, touch, MAX_GENTITIES );
 			VectorAdd( self->client->ps.origin, self->r.mins, mins );
 			VectorAdd( self->client->ps.origin, self->r.maxs, maxs );
 
@@ -999,9 +999,9 @@ gentity_t *fire_grenade( gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 				}
 				if ( !strcmp( hit->classname,"trigger_objective_info" ) ) {
 					if ( hit->track ) {
-						trap_SendServerCommand( -1, va( "cp \"%s\"", va( "Det charge planted near %s!", hit->track ) ) );
+						engine->trap_SendServerCommand( -1, va( "cp \"%s\"", va( "Det charge planted near %s!", hit->track ) ) );
 					} else {
-						trap_SendServerCommand( -1, va( "cp \"%s\"", va( "Det charge planted near objective %d!", hit->count ) ) );
+						engine->trap_SendServerCommand( -1, va( "cp \"%s\"", va( "Det charge planted near objective %d!", hit->count ) ) );
 					}
 					i = num;
 				}
@@ -1339,7 +1339,7 @@ void fire_lead( gentity_t *self, vec3_t start, vec3_t dir, int damage ) {
 	VectorMA( end, r, right, end );
 	VectorMA( end, u, up, end );
 
-	trap_Trace( &tr, start, NULL, NULL, end, self->s.number, MASK_SHOT );
+	engine->trap_Trace( &tr, start, NULL, NULL, end, self->s.number, MASK_SHOT );
 	if ( tr.surfaceFlags & SURF_NOIMPACT ) {
 		return;
 	}
@@ -1407,7 +1407,7 @@ qboolean visible( gentity_t *self, gentity_t *other ) {
 	trace_t tr;
 	gentity_t   *traceEnt;
 
-	trap_Trace( &tr, self->r.currentOrigin, NULL, NULL, other->r.currentOrigin, self->s.number, MASK_SHOT );
+	engine->trap_Trace( &tr, self->r.currentOrigin, NULL, NULL, other->r.currentOrigin, self->s.number, MASK_SHOT );
 
 	traceEnt = &g_entities[ tr.entityNum ];
 

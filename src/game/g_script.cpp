@@ -246,33 +246,33 @@ void G_Script_ScriptLoad( void ) {
 	fileHandle_t f;
 	int len;
 
-	trap_Cvar_Register( &g_scriptDebug, "g_scriptDebug", "0", 0 );
+	engine->trap_Cvar_Register( &g_scriptDebug, "g_scriptDebug", "0", 0 );
 
 	level.scriptEntity = NULL;
 
-	trap_Cvar_VariableStringBuffer( "g_scriptName", filename, sizeof( filename ) );
+	engine->trap_Cvar_VariableStringBuffer( "g_scriptName", filename, sizeof( filename ) );
 	if ( strlen( filename ) > 0 ) {
-		trap_Cvar_Register( &mapname, "g_scriptName", "", CVAR_ROM );
+		engine->trap_Cvar_Register( &mapname, "g_scriptName", "", CVAR_ROM );
 	} else {
-		trap_Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
+		engine->trap_Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
 	}
 	Q_strncpyz( filename, "maps/", sizeof( filename ) );
 	Q_strcat( filename, sizeof( filename ), mapname.string );
 	Q_strcat( filename, sizeof( filename ), ".script" );
 
-	len = trap_FS_FOpenFile( filename, &f, FS_READ );
+	len = engine->trap_FS_FOpenFile( filename, &f, FS_READ );
 
 	// make sure we clear out the temporary scriptname
-	trap_Cvar_Set( "g_scriptName", "" );
+	engine->trap_Cvar_Set( "g_scriptName", "" );
 
 	if ( len < 0 ) {
 		return;
 	}
 
 	level.scriptEntity = (char *)G_Alloc( len );
-	trap_FS_Read( level.scriptEntity, len, f );
+	engine->trap_FS_Read( level.scriptEntity, len, f );
 
-	trap_FS_FCloseFile( f );
+	engine->trap_FS_FCloseFile( f );
 }
 
 /*
@@ -308,7 +308,7 @@ void G_Script_ScriptParse( gentity_t *ent ) {
 		return;
 	}
 
-	buildScript = trap_Cvar_VariableIntegerValue( "com_buildScript" );
+	buildScript = engine->trap_Cvar_VariableIntegerValue( "com_buildScript" );
 	buildScript = qtrue;
 
 	pScript = level.scriptEntity;
@@ -423,7 +423,7 @@ void G_Script_ScriptParse( gentity_t *ent ) {
 									!Q_stricmp( action->actionString, "startcamblack" ) )
 								) {
 							if ( strlen( token ) ) { // we know there's a [0], but don't know if it's '0'
-								trap_SendServerCommand( ent->s.number, va( "addToBuild %s\n", token ) );
+								engine->trap_SendServerCommand( ent->s.number, va( "addToBuild %s\n", token ) );
 							}
 						}
 					}
@@ -568,7 +568,7 @@ qboolean G_Script_ScriptRun( gentity_t *ent ) {
 	//if (!g_scripts.integer)
 	//	return qtrue;
 
-	trap_Cvar_Update( &g_scriptDebug );
+	engine->trap_Cvar_Update( &g_scriptDebug );
 
 	if ( !ent->scriptEvents ) {
 		ent->scriptStatus.scriptEventIndex = -1;
@@ -632,7 +632,7 @@ qboolean G_Script_ScriptRun( gentity_t *ent ) {
 void script_linkentity( gentity_t *ent ) {
 
 	// this is required since non-solid brushes need to be linked but not solid
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 //	if ((ent->s.eType == ET_MOVER) && !(ent->spawnflags & 2)) {
 //		ent->s.solid = 0;
@@ -657,7 +657,7 @@ void script_mover_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacke
 	G_Script_ScriptEvent( self, "death", "" );
 	self->die = NULL;
 
-	trap_UnlinkEntity( self );
+	engine->trap_UnlinkEntity( self );
 	G_FreeEntity( self );
 }
 
@@ -735,14 +735,14 @@ void SP_script_mover( gentity_t *ent ) {
 //	VectorCopy( ent->r.currentOrigin, ent->pos1 );
 	VectorCopy( ent->pos1, ent->pos2 ); // don't go anywhere just yet
 
-	trap_SetBrushModel( ent, ent->model );
+	engine->trap_SetBrushModel( ent, ent->model );
 
 	InitMover( ent );
 	ent->reached = NULL;
 
 	if ( ent->spawnflags & 1 ) {
 		ent->use = script_mover_use;
-		trap_UnlinkEntity( ent ); // make sure it's not visible
+		engine->trap_UnlinkEntity( ent ); // make sure it's not visible
 		return;
 	}
 
@@ -791,7 +791,7 @@ void script_model_med_spawn( gentity_t *ent ) {
 	VectorCopy( ent->s.origin, ent->s.pos.trBase );
 	ent->s.pos.trType = TR_STATIONARY;
 
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 }
 
 void script_model_med_use( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
@@ -822,7 +822,7 @@ void SP_script_model_med( gentity_t *ent ) {
 
 	if ( ent->spawnflags & 1 ) {
 		ent->use = script_model_med_use;
-		trap_UnlinkEntity( ent ); // make sure it's not visible
+		engine->trap_UnlinkEntity( ent ); // make sure it's not visible
 		return;
 	}
 

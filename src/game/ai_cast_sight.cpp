@@ -104,8 +104,7 @@ qboolean AICast_InFieldOfVision( vec3_t viewangles, float fov, vec3_t angles ) {
 AICast_VisibleFromPos
 ==============
 */
-qboolean AICast_VisibleFromPos( vec3_t srcpos, int srcnum,
-								vec3_t destpos, int destnum, qboolean updateVisPos ) {
+qboolean AICast_VisibleFromPos( vec3_t srcpos, int srcnum, vec3_t destpos, int destnum, qboolean updateVisPos ) {
 	int i, contents_mask, passent, hitent;
 	trace_t trace;
 	vec3_t start, end, middle, eye;
@@ -156,7 +155,7 @@ qboolean AICast_VisibleFromPos( vec3_t srcpos, int srcnum,
 		if ( cs && updateVisPos ) {   // if it's a grenade or something, PVS checks don't work very well
 			//if the point is not in potential visible sight
 			if ( i < 3 ) {    // don't do PVS check for left/right checks
-				if ( !trap_InPVS( eye, middle ) ) {
+				if ( !engine->trap_InPVS( eye, middle ) ) {
 					continue;
 				} else {
 					inPVS = qtrue;
@@ -172,11 +171,11 @@ qboolean AICast_VisibleFromPos( vec3_t srcpos, int srcnum,
 		VectorCopy( eye, start );
 		VectorCopy( middle, end );
 		//if the entity is in water, lava or slime
-		if ( trap_PointContents( middle, destnum ) & ( CONTENTS_LAVA | CONTENTS_SLIME | CONTENTS_WATER ) ) {
+		if ( engine->trap_PointContents( middle, destnum ) & ( CONTENTS_LAVA | CONTENTS_SLIME | CONTENTS_WATER ) ) {
 			contents_mask |= ( CONTENTS_LAVA | CONTENTS_SLIME | CONTENTS_WATER );
 		} //end if
 		  //if eye is in water, lava or slime
-		if ( trap_PointContents( eye, srcnum ) & ( CONTENTS_LAVA | CONTENTS_SLIME | CONTENTS_WATER ) ) {
+		if ( engine->trap_PointContents( eye, srcnum ) & ( CONTENTS_LAVA | CONTENTS_SLIME | CONTENTS_WATER ) ) {
 			if ( !( contents_mask & ( CONTENTS_LAVA | CONTENTS_SLIME | CONTENTS_WATER ) ) ) {
 				passent = destnum;
 				hitent = srcnum;
@@ -186,7 +185,7 @@ qboolean AICast_VisibleFromPos( vec3_t srcpos, int srcnum,
 			contents_mask ^= ( CONTENTS_LAVA | CONTENTS_SLIME | CONTENTS_WATER );
 		} //end if
 		  //trace from start to end
-		trap_Trace( &trace, start, NULL, NULL, end, ENTITYNUM_NONE /*passent*/, contents_mask );
+		engine->trap_Trace( &trace, start, NULL, NULL, end, ENTITYNUM_NONE /*passent*/, contents_mask );
 		//if water was hit
 		if ( trace.contents & ( CONTENTS_LAVA | CONTENTS_SLIME | CONTENTS_WATER ) ) {
 			//if the water surface is translucent
@@ -194,7 +193,7 @@ qboolean AICast_VisibleFromPos( vec3_t srcpos, int srcnum,
 			{
 				//trace through the water
 				contents_mask &= ~( CONTENTS_LAVA | CONTENTS_SLIME | CONTENTS_WATER );
-				trap_Trace( &trace, trace.endpos, NULL, NULL, end, passent, contents_mask );
+				engine->trap_Trace( &trace, trace.endpos, NULL, NULL, end, passent, contents_mask );
 			} //end if
 		} //end if
 		  //if a full trace or the hitent was hit
@@ -285,7 +284,7 @@ qboolean AICast_CheckVisibility( gentity_t *srcent, gentity_t *destent ) {
 			vectoangles( clientHeadTags[srcent->s.number].axis[0], viewangles );
 			// and the actual position of the head
 			VectorCopy( clientHeadTags[srcent->s.number].origin, eye );
-		} else if ( trap_GetTag( srcent->s.number, "tag_head", &or ) ) {
+		} else if ( engine->trap_GetTag( srcent->s.number, "tag_head", &or ) ) {
 			// use the actual direction the head is facing
 			vectoangles( or.axis[0], viewangles );
 			// and the actual position of the head
@@ -580,7 +579,7 @@ void AICast_SightUpdate( int numchecks ) {
 		numchecks = 5;
 	}
 
-	if ( trap_Cvar_VariableIntegerValue( "savegame_loading" ) ) {
+	if ( engine->trap_Cvar_VariableIntegerValue( "savegame_loading" ) ) {
 		return;
 	}
 
@@ -617,7 +616,7 @@ void AICast_SightUpdate( int numchecks ) {
 		}
 
 		// make sure we are using the right AAS data for this entity (one's that don't get set will default to the player's AAS data)
-		trap_AAS_SetCurrentWorld( cs->aasWorldIndex );
+		engine->trap_AAS_SetCurrentWorld( cs->aasWorldIndex );
 
 		for (   destcount = 0, dest = 0, destent = g_entities;
 				//dest < aicast_maxclients && destcount < level.numPlayingClients;
@@ -694,7 +693,7 @@ void AICast_SightUpdate( int numchecks ) {
 		}
 
 		// make sure we are using the right AAS data for this entity (one's that don't get set will default to the player's AAS data)
-		trap_AAS_SetCurrentWorld( cs->aasWorldIndex );
+		engine->trap_AAS_SetCurrentWorld( cs->aasWorldIndex );
 
 		if ( lastdest < 0 ) {
 			lastdest = 0;

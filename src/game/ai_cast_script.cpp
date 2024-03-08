@@ -358,29 +358,29 @@ void AICast_ScriptLoad( void ) {
 
 	level.scriptAI = NULL;
 
-	trap_Cvar_VariableStringBuffer( "ai_scriptName", filename, sizeof( filename ) );
+	engine->trap_Cvar_VariableStringBuffer( "ai_scriptName", filename, sizeof( filename ) );
 	if ( strlen( filename ) > 0 ) {
-		trap_Cvar_Register( &mapname, "ai_scriptName", "", CVAR_ROM );
+		engine->trap_Cvar_Register( &mapname, "ai_scriptName", "", CVAR_ROM );
 	} else {
-		trap_Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
+		engine->trap_Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
 	}
 	Q_strncpyz( filename, "maps/", sizeof( filename ) );
 	Q_strcat( filename, sizeof( filename ), mapname.string );
 	Q_strcat( filename, sizeof( filename ), ".ai" );
 
-	len = trap_FS_FOpenFile( filename, &f, FS_READ );
+	len = engine->trap_FS_FOpenFile( filename, &f, FS_READ );
 
 	// make sure we clear out the temporary scriptname
-	trap_Cvar_Set( "ai_scriptName", "" );
+	engine->trap_Cvar_Set( "ai_scriptName", "" );
 
 	if ( len < 0 ) {
 		return;
 	}
 
 	level.scriptAI = (char *)G_Alloc( len );
-	trap_FS_Read( level.scriptAI, len, f );
+	engine->trap_FS_Read( level.scriptAI, len, f );
 
-	trap_FS_FCloseFile( f );
+	engine->trap_FS_FCloseFile( f );
 
 	return;
 }
@@ -419,7 +419,7 @@ void AICast_ScriptParse( cast_state_t *cs ) {
 		return;
 	}
 
-	buildScript = trap_Cvar_VariableIntegerValue( "com_buildScript" );
+	buildScript = engine->trap_Cvar_VariableIntegerValue( "com_buildScript" );
 	buildScript = qtrue;
 
 	pScript = level.scriptAI;
@@ -547,7 +547,7 @@ void AICast_ScriptParse( cast_state_t *cs ) {
 									!Q_stricmp( action->actionString, "startcamblack" ) )
 								) {
 							if ( strlen( token ) ) { // we know there's a [0], but don't know if it's '0'
-								trap_SendServerCommand( cs->entityNum, va( "addToBuild %s\n", token ) );
+								engine->trap_SendServerCommand( cs->entityNum, va( "addToBuild %s\n", token ) );
 							}
 						}
 
@@ -757,7 +757,7 @@ qboolean AICast_ScriptRun( cast_state_t *cs, qboolean force ) {
 	// only allow the PLAYER'S spawn function through if we're NOT still waiting on everything to finish loading in
 	if ( !cs->entityNum && saveGamePending && Q_stricmp( "spawn", scriptEvents[cs->castScriptEvents[cs->castScriptStatus.castScriptEventIndex].eventNum].eventStr ) ) {
 		//char loading[4];
-		//trap_Cvar_VariableStringBuffer( "savegame_loading", loading, sizeof(loading) );
+		//engine->trap_Cvar_VariableStringBuffer( "savegame_loading", loading, sizeof(loading) );
 		//if (strlen( loading ) > 0 && atoi(loading) != 0)	// we're loading a savegame
 		return qfalse;
 	}

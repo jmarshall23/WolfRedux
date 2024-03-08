@@ -58,12 +58,12 @@ void BotSetupDeathmatchAI(void) {
 	int ent, modelnum;
 	char model[128];
 
-	gametype = trap_Cvar_VariableIntegerValue("g_gametype");
-	gameskill = trap_Cvar_VariableIntegerValue("g_gameskill");
+	gametype = engine->trap_Cvar_VariableIntegerValue("g_gametype");
+	gameskill = engine->trap_Cvar_VariableIntegerValue("g_gameskill");
 
 	int max_bspmodelindex = 0;
-	for (ent = trap_AAS_NextBSPEntity(0); ent; ent = trap_AAS_NextBSPEntity(ent)) {
-		if (!trap_AAS_ValueForBSPEpairKey(ent, "model", model, sizeof(model))) {
+	for (ent = engine->trap_AAS_NextBSPEntity(0); ent; ent = engine->trap_AAS_NextBSPEntity(ent)) {
+		if (!engine->trap_AAS_ValueForBSPEpairKey(ent, "model", model, sizeof(model))) {
 			continue;
 		}
 		if (model[0] == '*') {

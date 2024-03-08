@@ -52,7 +52,7 @@ weapon_t G_WeaponNameToId(const std::string& name) {
 	else if (name == "WP_MORTAR") return WP_MORTAR;
 	else if (name == "VERYBIGEXPLOSION") return VERYBIGEXPLOSION;
 
-	trap_Error("Unknown AI weapon id\n");
+	engine->trap_Error("Unknown AI weapon id\n");
 	// Default case if the weapon is not found
 	return WP_NONE;
 }
@@ -86,7 +86,7 @@ aistateEnum_t G_StringToAiState(const std::string& stateName) {
 	else if (stateName == "AISTATE_COMBAT") return AISTATE_COMBAT;
 
 	// Default case if the AI state is not found, assuming RELAXED as a safe default
-	trap_Error("Unknown AI state id\n");
+	engine->trap_Error("Unknown AI state id\n");
 	return AISTATE_RELAXED;
 }
 
@@ -119,7 +119,7 @@ void *GetAiFunctionByName(const std::string& functionName) {
 	}
 	else {
 		// Handle the case where the function name does not exist.
-		trap_Error("Unknown GetAiFunctionByName id\n");
+		engine->trap_Error("Unknown GetAiFunctionByName id\n");
 		return nullptr;
 	}
 }
@@ -139,7 +139,7 @@ AITeam_t G_AiTeamNameToId(const std::string& name) {
 	else if (name == "AITEAM_SPARE4") return AITEAM_SPARE4;
 	else if (name == "AITEAM_NEUTRAL") return AITEAM_NEUTRAL;
 	// Default case if the team is not found
-	trap_Error("Unknown AI team id\n");
+	engine->trap_Error("Unknown AI team id\n");
 	return AITEAM_NEUTRAL; // Using NEUTRAL as a default/fallback, adjust as necessary
 }
 
@@ -184,7 +184,7 @@ unsigned int G_AiFlagsNameToBitwiseId(const std::string& names) {
 		else if (name == "AIFL_EXPLICIT_ROUTING") combinedFlags |= AIFL_EXPLICIT_ROUTING;
 		else if (name == "AIFL_DISMOUNTING") combinedFlags |= AIFL_DISMOUNTING;
 		else if (name == "AIFL_SPECIAL_FUNC") combinedFlags |= AIFL_SPECIAL_FUNC;
-		else trap_Error("Unknown AIFL id\n");
+		else engine->trap_Error("Unknown AIFL id\n");
 	}
 
 	return combinedFlags;
@@ -198,7 +198,7 @@ G_BboxTypeNameToEnum
 BBoxType_t G_BboxTypeNameToEnum(const std::string& name) {
 	if (name == "BBOX_SMALL") return BBOX_SMALL;
 	else if (name == "BBOX_LARGE") return BBOX_LARGE;
-	trap_Error("Unknown bbox id\n");
+	engine->trap_Error("Unknown bbox id\n");
 	return BBOX_SMALL;
 }
 
@@ -310,13 +310,13 @@ G_InitCharacterTable
 */
 void G_InitCharacterTable(void) {
 	char* tableBuffer;
-	if (trap_FS_ReadFile("tables/aicast.csv", (void **)&tableBuffer) <= 0) {
-		trap_Error("Failed to load aicast table!");
+	if (engine->trap_FS_ReadFile("tables/aicast.csv", (void **)&tableBuffer) <= 0) {
+		engine->trap_Error("Failed to load aicast table!");
 	}
 
 	G_ParseCharacterTable(tableBuffer);
 
-	trap_FS_FreeFile(tableBuffer);
+	engine->trap_FS_FreeFile(tableBuffer);
 }
 
 //---------------------------------------------------------------------------
@@ -352,7 +352,7 @@ void AIChar_SetBBox( gentity_t *ent, cast_state_t *cs, qboolean useHeadTag ) {
 		VectorCopy( ent->client->ps.maxs, ent->r.maxs );
 		ent->client->ps.crouchMaxZ = aiDefaults[cs->aiCharacter].crouchstandZ[0];
 		ent->s.density = cs->aasWorldIndex;
-	} else if ( trap_GetTag( ent->s.number, "tag_head", &or ) ) {  // if not found, then just leave it
+	} else if ( engine->trap_GetTag( ent->s.number, "tag_head", &or ) ) {  // if not found, then just leave it
 		or.origin[2] -= ent->client->ps.origin[2];  // convert to local coordinates
 		or.origin[2] += 11;
 		if ( or.origin[2] < 0 ) {
@@ -372,7 +372,7 @@ void AIChar_SetBBox( gentity_t *ent, cast_state_t *cs, qboolean useHeadTag ) {
 
 		if ( bbox[1][2] > ent->client->ps.maxs[2] ) {
 			// check this area is clear
-			trap_TraceCapsule( &tr, ent->client->ps.origin, bbox[0], bbox[1], ent->client->ps.origin, ent->s.number, ent->clipmask );
+			engine->trap_TraceCapsule( &tr, ent->client->ps.origin, bbox[0], bbox[1], ent->client->ps.origin, ent->s.number, ent->clipmask );
 		}
 
 		if ( !tr.startsolid && !tr.allsolid ) {
@@ -387,7 +387,7 @@ void AIChar_SetBBox( gentity_t *ent, cast_state_t *cs, qboolean useHeadTag ) {
 
 	// if they are linked, then relink to update bbox
 	if ( ent->r.linked ) {
-		trap_LinkEntity( ent );
+		engine->trap_LinkEntity( ent );
 	}
 }
 
@@ -442,14 +442,14 @@ int AIChar_GetPainLocation( gentity_t *ent, vec3_t point ) {
 	orientation_t or;
 
 	// first make sure the client is able to retrieve tag information
-	if ( !trap_GetTag( ent->s.number, painTagNames[0], &or ) ) {
+	if ( !engine->trap_GetTag( ent->s.number, painTagNames[0], &or ) ) {
 		return 0;
 	}
 
 	// find a correct animation to play, based on the body orientation at previous frame
 	for ( tagIndex = 0, bestDist = 0, bestTag = -1; painTagNames[tagIndex]; tagIndex++ ) {
 		// grab the tag with this name
-		if ( trap_GetTag( ent->s.number, painTagNames[tagIndex], &or ) ) {
+		if ( engine->trap_GetTag( ent->s.number, painTagNames[tagIndex], &or ) ) {
 			dist = VectorDistance( or.origin, point );
 			if ( !bestDist || dist < bestDist ) {
 				bestTag = tagIndex;
@@ -887,7 +887,7 @@ void AIChar_spawn( gentity_t *ent ) {
 		// trigger a spawn script event
 		AICast_ScriptEvent( cs, "spawn", "" );
 	} else {
-		trap_UnlinkEntity( ent );
+		engine->trap_UnlinkEntity( ent );
 	}
 
 }

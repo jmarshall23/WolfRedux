@@ -29,7 +29,7 @@ If you have questions concerning this license or the applicable additional terms
 #ifndef __UI_PUBLIC_H__
 #define __UI_PUBLIC_H__
 
-#define UI_API_VERSION  4
+#define UI_API_VERSION  4001
 
 typedef struct {
 	connstate_t connState;
@@ -40,121 +40,127 @@ typedef struct {
 	char messageString[MAX_STRING_CHARS];
 } uiClientState_t;
 
-typedef enum {
-	UI_ERROR,
-	UI_PRINT,
-	UI_MILLISECONDS,
-	UI_CVAR_SET,
-	UI_CVAR_VARIABLEVALUE,
-	UI_CVAR_VARIABLESTRINGBUFFER,
-	UI_CVAR_SETVALUE,
-	UI_CVAR_RESET,
-	UI_CVAR_CREATE,
-	UI_CVAR_INFOSTRINGBUFFER,
-	UI_ARGC,
-	UI_ARGV,
-	UI_CMD_EXECUTETEXT,
-	UI_FS_FOPENFILE,
-	UI_FS_READ,
-	UI_FS_SEEK, //----(SA)	added
-	UI_FS_WRITE,
-	UI_FS_FCLOSEFILE,
-	UI_FS_GETFILELIST,
-	UI_FS_DELETEFILE,
-	UI_R_REGISTERMODEL,
-	UI_R_REGISTERSKIN,
-	UI_R_REGISTERSHADERNOMIP,
-	UI_R_CLEARSCENE,
-	UI_R_ADDREFENTITYTOSCENE,
-	UI_R_ADDPOLYTOSCENE,
-	UI_R_ADDPOLYSTOSCENE,
-	// JOSEPH 12-6-99
-	UI_R_ADDLIGHTTOSCENE,
-	// END JOSEPH
-	//----(SA)
-	UI_R_ADDCORONATOSCENE,
-	//----(SA)
-	UI_R_RENDERSCENE,
-	UI_R_SETCOLOR,
-	UI_R_DRAWSTRETCHPIC,
-	UI_UPDATESCREEN,        // 30
-	UI_CM_LERPTAG,
-	UI_CM_LOADMODEL,
-	UI_S_REGISTERSOUND,
-	UI_S_STARTLOCALSOUND,
-	UI_S_FADESTREAMINGSOUND,    //----(SA)	added
-	UI_S_FADEALLSOUNDS,         //----(SA)	added
-	UI_KEY_KEYNUMTOSTRINGBUF,
-	UI_KEY_GETBINDINGBUF,
-	UI_KEY_SETBINDING,
-	UI_KEY_ISDOWN,
-	UI_KEY_GETOVERSTRIKEMODE,
-	UI_KEY_SETOVERSTRIKEMODE,
-	UI_KEY_CLEARSTATES,
-	UI_KEY_GETCATCHER,
-	UI_KEY_SETCATCHER,
-	UI_GETCLIPBOARDDATA,
-	UI_GETGLCONFIG,
-	UI_GETCLIENTSTATE,
-	UI_GETCONFIGSTRING,
-	UI_LAN_GETLOCALSERVERCOUNT,
-	UI_LAN_GETLOCALSERVERADDRESSSTRING,
-	UI_LAN_GETGLOBALSERVERCOUNT,        // 50
-	UI_LAN_GETGLOBALSERVERADDRESSSTRING,
-	UI_LAN_GETPINGQUEUECOUNT,
-	UI_LAN_CLEARPING,
-	UI_LAN_GETPING,
-	UI_LAN_GETPINGINFO,
-	UI_CVAR_REGISTER,
-	UI_CVAR_UPDATE,
-	UI_MEMORY_REMAINING,
+typedef struct  {
+	void (*trap_Print)(const char* string);
+	void (*trap_Error)(const char* string);
+	int (*trap_Milliseconds)(void);
+	void (*trap_Cvar_Register)(vmCvar_t* cvar, const char* var_name, const char* value, int flags);
+	void (*trap_Cvar_Update)(vmCvar_t* cvar);
+	void (*trap_Cvar_Set)(const char* var_name, const char* value);
+	float (*trap_Cvar_VariableValue)(const char* var_name);
+	void (*trap_Cvar_VariableStringBuffer)(const char* var_name, char* buffer, int bufsize);
+	void (*trap_Cvar_SetValue)(const char* var_name, float value);
+	void (*trap_Cvar_Reset)(const char* name);
+	void (*trap_Cvar_Create)(const char* var_name, const char* var_value, int flags);
+	void (*trap_Cvar_InfoStringBuffer)(int bit, char* buffer, int bufsize);
+	int (*trap_Argc)(void);
+	void (*trap_Argv)(int n, char* buffer, int bufferLength);
+	void (*trap_Cmd_ExecuteText)(int exec_when, const char* text);
+	int (*trap_FS_FOpenFile)(const char* qpath, fileHandle_t* f, fsMode_t mode);
+	void (*trap_FS_Read)(void* buffer, int len, fileHandle_t f);
+	void (*trap_FS_Seek)(fileHandle_t f, long offset, int origin);
+	void (*trap_FS_Write)(const void* buffer, int len, fileHandle_t f);
+	void (*trap_FS_FCloseFile)(fileHandle_t f);
+	int (*trap_FS_GetFileList)(const char* path, const char* extension, char* listbuf, int bufsize);
+	int (*trap_FS_Delete)(const char* filename);
+	qhandle_t(*trap_R_RegisterModel)(const char* name);
+	qhandle_t(*trap_R_RegisterSkin)(const char* name);
+	void (*trap_R_RegisterFont)(const char* fontName, int pointSize, fontInfo_t* font);
+	qhandle_t(*trap_R_RegisterShaderNoMip)(const char* name);
+	void (*trap_R_ClearScene)(void);
+	void (*trap_R_AddRefEntityToScene)(const refEntity_t* re);
+	void (*trap_R_AddPolyToScene)(qhandle_t hShader, int numVerts, const polyVert_t* verts);
+	void (*trap_R_AddLightToScene)(const vec3_t org, float intensity, float r, float g, float b, int overdraw);
+	void (*trap_R_AddCoronaToScene)(const vec3_t org, float r, float g, float b, float scale, int id, int flags);
+	void (*trap_R_RenderScene)(const refdef_t* fd);
+	void (*trap_R_SetColor)(const float* rgba);
+	void (*trap_R_DrawStretchPic)(float x, float y, float w, float h, float s1, float t1, float s2, float t2, qhandle_t hShader);
+	void (*trap_R_ModelBounds)(clipHandle_t model, vec3_t mins, vec3_t maxs);
+	int (*trap_CM_LerpTag)(orientation_t* tag, const refEntity_t* refent, const char* tagName, int startIndex);
+	void (*trap_S_StartLocalSound)(sfxHandle_t sfx, int channelNum);
+	sfxHandle_t(*trap_S_RegisterSound)(const char* sample);
+	void (*trap_S_FadeBackgroundTrack)(float targetvol, int time, int num);
+	void (*trap_S_FadeAllSound)(float targetvol, int time);
+	void (*trap_Key_KeynumToStringBuf)(int keynum, char* buf, int buflen);
+	void (*trap_Key_GetBindingBuf)(int keynum, char* buf, int buflen);
+	void (*trap_Key_SetBinding)(int keynum, const char* binding);
+	qboolean(*trap_Key_IsDown)(int keynum);
+	qboolean(*trap_Key_GetOverstrikeMode)(void);
+	void (*trap_Key_SetOverstrikeMode)(qboolean state);
+	void (*trap_Key_ClearStates)(void);
+	int (*trap_Key_GetCatcher)(void);
+	void (*trap_Key_SetCatcher)(int catcher);
+	void (*trap_GetClipboardData)(char* buf, int bufsize);
+	void (*trap_GetClientState)(uiClientState_t* state);
+	void (*trap_GetGlconfig)(glconfig_t* glconfig);
+	int (*trap_GetConfigString)(int index, char* buff, int buffsize);
+	int (*trap_LAN_GetLocalServerCount)(void);
+	void (*trap_LAN_GetLocalServerAddressString)(int n, char* buf, int buflen);
 
-	UI_GET_CDKEY,
-	UI_SET_CDKEY,
-	UI_R_REGISTERFONT,
-	UI_R_MODELBOUNDS,
-	UI_PC_ADD_GLOBAL_DEFINE,
-	UI_PC_LOAD_SOURCE,
-	UI_PC_FREE_SOURCE,
-	UI_PC_READ_TOKEN,
-	UI_PC_SOURCE_FILE_AND_LINE,
-	UI_S_STOPBACKGROUNDTRACK,
-	UI_S_STARTBACKGROUNDTRACK,
-	UI_REAL_TIME,
-	UI_LAN_GETSERVERCOUNT,
-	UI_LAN_GETSERVERADDRESSSTRING,
-	UI_LAN_GETSERVERINFO,
-	UI_LAN_MARKSERVERVISIBLE,
-	UI_LAN_UPDATEVISIBLEPINGS,
-	UI_LAN_RESETPINGS,
-	UI_LAN_LOADCACHEDSERVERS,
-	UI_LAN_SAVECACHEDSERVERS,
-	UI_LAN_ADDSERVER,
-	UI_LAN_REMOVESERVER,
-	UI_CIN_PLAYCINEMATIC,
-	UI_CIN_STOPCINEMATIC,
-	UI_CIN_RUNCINEMATIC,
-	UI_CIN_DRAWCINEMATIC,
-	UI_CIN_SETEXTENTS,
-	UI_R_REMAP_SHADER,
-	UI_VERIFY_CDKEY,
-	UI_LAN_SERVERSTATUS,
-	UI_LAN_GETSERVERPING,
-	UI_LAN_SERVERISVISIBLE,
-	UI_LAN_COMPARESERVERS,
-	UI_CL_GETLIMBOSTRING,           // NERVE - SMF
+	// LAN Server Discovery
+	//int (*trap_LAN_GetLocalServerCount)(void);
+	//void (*trap_LAN_GetLocalServerAddressString)(int n, char* buf, int buflen);
+	int (*trap_LAN_GetGlobalServerCount)(void);
+	void (*trap_LAN_GetGlobalServerAddressString)(int n, char* buf, int buflen);
+	int (*trap_LAN_GetPingQueueCount)(void);
+	void (*trap_LAN_ClearPing)(int n);
+	void (*trap_LAN_GetPing)(int n, char* buf, int buflen, int* pingtime);
+	void (*trap_LAN_GetPingInfo)(int n, char* buf, int buflen);
+	qboolean(*trap_LAN_UpdateVisiblePings)(int source);
+	int (*trap_LAN_AddServer)(int source, const char* name, const char* addr);
+	void (*trap_LAN_RemoveServer)(int source, const char* addr);
+	int (*trap_LAN_GetServerCount)(int source);
+	void (*trap_LAN_GetServerAddressString)(int source, int n, char* buf, int buflen);
+	void (*trap_LAN_GetServerInfo)(int source, int n, char* buf, int buflen);
+	int (*trap_LAN_GetServerPing)(int source, int n);
+	int (*trap_LAN_ServerIsVisible)(int source, int n);
+	int (*trap_LAN_ServerStatus)(const char* serverAddress, char* serverStatus, int maxLen);
+	void (*trap_LAN_SaveCachedServers)(void);
+	void (*trap_LAN_LoadCachedServers)(void);
+	void (*trap_LAN_MarkServerVisible)(int source, int n, qboolean visible);
+	void (*trap_LAN_ResetPings)(int n);
+	int (*trap_LAN_CompareServers)(int source, int sortKey, int sortDir, int s1, int s2);
 
-	UI_MEMSET = 100,
-	UI_MEMCPY,
-	UI_STRNCPY,
-	UI_SIN,
-	UI_COS,
-	UI_ATAN2,
-	UI_SQRT,
-	UI_FLOOR,
-	UI_CEIL
+	// Memory Management
+	int (*trap_MemoryRemaining)(void);
 
-} uiImport_t;
+	// CD Key
+	void (*trap_GetCDKey)(char* buf, int buflen);
+	void (*trap_SetCDKey)(char* buf);
+
+	// Config Strings
+	//int (*trap_GetConfigString)(int index, char* buff, int buffsize);
+
+	// PC Scripting
+	int (*trap_PC_AddGlobalDefine)(char* define);
+	int (*trap_PC_LoadSource)(const char* filename);
+	int (*trap_PC_FreeSource)(int handle);
+	int (*trap_PC_ReadToken)(int handle, pc_token_t* pc_token);
+	int (*trap_PC_SourceFileAndLine)(int handle, char* filename, int* line);
+
+	// Cinematics
+	int (*trap_CIN_PlayCinematic)(const char* arg0, int xpos, int ypos, int width, int height, int bits);
+	e_status(*trap_CIN_StopCinematic)(int handle);
+	e_status(*trap_CIN_RunCinematic)(int handle);
+	void (*trap_CIN_DrawCinematic)(int handle);
+	void (*trap_CIN_SetExtents)(int handle, int x, int y, int w, int h);
+
+	// Shader Remap
+	void (*trap_R_RemapShader)(const char* oldShader, const char* newShader, const char* timeOffset);
+
+	// CD Key Verification
+	qboolean(*trap_VerifyCDKey)(const char* key, const char* chksum);
+
+	// Limbo String
+	qboolean(*trap_GetLimboString)(int index, char* buf);
+
+	// Real Time
+	int (*trap_RealTime)(qtime_t* qtime);
+
+	void (*trap_S_StartBackgroundTrack)(const char* intro, const char* loop, int fadeupTime);
+	void (*trap_S_StopBackgroundTrack)(void);
+	void (*trap_UpdateScreen)(void);
+} uiImports_t;
 
 typedef enum {
 	UIMENU_NONE,
@@ -188,42 +194,19 @@ typedef enum {
 #define SORT_SAVENAME       0
 #define SORT_SAVETIME       1
 
-typedef enum {
-	UI_GETAPIVERSION = 0,   // system reserved
+typedef struct {
+	int		version;
 
-	UI_INIT,
-//	void	UI_Init( void );
-
-	UI_SHUTDOWN,
-//	void	UI_Shutdown( void );
-
-	UI_KEY_EVENT,
-//	void	UI_KeyEvent( int key );
-
-	UI_MOUSE_EVENT,
-//	void	UI_MouseEvent( int dx, int dy );
-
-	UI_REFRESH,
-//	void	UI_Refresh( int time );
-
-	UI_IS_FULLSCREEN,
-//	qboolean UI_IsFullscreen( void );
-
-	UI_SET_ACTIVE_MENU,
-//	void	UI_SetActiveMenu( uiMenuCommand_t menu );
-
-	UI_GET_ACTIVE_MENU,
-//	void	UI_GetActiveMenu( void );
-
-	UI_CONSOLE_COMMAND,
-//	qboolean UI_ConsoleCommand( void );
-
-	UI_DRAW_CONNECT_SCREEN,
-//	void	UI_DrawConnectScreen( qboolean overlay );
-	UI_HASUNIQUECDKEY
-// if !overlay, the background will be drawn, otherwise it will be
-// overlayed over whatever the cgame has drawn.
-// a GetClientState syscall will be made to get the current strings
+	void	(*Init)(qboolean);
+	void	(*Shutdown)(void);
+	void	(*KeyEvent)(int key, qboolean isDown);
+	void	(*MouseEvent)(int dx, int dy);
+	void	(*Refresh)(int time);
+	qboolean(*IsFullscreen)( void );
+	void	(*SetActiveMenu)( uiMenuCommand_t menu );
+	uiMenuCommand_t (*GetActiveMenu)( void );
+	qboolean(*ConsoleCommand)(int realTime);
+	void	(*DrawConnectScreen)( qboolean overlay );
 } uiExport_t;
 
 #endif

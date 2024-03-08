@@ -32,7 +32,7 @@ qboolean BotIsObserver(bot_state_t* bs) {
 	if (bs->cur_ps.pm_type == PM_SPECTATOR) {
 		return qtrue;
 	}
-	trap_GetConfigstring(CS_PLAYERS + bs->client, buf, sizeof(buf));
+	engine->trap_GetConfigstring(CS_PLAYERS + bs->client, buf, sizeof(buf));
 	if (atoi(Info_ValueForKey(buf, "t")) == TEAM_SPECTATOR) {
 		return qtrue;
 	}
@@ -63,7 +63,7 @@ qboolean BotInLava(bot_state_t* bs) {
 
 	VectorCopy(bs->origin, feet);
 	feet[2] -= 23;
-	return (trap_AAS_PointContents(feet) & CONTENTS_LAVA);
+	return (engine->trap_AAS_PointContents(feet) & CONTENTS_LAVA);
 }
 
 /*
@@ -76,7 +76,7 @@ qboolean BotInSlime(bot_state_t* bs) {
 
 	VectorCopy(bs->origin, feet);
 	feet[2] -= 23;
-	return (trap_AAS_PointContents(feet) & CONTENTS_SLIME);
+	return (engine->trap_AAS_PointContents(feet) & CONTENTS_SLIME);
 }
 
 /*
@@ -185,7 +185,7 @@ void BotSetupForMovement(bot_state_t* bs) {
 	//
 	VectorCopy(bs->viewangles, initmove.viewangles);
 	//
-	trap_BotInitMoveState(bs->ms, &initmove);
+	engine->trap_BotInitMoveState(bs->ms, &initmove);
 }
 
 /*
@@ -198,13 +198,13 @@ int BotPointAreaNum(vec3_t origin) {
 	vec3_t end, ofs;
 #define BOTAREA_JIGGLE_DIST     32
 
-	areanum = trap_AAS_PointAreaNum(origin);
+	areanum = engine->trap_AAS_PointAreaNum(origin);
 	if (areanum) {
 		return areanum;
 	}
 	VectorCopy(origin, end);
 	end[2] += 10;
-	numareas = trap_AAS_TraceAreas(origin, end, areas, NULL, 1);
+	numareas = engine->trap_AAS_TraceAreas(origin, end, areas, NULL, 1);
 	if (numareas > 0) {
 		return areas[0];
 	}
@@ -214,7 +214,7 @@ int BotPointAreaNum(vec3_t origin) {
 	for (ofs[0] = -BOTAREA_JIGGLE_DIST; ofs[0] <= BOTAREA_JIGGLE_DIST; ofs[0] += BOTAREA_JIGGLE_DIST * 2) {
 		for (ofs[1] = -BOTAREA_JIGGLE_DIST; ofs[1] <= BOTAREA_JIGGLE_DIST; ofs[1] += BOTAREA_JIGGLE_DIST * 2) {
 			VectorAdd(origin, ofs, end);
-			numareas = trap_AAS_TraceAreas(origin, end, areas, NULL, 1);
+			numareas = engine->trap_AAS_TraceAreas(origin, end, areas, NULL, 1);
 			if (numareas > 0) {
 				return areas[0];
 			}
@@ -231,9 +231,9 @@ BotCheckAir
 */
 void BotCheckAir(bot_state_t* bs) {
 	if (bs->inventory[INVENTORY_ENVIRONMENTSUIT] <= 0) {
-		if (trap_AAS_PointContents(bs->eye) & (CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA)) {
+		if (engine->trap_AAS_PointContents(bs->eye) & (CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA)) {
 			return;
 		}
 	}
-	bs->lastair_time = trap_AAS_Time();
+	bs->lastair_time = engine->trap_AAS_Time();
 }

@@ -267,70 +267,6 @@ void AICast_Init( void );
 
 void G_RetrieveMoveSpeedsFromClient( int entnum, char *text );
 
-/*
-================
-vmMain
-
-This is the only way control passes into the module.
-This must be the very first function compiled into the .q3vm file
-================
-*/
-#if defined( __MACOS__ )
-#pragma export on
-#endif
-int vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6 ) {
-#if defined( __MACOS__ )
-#pragma export off
-#endif
-	switch ( command ) {
-	case GAME_INIT:
-		G_InitGame( arg0, arg1, arg2 );
-		return 0;
-	case GAME_SHUTDOWN:
-		G_ShutdownGame( arg0 );
-		return 0;
-	case GAME_CLIENT_CONNECT:
-		return (int)ClientConnect( arg0, arg1, arg2 );
-	case GAME_CLIENT_THINK:
-		ClientThink( arg0 );
-		return 0;
-	case GAME_CLIENT_USERINFO_CHANGED:
-		ClientUserinfoChanged( arg0 );
-		return 0;
-	case GAME_CLIENT_DISCONNECT:
-		ClientDisconnect( arg0 );
-		return 0;
-	case GAME_CLIENT_BEGIN:
-		ClientBegin( arg0 );
-		return 0;
-	case GAME_CLIENT_COMMAND:
-		ClientCommand( arg0 );
-		return 0;
-	case GAME_RUN_FRAME:
-		G_RunFrame( arg0 );
-		return 0;
-	case GAME_CONSOLE_COMMAND:
-		return ConsoleCommand();
-	case BOTAI_START_FRAME:
-		return BotAIStartFrame( arg0 );
-		// Ridah, Cast AI
-	case AICAST_VISIBLEFROMPOS:
-		return AICast_VisibleFromPos( (float *)arg0, arg1, (float *)arg2, arg3, arg4 );
-	case AICAST_CHECKATTACKATPOS:
-		return AICast_CheckAttackAtPos( arg0, arg1, (float *)arg2, arg3, arg4 );
-		// done.
-
-	case GAME_RETRIEVE_MOVESPEEDS_FROM_CLIENT:
-		G_RetrieveMoveSpeedsFromClient( arg0, (char *)arg1 );
-		return 0;
-	case GAME_GETMODELINFO:
-		return G_GetModelInfo( arg0, (char *)arg1, (animModelInfo_t **)arg2 );
-	}
-
-	return -1;
-}
-
-
 void QDECL G_Printf( const char *fmt, ... ) {
 	va_list argptr;
 	char text[1024];
@@ -339,7 +275,7 @@ void QDECL G_Printf( const char *fmt, ... ) {
 	vsprintf( text, fmt, argptr );
 	va_end( argptr );
 
-	trap_Printf( text );
+	engine->trap_Printf( text );
 }
 
 void QDECL G_DPrintf( const char *fmt, ... ) {
@@ -354,7 +290,7 @@ void QDECL G_DPrintf( const char *fmt, ... ) {
 	vsprintf( text, fmt, argptr );
 	va_end( argptr );
 
-	trap_Printf( text );
+	engine->trap_Printf( text );
 }
 
 void QDECL G_Error( const char *fmt, ... ) {
@@ -365,7 +301,7 @@ void QDECL G_Error( const char *fmt, ... ) {
 	vsprintf( text, fmt, argptr );
 	va_end( argptr );
 
-	trap_Error( text );
+	engine->trap_Error( text );
 }
 
 
@@ -389,7 +325,7 @@ G_EndGame
 ==============
 */
 void G_EndGame( void ) {
-	trap_Endgame();
+	engine->trap_Endgame();
 }
 
 
@@ -483,7 +419,7 @@ void G_CheckForCursorHints( gentity_t *ent ) {
 
 	tr = &ps->serverCursorHintTrace;
 	trace_contents = ( CONTENTS_TRIGGER | CONTENTS_SOLID | CONTENTS_PLAYERCLIP | CONTENTS_BODY | CONTENTS_CORPSE );   // SP fine checking corpses
-	trap_Trace( tr, offset, NULL, NULL, end, ps->clientNum, trace_contents );
+	engine->trap_Trace( tr, offset, NULL, NULL, end, ps->clientNum, trace_contents );
 
 	oldHintType = ps->serverCursorHint; // store the old one so we know when there's a transition
 
@@ -918,7 +854,7 @@ void G_FindTeams( void ) {
 				e2->flags |= FL_TEAMSLAVE;
 
 				if ( !Q_stricmp( e2->classname, "func_tramcar" ) ) {
-					trap_UnlinkEntity( e2 );
+					engine->trap_UnlinkEntity( e2 );
 				}
 
 				// make sure that targets only point at the master
@@ -936,7 +872,7 @@ void G_FindTeams( void ) {
 		}
 	}
 
-	if ( trap_Cvar_VariableIntegerValue( "g_gametype" ) != GT_SINGLE_PLAYER ) {
+	if ( engine->trap_Cvar_VariableIntegerValue( "g_gametype" ) != GT_SINGLE_PLAYER ) {
 		G_Printf( "%i teams with %i entities\n", c, c2 );
 	}
 }
@@ -957,7 +893,7 @@ void G_RemapTeamShaders() {
 	Com_sprintf( string, sizeof( string ), "team_icon/%s_blue", g_blueteam.string );
 	AddRemap( "textures/ctf2/blueteam01", string, f );
 	AddRemap( "textures/ctf2/blueteam02", string, f );
-	trap_SetConfigstring( CS_SHADERSTATE, BuildShaderStateConfig() );
+	engine->trap_SetConfigstring( CS_SHADERSTATE, BuildShaderStateConfig() );
 #endif
 }
 
@@ -973,7 +909,7 @@ void G_RegisterCvars( void ) {
 	qboolean remapped = qfalse;
 
 	for ( i = 0, cv = gameCvarTable ; i < gameCvarTableSize ; i++, cv++ ) {
-		trap_Cvar_Register( cv->vmCvar, cv->cvarName,
+		engine->trap_Cvar_Register( cv->vmCvar, cv->cvarName,
 							cv->defaultString, cv->cvarFlags );
 		if ( cv->vmCvar ) {
 			cv->modificationCount = cv->vmCvar->modificationCount;
@@ -991,13 +927,13 @@ void G_RegisterCvars( void ) {
 	// check some things
 	if ( g_gametype.integer < 0 || g_gametype.integer >= GT_MAX_GAME_TYPE ) {
 		G_Printf( "g_gametype %i is out of range, defaulting to 0\n", g_gametype.integer );
-		trap_Cvar_Set( "g_gametype", "0" );
+		engine->trap_Cvar_Set( "g_gametype", "0" );
 	}
 
 	// Rafael gameskill
 	if ( g_gameskill.integer < GSKILL_EASY || g_gameskill.integer > GSKILL_MAX ) {
 		G_Printf( "g_gameskill %i is out of range, default to medium\n", g_gameskill.integer );
-		trap_Cvar_Set( "g_gameskill", va( "%d", GSKILL_MEDIUM ) ); // default to medium
+		engine->trap_Cvar_Set( "g_gameskill", va( "%d", GSKILL_MEDIUM ) ); // default to medium
 	}
 
 	bg_pmove_gameskill_integer = g_gameskill.integer;
@@ -1020,13 +956,13 @@ void G_UpdateCvars( void ) {
 
 	for ( i = 0, cv = gameCvarTable ; i < gameCvarTableSize ; i++, cv++ ) {
 		if ( cv->vmCvar ) {
-			trap_Cvar_Update( cv->vmCvar );
+			engine->trap_Cvar_Update( cv->vmCvar );
 
 			if ( cv->modificationCount != cv->vmCvar->modificationCount ) {
 				cv->modificationCount = cv->vmCvar->modificationCount;
 
 				if ( cv->trackChange ) {
-					trap_SendServerCommand( -1, va( "print \"Server: %s changed to %s\n\"",
+					engine->trap_SendServerCommand( -1, va( "print \"Server: %s changed to %s\n\"",
 													cv->cvarName, cv->vmCvar->string ) );
 				}
 
@@ -1052,7 +988,7 @@ void G_UpdateCvars( void ) {
 						saveGamePending = qfalse;   // set it back
 
 						// save the "autosave\\<mapname>" savegame, which is taken before any cameras have been played
-						trap_Cvar_VariableStringBuffer( "mapname", mapname, sizeof( mapname ) );
+						engine->trap_Cvar_VariableStringBuffer( "mapname", mapname, sizeof( mapname ) );
 						Q_strncpyz( filename, "autosave\\", sizeof( filename ) );
 						Q_strcat( filename, sizeof( filename ), mapname );
 						G_SaveGame( filename );
@@ -1065,8 +1001,8 @@ void G_UpdateCvars( void ) {
 							G_SaveGame( NULL );
 						}
 
-						trap_Cvar_Set( "cg_norender", "0" );  // camera has started, render 'on'
-						trap_Cvar_Set( "g_playerstart", "0" ); // reset calling of "playerstart" from script
+						engine->trap_Cvar_Set( "cg_norender", "0" );  // camera has started, render 'on'
+						engine->trap_Cvar_Set( "g_playerstart", "0" ); // reset calling of "playerstart" from script
 					}
 				}
 			}
@@ -1169,9 +1105,9 @@ int G_SendMissionStats() {
 	// attempts
 	Q_strcat( cmd, sizeof( cmd ), va( ",%i", attempts ) );
 
-//	trap_Cvar_Set( "g_missionStats", cmd );
+//	engine->trap_Cvar_Set( "g_missionStats", cmd );
 	// changing to a configstring (should help w/ savegame, no?)
-	trap_SetConfigstring( CS_MISSIONSTATS, cmd );
+	engine->trap_SetConfigstring( CS_MISSIONSTATS, cmd );
 
 	return canExit;
 }
@@ -1182,12 +1118,11 @@ G_InitGame
 
 ============
 */
-extern void trap_Cvar_Reset( const char *var_name );
 
 void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	int i;
 
-	if ( trap_Cvar_VariableIntegerValue( "g_gametype" ) != GT_SINGLE_PLAYER ) {
+	if ( engine->trap_Cvar_VariableIntegerValue( "g_gametype" ) != GT_SINGLE_PLAYER ) {
 		G_Printf( "------- Game Initialization -------\n" );
 		G_Printf( "gamename: %s\n", GAMEVERSION );
 		G_Printf( "gamedate: %s\n", __DATE__ );
@@ -1227,22 +1162,22 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	if ( g_gametype.integer != GT_SINGLE_PLAYER && g_log.string[0] ) {
 		if ( g_logSync.integer ) {
-			trap_FS_FOpenFile( g_log.string, &level.logFile, FS_APPEND_SYNC );
+			engine->trap_FS_FOpenFile( g_log.string, &level.logFile, FS_APPEND_SYNC );
 		} else {
-			trap_FS_FOpenFile( g_log.string, &level.logFile, FS_APPEND );
+			engine->trap_FS_FOpenFile( g_log.string, &level.logFile, FS_APPEND );
 		}
 		if ( !level.logFile ) {
 			G_Printf( "WARNING: Couldn't open logfile: %s\n", g_log.string );
 		} else {
 			char serverinfo[MAX_INFO_STRING];
 
-			trap_GetServerinfo( serverinfo, sizeof( serverinfo ) );
+			engine->trap_GetServerinfo( serverinfo, sizeof( serverinfo ) );
 
 			G_LogPrintf( "------------------------------------------------------------\n" );
 			G_LogPrintf( "InitGame: %s\n", serverinfo );
 		}
 	} else {
-		if ( trap_Cvar_VariableIntegerValue( "g_gametype" ) != GT_SINGLE_PLAYER ) {
+		if ( engine->trap_Cvar_VariableIntegerValue( "g_gametype" ) != GT_SINGLE_PLAYER ) {
 			G_Printf( "Not logging to disk.\n" );
 		}
 	}
@@ -1269,7 +1204,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	level.num_entities = MAX_CLIENTS;
 
 	// let the server system know where the entites are
-	trap_LocateGameData( level.gentities, level.num_entities, sizeof( gentity_t ),
+	engine->trap_LocateGameData( level.gentities, level.num_entities, sizeof( gentity_t ),
 						 &level.clients[0].ps, sizeof( level.clients[0] ) );
 
 	// Ridah
@@ -1283,16 +1218,16 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 		AICast_ScriptLoad();
 
-		trap_Cvar_VariableStringBuffer( "g_missionStats", s, sizeof( s ) );
+		engine->trap_Cvar_VariableStringBuffer( "g_missionStats", s, sizeof( s ) );
 		if ( strlen( s ) < 1 ) {
 			// g_missionStats is used to get the player to press a key to begin
-			trap_Cvar_Set( "g_missionStats", "xx" );
+			engine->trap_Cvar_Set( "g_missionStats", "xx" );
 		}
 
 		for ( i = 0; i < 8; i++ )     {  // max objective cvars: 8 (FIXME: use #define somewhere)
-			trap_Cvar_Set( va( "g_objective%i", i + 1 ), "0" );   // clear the objective ROM cvars
+			engine->trap_Cvar_Set( va( "g_objective%i", i + 1 ), "0" );   // clear the objective ROM cvars
 		}
-		trap_Cvar_Set( "cg_yougotMail", "0" );
+		engine->trap_Cvar_Set( "cg_yougotMail", "0" );
 	}
 	G_Script_ScriptLoad();
 	// done.
@@ -1318,17 +1253,17 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	SaveRegisteredItems();
 
-	if ( trap_Cvar_VariableIntegerValue( "g_gametype" ) != GT_SINGLE_PLAYER ) {
+	if ( engine->trap_Cvar_VariableIntegerValue( "g_gametype" ) != GT_SINGLE_PLAYER ) {
 		G_Printf( "-----------------------------------\n" );
 	}
 
-	if ( g_gametype.integer == GT_SINGLE_PLAYER || trap_Cvar_VariableIntegerValue( "com_buildScript" ) ) {
+	if ( g_gametype.integer == GT_SINGLE_PLAYER || engine->trap_Cvar_VariableIntegerValue( "com_buildScript" ) ) {
 		G_ModelIndex( SP_PODIUM_MODEL );
 		G_SoundIndex( "sound/player/gurp1.wav" );
 		G_SoundIndex( "sound/player/gurp2.wav" );
 	}
 
-	if ( trap_Cvar_VariableIntegerValue( "bot_enable" ) ) {
+	if ( engine->trap_Cvar_VariableIntegerValue( "bot_enable" ) ) {
 		BotAISetup( restart );
 		BotAILoadMap( restart );
 //		G_InitBots( restart );
@@ -1353,7 +1288,7 @@ void G_ShutdownGame( int restart ) {
 	if ( level.logFile ) {
 		G_LogPrintf( "ShutdownGame:\n" );
 		G_LogPrintf( "------------------------------------------------------------\n" );
-		trap_FS_FCloseFile( level.logFile );
+		engine->trap_FS_FCloseFile( level.logFile );
 	}
 
 	// RF, update the playtime
@@ -1362,13 +1297,13 @@ void G_ShutdownGame( int restart ) {
 	}
 
 	// Ridah, shutdown the Botlib, so weapons and things get reset upon doing a "map xxx" command
-	if ( trap_Cvar_VariableIntegerValue( "bot_enable" ) ) {
+	if ( engine->trap_Cvar_VariableIntegerValue( "bot_enable" ) ) {
 		int i;
 
 		// Ridah, kill AI cast's
 		for ( i = 0 ; i < g_maxclients.integer ; i++ ) {
 			if ( g_entities[i].r.svFlags & SVF_CASTAI ) {
-				trap_DropClient( i, "Drop Cast AI" );
+				engine->trap_DropClient( i, "Drop Cast AI" );
 			}
 		}
 		// done.
@@ -1379,7 +1314,7 @@ void G_ShutdownGame( int restart ) {
 	G_WriteSessionData();
 
 
-	if ( trap_Cvar_VariableIntegerValue( "bot_enable" ) ) {
+	if ( engine->trap_Cvar_VariableIntegerValue( "bot_enable" ) ) {
 		BotAIShutdown( restart );
 	}
 }
@@ -1676,18 +1611,18 @@ void CalculateRanks( void ) {
 
 	// set the CS_SCORES1/2 configstrings, which will be visible to everyone
 	if ( g_gametype.integer >= GT_TEAM ) {
-		trap_SetConfigstring( CS_SCORES1, va( "%i", level.teamScores[TEAM_RED] ) );
-		trap_SetConfigstring( CS_SCORES2, va( "%i", level.teamScores[TEAM_BLUE] ) );
+		engine->trap_SetConfigstring( CS_SCORES1, va( "%i", level.teamScores[TEAM_RED] ) );
+		engine->trap_SetConfigstring( CS_SCORES2, va( "%i", level.teamScores[TEAM_BLUE] ) );
 	} else {
 		if ( level.numConnectedClients == 0 ) {
-			trap_SetConfigstring( CS_SCORES1, va( "%i", SCORE_NOT_PRESENT ) );
-			trap_SetConfigstring( CS_SCORES2, va( "%i", SCORE_NOT_PRESENT ) );
+			engine->trap_SetConfigstring( CS_SCORES1, va( "%i", SCORE_NOT_PRESENT ) );
+			engine->trap_SetConfigstring( CS_SCORES2, va( "%i", SCORE_NOT_PRESENT ) );
 		} else if ( level.numConnectedClients == 1 ) {
-			trap_SetConfigstring( CS_SCORES1, va( "%i", level.clients[ level.sortedClients[0] ].ps.persistant[PERS_SCORE] ) );
-			trap_SetConfigstring( CS_SCORES2, va( "%i", SCORE_NOT_PRESENT ) );
+			engine->trap_SetConfigstring( CS_SCORES1, va( "%i", level.clients[ level.sortedClients[0] ].ps.persistant[PERS_SCORE] ) );
+			engine->trap_SetConfigstring( CS_SCORES2, va( "%i", SCORE_NOT_PRESENT ) );
 		} else {
-			trap_SetConfigstring( CS_SCORES1, va( "%i", level.clients[ level.sortedClients[0] ].ps.persistant[PERS_SCORE] ) );
-			trap_SetConfigstring( CS_SCORES2, va( "%i", level.clients[ level.sortedClients[1] ].ps.persistant[PERS_SCORE] ) );
+			engine->trap_SetConfigstring( CS_SCORES1, va( "%i", level.clients[ level.sortedClients[0] ].ps.persistant[PERS_SCORE] ) );
+			engine->trap_SetConfigstring( CS_SCORES2, va( "%i", level.clients[ level.sortedClients[1] ].ps.persistant[PERS_SCORE] ) );
 		}
 	}
 
@@ -1851,7 +1786,7 @@ void ExitLevel( void ) {
 	if ( g_gametype.integer == GT_TOURNAMENT ) {
 		if ( !level.restarted ) {
 			RemoveTournamentLoser();
-			trap_SendConsoleCommand( EXEC_APPEND, "map_restart 0\n" );
+			engine->trap_SendConsoleCommand( EXEC_APPEND, "map_restart 0\n" );
 			level.restarted = qtrue;
 			level.changemap = NULL;
 			level.intermissiontime = 0;
@@ -1860,7 +1795,7 @@ void ExitLevel( void ) {
 	}
 
 
-	trap_SendConsoleCommand( EXEC_APPEND, "vstr nextmap\n" );
+	engine->trap_SendConsoleCommand( EXEC_APPEND, "vstr nextmap\n" );
 	level.changemap = NULL;
 	level.intermissiontime = 0;
 
@@ -1884,7 +1819,7 @@ void ExitLevel( void ) {
 
 		// Ridah, kill AI cast's
 		if ( g_entities[i].r.svFlags & SVF_CASTAI ) {
-			trap_DropClient( i, "Drop Cast AI" );
+			engine->trap_DropClient( i, "Drop Cast AI" );
 			continue;
 		}
 		// done.
@@ -1929,7 +1864,7 @@ void QDECL G_LogPrintf( const char *fmt, ... ) {
 		return;
 	}
 
-	trap_FS_Write( string, strlen( string ), level.logFile );
+	engine->trap_FS_Write( string, strlen( string ), level.logFile );
 }
 
 /*
@@ -1951,7 +1886,7 @@ void LogExit( const char *string ) {
 
 	// this will keep the clients from playing any voice sounds
 	// that will get cut off when the queued intermission starts
-	trap_SetConfigstring( CS_INTERMISSION, "1" );
+	engine->trap_SetConfigstring( CS_INTERMISSION, "1" );
 
 	// don't send more than 32 scores (FIXME?)
 	numSorted = level.numConnectedClients;
@@ -2138,7 +2073,7 @@ void CheckExitRules( void ) {
 				// score is tied, so don't end the game
 				return;
 			}
-			trap_SendServerCommand( -1, "print \"Timelimit hit.\n\"" );
+			engine->trap_SendServerCommand( -1, "print \"Timelimit hit.\n\"" );
 			LogExit( "Timelimit hit." );
 			return;
 		}
@@ -2150,13 +2085,13 @@ void CheckExitRules( void ) {
 
 	if ( g_gametype.integer != GT_CTF && g_fraglimit.integer ) {
 		if ( level.teamScores[TEAM_RED] >= g_fraglimit.integer ) {
-			trap_SendServerCommand( -1, "print \"Red hit the fraglimit.\n\"" );
+			engine->trap_SendServerCommand( -1, "print \"Red hit the fraglimit.\n\"" );
 			LogExit( "Fraglimit hit." );
 			return;
 		}
 
 		if ( level.teamScores[TEAM_BLUE] >= g_fraglimit.integer ) {
-			trap_SendServerCommand( -1, "print \"Blue hit the fraglimit.\n\"" );
+			engine->trap_SendServerCommand( -1, "print \"Blue hit the fraglimit.\n\"" );
 			LogExit( "Fraglimit hit." );
 			return;
 		}
@@ -2172,7 +2107,7 @@ void CheckExitRules( void ) {
 
 			if ( cl->ps.persistant[PERS_SCORE] >= g_fraglimit.integer ) {
 				LogExit( "Fraglimit hit." );
-				trap_SendServerCommand( -1, va( "print \"%s" S_COLOR_WHITE " hit the fraglimit.\n\"",
+				engine->trap_SendServerCommand( -1, va( "print \"%s" S_COLOR_WHITE " hit the fraglimit.\n\"",
 												cl->pers.netname ) );
 				return;
 			}
@@ -2182,13 +2117,13 @@ void CheckExitRules( void ) {
 	if ( g_gametype.integer == GT_CTF && g_capturelimit.integer ) {
 
 		if ( level.teamScores[TEAM_RED] >= g_capturelimit.integer ) {
-			trap_SendServerCommand( -1, "print \"Red hit the capturelimit.\n\"" );
+			engine->trap_SendServerCommand( -1, "print \"Red hit the capturelimit.\n\"" );
 			LogExit( "Capturelimit hit." );
 			return;
 		}
 
 		if ( level.teamScores[TEAM_BLUE] >= g_capturelimit.integer ) {
-			trap_SendServerCommand( -1, "print \"Blue hit the capturelimit.\n\"" );
+			engine->trap_SendServerCommand( -1, "print \"Blue hit the capturelimit.\n\"" );
 			LogExit( "Capturelimit hit." );
 			return;
 		}
@@ -2232,7 +2167,7 @@ void CheckTournement( void ) {
 	if ( level.numPlayingClients != 2 ) {
 		if ( level.warmupTime != -1 ) {
 			level.warmupTime = -1;
-			trap_SetConfigstring( CS_WARMUP, va( "%i", level.warmupTime ) );
+			engine->trap_SetConfigstring( CS_WARMUP, va( "%i", level.warmupTime ) );
 			G_LogPrintf( "Warmup:\n" );
 		}
 		return;
@@ -2253,7 +2188,7 @@ void CheckTournement( void ) {
 		if ( level.numPlayingClients == 2 ) {
 			// fudge by -1 to account for extra delays
 			level.warmupTime = level.time + ( g_warmup.integer - 1 ) * 1000;
-			trap_SetConfigstring( CS_WARMUP, va( "%i", level.warmupTime ) );
+			engine->trap_SetConfigstring( CS_WARMUP, va( "%i", level.warmupTime ) );
 		}
 		return;
 	}
@@ -2261,8 +2196,8 @@ void CheckTournement( void ) {
 	// if the warmup time has counted down, restart
 	if ( level.time > level.warmupTime ) {
 		level.warmupTime += 10000;
-		trap_Cvar_Set( "g_restarted", "1" );
-		trap_SendConsoleCommand( EXEC_APPEND, "map_restart 0\n" );
+		engine->trap_Cvar_Set( "g_restarted", "1" );
+		engine->trap_SendConsoleCommand( EXEC_APPEND, "map_restart 0\n" );
 		level.restarted = qtrue;
 		return;
 	}
@@ -2277,28 +2212,28 @@ CheckVote
 void CheckVote( void ) {
 	if ( level.voteExecuteTime && level.voteExecuteTime < level.time ) {
 		level.voteExecuteTime = 0;
-		trap_SendConsoleCommand( EXEC_APPEND, va( "%s\n", level.voteString ) );
+		engine->trap_SendConsoleCommand( EXEC_APPEND, va( "%s\n", level.voteString ) );
 	}
 	if ( !level.voteTime ) {
 		return;
 	}
 	if ( level.time - level.voteTime >= VOTE_TIME ) {
-		trap_SendServerCommand( -1, "print \"Vote failed.\n\"" );
+		engine->trap_SendServerCommand( -1, "print \"Vote failed.\n\"" );
 	} else {
 		if ( level.voteYes > level.numVotingClients / 2 ) {
 			// execute the command, then remove the vote
-			trap_SendServerCommand( -1, "print \"Vote passed.\n\"" );
+			engine->trap_SendServerCommand( -1, "print \"Vote passed.\n\"" );
 			level.voteExecuteTime = level.time + 3000;
 		} else if ( level.voteNo >= level.numVotingClients / 2 ) {
 			// same behavior as a timeout
-			trap_SendServerCommand( -1, "print \"Vote failed.\n\"" );
+			engine->trap_SendServerCommand( -1, "print \"Vote failed.\n\"" );
 		} else {
 			// still waiting for a majority
 			return;
 		}
 	}
 	level.voteTime = 0;
-	trap_SetConfigstring( CS_VOTE_TIME, "" );
+	engine->trap_SetConfigstring( CS_VOTE_TIME, "" );
 
 }
 
@@ -2314,11 +2249,11 @@ void CheckReloadStatus( void ) {
 			if ( level.reloadDelayTime < level.time ) {
 
 				if ( g_reloading.integer == RELOAD_NEXTMAP_WAITING ) {
-					trap_Cvar_Set( "g_reloading", va( "%d", RELOAD_NEXTMAP ) ); // set so sv_map_f will know it's okay to start a map
+					engine->trap_Cvar_Set( "g_reloading", va( "%d", RELOAD_NEXTMAP ) ); // set so sv_map_f will know it's okay to start a map
 					if ( g_cheats.integer ) {
-						trap_SendConsoleCommand( EXEC_APPEND, va( "spdevmap %s\n", level.nextMap ) );
+						engine->trap_SendConsoleCommand( EXEC_APPEND, va( "spdevmap %s\n", level.nextMap ) );
 					} else {
-						trap_SendConsoleCommand( EXEC_APPEND, va( "spmap %s\n", level.nextMap ) );
+						engine->trap_SendConsoleCommand( EXEC_APPEND, va( "spmap %s\n", level.nextMap ) );
 					}
 
 				} else if ( g_reloading.integer == RELOAD_ENDGAME ) {
@@ -2326,15 +2261,15 @@ void CheckReloadStatus( void ) {
 
 				} else {
 					// set the loadgame flag, and restart the server
-					trap_Cvar_Set( "savegame_loading", "2" ); // 2 means it's a restart, so stop rendering until we are loaded
-					trap_SendConsoleCommand( EXEC_INSERT, "map_restart\n" );
+					engine->trap_Cvar_Set( "savegame_loading", "2" ); // 2 means it's a restart, so stop rendering until we are loaded
+					engine->trap_SendConsoleCommand( EXEC_INSERT, "map_restart\n" );
 				}
 
 				level.reloadDelayTime = 0;
 			}
 		} else if ( level.reloadPauseTime ) {
 			if ( level.reloadPauseTime < level.time ) {
-				trap_Cvar_Set( "g_reloading", "0" );
+				engine->trap_Cvar_Set( "g_reloading", "0" );
 				level.reloadPauseTime = 0;
 			}
 		}
@@ -2352,9 +2287,9 @@ void CheckCvars( void ) {
 	if ( g_password.modificationCount != lastMod ) {
 		lastMod = g_password.modificationCount;
 		if ( *g_password.string && Q_stricmp( g_password.string, "none" ) ) {
-			trap_Cvar_Set( "g_needpass", "1" );
+			engine->trap_Cvar_Set( "g_needpass", "1" );
 		} else {
-			trap_Cvar_Set( "g_needpass", "0" );
+			engine->trap_Cvar_Set( "g_needpass", "0" );
 		}
 	}
 }
@@ -2426,7 +2361,7 @@ void G_RunFrame( int levelTime ) {
 	//
 	// go through all allocated objects
 	//
-	//start = trap_Milliseconds();
+	//start = engine->trap_Milliseconds();
 	ent = &g_entities[0];
 	for ( i = 0 ; i < level.num_entities ; i++, ent++ ) {
 		if ( !ent->inuse ) {
@@ -2449,7 +2384,7 @@ void G_RunFrame( int levelTime ) {
 			G_SetOrigin( ent, org );
 			VectorCopy( org, ent->s.origin );
 			if ( ent->r.linked ) {    // update position
-				trap_LinkEntity( ent );
+				engine->trap_LinkEntity( ent );
 			}
 		}
 
@@ -2476,7 +2411,7 @@ void G_RunFrame( int levelTime ) {
 			} else if ( ent->unlinkAfterEvent ) {
 				// items that will respawn will hide themselves after their pickup event
 				ent->unlinkAfterEvent = qfalse;
-				trap_UnlinkEntity( ent );
+				engine->trap_UnlinkEntity( ent );
 			}
 			ent->eventTime = 0;
 		}
@@ -2543,12 +2478,12 @@ void G_RunFrame( int levelTime ) {
 
 		G_RunThink( ent );
 	}
-//end = trap_Milliseconds();
+//end = engine->trap_Milliseconds();
 
 	// Ridah, move the AI
 	AICast_StartServerFrame( level.time );
 
-//start = trap_Milliseconds();
+//start = engine->trap_Milliseconds();
 	// perform final fixups on the players
 	ent = &g_entities[0];
 	for ( i = 0 ; i < level.maxclients ; i++, ent++ ) {
@@ -2556,7 +2491,7 @@ void G_RunFrame( int levelTime ) {
 			ClientEndFrame( ent );
 		}
 	}
-//end = trap_Milliseconds();
+//end = engine->trap_Milliseconds();
 
 	// see if it is time to do a tournement restart
 //	CheckTournament();
@@ -2581,7 +2516,7 @@ void G_RunFrame( int levelTime ) {
 		for ( i = 0; i < MAX_GENTITIES; i++ ) {
 			G_Printf( "%4i: %s\n", i, g_entities[i].classname );
 		}
-		trap_Cvar_Set( "g_listEntity", "0" );
+		engine->trap_Cvar_Set( "g_listEntity", "0" );
 	}
 
 	// Ridah, check if we are reloading, and times have expired

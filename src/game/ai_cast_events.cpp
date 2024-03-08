@@ -258,7 +258,7 @@ void AICast_Die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 
 		// drop a weapon?
 		// if client is in a nodrop area, don't drop anything
-		contents = trap_PointContents( self->r.currentOrigin, -1 );
+		contents = engine->trap_PointContents( self->r.currentOrigin, -1 );
 		if ( !( contents & CONTENTS_NODROP ) ) {
 			TossClientItems( self );
 		}
@@ -348,7 +348,7 @@ void AICast_Die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		// if end map, sink into ground
 		cs->deadSinkStartTime = 0;
 		if ( cs->aiCharacter == AICHAR_WARZOMBIE ) {
-			trap_Cvar_VariableStringBuffer( "mapname", mapname, sizeof( mapname ) );
+			engine->trap_Cvar_VariableStringBuffer( "mapname", mapname, sizeof( mapname ) );
 			if ( !Q_strncmp( mapname, "end", 3 ) ) {    // !! FIXME: post beta2, make this a spawnflag!
 				cs->deadSinkStartTime = level.time + 4000;
 			}
@@ -376,7 +376,7 @@ void AICast_Die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		}
 	}
 
-	trap_LinkEntity( self );
+	engine->trap_LinkEntity( self );
 
 	// kill, instanly, any streaming sound the character had going
 	G_AddEvent( &g_entities[self->s.number], EV_STOPSTREAMINGSOUND, 0 );
@@ -454,7 +454,7 @@ void AICast_AIDoor_Touch( gentity_t *ent, gentity_t *aidoor_trigger, gentity_t *
 	// TTimo: gcc: suggest () around assignment used as truth value
 	for ( trav = NULL; ( trav = G_Find( trav, FOFS( target ), aidoor_trigger->targetname ) ); ) {
 		// make sure the marker is vacant
-		trap_Trace( &tr, trav->r.currentOrigin, ent->r.mins, ent->r.maxs, trav->r.currentOrigin, ent->s.number, ent->clipmask );
+		engine->trap_Trace( &tr, trav->r.currentOrigin, ent->r.mins, ent->r.maxs, trav->r.currentOrigin, ent->s.number, ent->clipmask );
 		if ( tr.startsolid ) {
 			continue;
 		}
@@ -478,7 +478,7 @@ void AICast_AIDoor_Touch( gentity_t *ent, gentity_t *aidoor_trigger, gentity_t *
 		// make sure there is a clear path
 		VectorCopy( ent->r.mins, mins );
 		mins[2] += 16;  // step height
-		trap_Trace( &tr, ent->r.currentOrigin, mins, ent->r.maxs, trav->r.currentOrigin, ent->s.number, ent->clipmask );
+		engine->trap_Trace( &tr, ent->r.currentOrigin, mins, ent->r.maxs, trav->r.currentOrigin, ent->s.number, ent->clipmask );
 		if ( tr.fraction < 1.0 ) {
 			continue;
 		}

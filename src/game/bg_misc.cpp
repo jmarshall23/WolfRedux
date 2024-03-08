@@ -45,7 +45,6 @@ extern vmCvar_t cg_gameType;
 extern vmCvar_t g_gametype;
 #endif
 
-
 // NOTE: weapons that share ammo (ex. colt/thompson) need to share max ammo, but not necessarily uses or max clip
 #define MAX_AMMO_45     300
 #define MAX_AMMO_9MM    300
@@ -3800,8 +3799,6 @@ grabbing them easier
 ============
 */
 
-extern int trap_Cvar_VariableIntegerValue( const char *var_name );
-
 qboolean    BG_PlayerTouchesItem( playerState_t *ps, entityState_t *item, int atTime ) {
 	vec3_t origin;
 
@@ -4334,23 +4331,21 @@ Handles the sequence numbers
 ===============
 */
 
-void    trap_Cvar_VariableStringBuffer( const char *var_name, char *buffer, int bufsize );
-
 void BG_AddPredictableEventToPlayerstate( int newEvent, int eventParm, playerState_t *ps ) {
 
-#ifdef _DEBUG
-	{
-		char buf[256];
-		trap_Cvar_VariableStringBuffer( "showevents", buf, sizeof( buf ) );
-		if ( atof( buf ) != 0 ) {
-#ifdef QAGAME
-			Com_Printf( " game event svt %5d -> %5d: num = %20s parm %d\n", ps->pmove_framecount /*ps->commandTime*/, ps->eventSequence, eventnames[newEvent], eventParm );
-#else
-			Com_Printf( "Cgame event svt %5d -> %5d: num = %20s parm %d\n", ps->pmove_framecount /*ps->commandTime*/, ps->eventSequence, eventnames[newEvent], eventParm );
-#endif
-		}
-	}
-#endif
+	//#ifdef _DEBUG
+	//	{
+	//		char buf[256];
+	//		engine->engine->trap_Cvar_VariableStringBuffer( "showevents", buf, sizeof( buf ) );
+	//		if ( atof( buf ) != 0 ) {
+	//#ifdef QAGAME
+	//			Com_Printf( " game event svt %5d -> %5d: num = %20s parm %d\n", ps->pmove_framecount /*ps->commandTime*/, ps->eventSequence, eventnames[newEvent], eventParm );
+	//#else
+	//			Com_Printf( "Cgame event svt %5d -> %5d: num = %20s parm %d\n", ps->pmove_framecount /*ps->commandTime*/, ps->eventSequence, eventnames[newEvent], eventParm );
+	//#endif
+	//		}
+	//	}
+	//#endif
 	ps->events[ps->eventSequence & ( MAX_EVENTS - 1 )] = newEvent;
 	ps->eventParms[ps->eventSequence & ( MAX_EVENTS - 1 )] = eventParm;
 	ps->eventSequence++;

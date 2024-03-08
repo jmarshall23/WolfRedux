@@ -34,9 +34,9 @@ void InitTrigger( gentity_t *self ) {
 		G_SetMovedir( self->s.angles, self->movedir );
 	}
 
-	trap_SetBrushModel( self, self->model );
+	engine->trap_SetBrushModel( self, self->model );
 
-	self->r.contents = CONTENTS_TRIGGER;        // replaces the -1 from trap_SetBrushModel
+	self->r.contents = CONTENTS_TRIGGER;        // replaces the -1 from engine->trap_SetBrushModel
 	self->r.svFlags = SVF_NOCLIENT;
 }
 
@@ -121,7 +121,7 @@ void Enable_Trigger_Touch( gentity_t *ent ) {
 		ent->clipmask   = CONTENTS_SOLID;
 		ent->r.contents = CONTENTS_SOLID;
 
-		trap_LinkEntity( ent );
+		engine->trap_LinkEntity( ent );
 
 		// same with targ cause targ is dead
 
@@ -131,9 +131,9 @@ void Enable_Trigger_Touch( gentity_t *ent ) {
 		targ->clipmask   = CONTENTS_SOLID;
 		targ->r.contents = CONTENTS_SOLID;
 
-		trap_LinkEntity( targ );
+		engine->trap_LinkEntity( targ );
 
-		trap_Trace( &tr, targ->client->ps.origin, targ->r.mins, targ->r.maxs, targ->client->ps.origin, targ->s.number, mask );
+		engine->trap_Trace( &tr, targ->client->ps.origin, targ->r.mins, targ->r.maxs, targ->client->ps.origin, targ->s.number, mask );
 
 		if ( tr.startsolid ) {
 			daent = &g_entities[ tr.entityNum ];
@@ -149,12 +149,12 @@ void Enable_Trigger_Touch( gentity_t *ent ) {
 		ent->clipmask = entTemp1;
 		ent->r.contents = entTemp2;
 
-		trap_LinkEntity( ent );
+		engine->trap_LinkEntity( ent );
 
 		targ->clipmask = targTemp1;
 		targ->r.contents = targTemp2;
 
-		trap_LinkEntity( targ );
+		engine->trap_LinkEntity( targ );
 
 		if ( ent->s.angles2[YAW] && thisone ) {
 			angle = ent->s.angles2[YAW];
@@ -192,7 +192,7 @@ void SP_trigger_multiple( gentity_t *ent ) {
 	ent->use = Use_Multi;
 
 	InitTrigger( ent );
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 }
 
 
@@ -304,7 +304,7 @@ void AimAtTarget( gentity_t *self ) {
 
 void trigger_push_use( gentity_t *self, gentity_t *other, gentity_t *activator ) {
 	self->touch = trigger_push_touch;
-	trap_LinkEntity( self );
+	engine->trap_LinkEntity( self );
 }
 
 /*QUAKED trigger_push (.5 .5 .5) ? TOGGLE REMOVEAFTERTOUCH PUSHPLAYERONLY
@@ -319,9 +319,9 @@ void SP_trigger_push( gentity_t *self ) {
 		G_SetMovedir( self->s.angles, self->movedir );
 	}
 
-	trap_SetBrushModel( self, self->model );
+	engine->trap_SetBrushModel( self, self->model );
 
-	self->r.contents = CONTENTS_TRIGGER;        // replaces the -1 from trap_SetBrushModel
+	self->r.contents = CONTENTS_TRIGGER;        // replaces the -1 from engine->trap_SetBrushModel
 	self->r.svFlags = SVF_NOCLIENT;
 //----(SA)	end
 
@@ -341,13 +341,13 @@ void SP_trigger_push( gentity_t *self ) {
 	if ( self->spawnflags & 1 ) { // toggle
 		self->use = trigger_push_use;
 		self->touch = NULL;
-		trap_UnlinkEntity( self );
+		engine->trap_UnlinkEntity( self );
 	} else {
-		trap_LinkEntity( self );
+		engine->trap_LinkEntity( self );
 	}
 
 	self->nextthink = level.time + FRAMETIME;
-//	trap_LinkEntity (self);
+//	engine->trap_LinkEntity (self);
 }
 
 
@@ -442,7 +442,7 @@ void SP_trigger_teleport( gentity_t *self ) {
 	self->s.eType = ET_TELEPORT_TRIGGER;
 	self->touch = trigger_teleporter_touch;
 
-	trap_LinkEntity( self );
+	engine->trap_LinkEntity( self );
 }
 
 
@@ -562,7 +562,7 @@ void SP_trigger_hurt( gentity_t *self ) {
 	// link in to the world if starting active
 	if ( !( self->spawnflags & 1 ) ) {
 		//----(SA)	any reason this needs to be linked? (predicted?)
-//		trap_LinkEntity (self);
+//		engine->trap_LinkEntity (self);
 		self->touch = hurt_touch;
 	}
 
@@ -649,7 +649,7 @@ void SP_trigger_once( gentity_t *ent ) {
 	ent->use    = Use_Multi;
 
 	InitTrigger( ent );
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 }
 
 //---- end
@@ -676,7 +676,7 @@ void SP_trigger_deathCheck( gentity_t *ent ) {
 
 	InitTrigger( ent );
 
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 }
 
 
@@ -754,7 +754,7 @@ void SP_trigger_aidoor( gentity_t *ent ) {
 
 	ent->touch = trigger_aidoor_stayopen;
 	InitTrigger( ent );
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 }
 
 
@@ -773,7 +773,7 @@ void gas_touch( gentity_t *ent, gentity_t *other, trace_t *trace ) {
 		damage = 5;
 	}
 
-	trap_Trace( &tr, ent->r.currentOrigin, NULL, NULL, other->r.currentOrigin, ent->s.number, MASK_SHOT );
+	engine->trap_Trace( &tr, ent->r.currentOrigin, NULL, NULL, other->r.currentOrigin, ent->s.number, MASK_SHOT );
 
 	if ( tr.surfaceFlags & SURF_NOIMPACT ) {
 		return;
@@ -834,7 +834,7 @@ void gas_think( gentity_t *ent ) {
 		tent->s.angles2[1] = 96;
 	}
 
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 }
 
 /*QUAKED test_gas (0 0.5 0) (-4 -4 -4) (4 4 4)
@@ -844,7 +844,7 @@ void SP_gas( gentity_t *self ) {
 	self->nextthink = level.time + FRAMETIME;
 	self->r.contents = CONTENTS_TRIGGER;
 	self->touch = gas_touch;
-	trap_LinkEntity( self );
+	engine->trap_LinkEntity( self );
 
 	if ( !self->health ) {
 		self->health = 100;
@@ -896,7 +896,7 @@ void SP_trigger_flagonly( gentity_t *ent ) {
 	ent->touch  = Touch_flagonly;
 
 	InitTrigger( ent );
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 }
 
 
@@ -921,19 +921,19 @@ void Touch_objective_info( gentity_t *ent, gentity_t *other, trace_t *trace ) {
 
 	if ( ent->track ) {
 		if ( ent->spawnflags & AXIS_OBJECTIVE ) {
-			trap_SendServerCommand( other - g_entities, va( "oid 0 \"" S_COLOR_RED "You are near %s\n\"", ent->track ) );
+			engine->trap_SendServerCommand( other - g_entities, va( "oid 0 \"" S_COLOR_RED "You are near %s\n\"", ent->track ) );
 		} else if ( ent->spawnflags & ALLIED_OBJECTIVE ) {
-			trap_SendServerCommand( other - g_entities, va( "oid 1 \"" S_COLOR_BLUE "You are near %s\n\"", ent->track ) );
+			engine->trap_SendServerCommand( other - g_entities, va( "oid 1 \"" S_COLOR_BLUE "You are near %s\n\"", ent->track ) );
 		} else {
-			trap_SendServerCommand( other - g_entities, va( "oid -1 \"You are near %s\n\"", ent->track ) );
+			engine->trap_SendServerCommand( other - g_entities, va( "oid -1 \"You are near %s\n\"", ent->track ) );
 		}
 	} else {
 		if ( ent->spawnflags & AXIS_OBJECTIVE ) {
-			trap_SendServerCommand( other - g_entities, va( "oid 0 \"" S_COLOR_RED "You are near objective #%i\n\"", ent->count ) );
+			engine->trap_SendServerCommand( other - g_entities, va( "oid 0 \"" S_COLOR_RED "You are near objective #%i\n\"", ent->count ) );
 		} else if ( ent->spawnflags & ALLIED_OBJECTIVE ) {
-			trap_SendServerCommand( other - g_entities, va( "oid 1 \"" S_COLOR_BLUE "You are near objective #%i\n\"", ent->count ) );
+			engine->trap_SendServerCommand( other - g_entities, va( "oid 1 \"" S_COLOR_BLUE "You are near objective #%i\n\"", ent->count ) );
 		} else {
-			trap_SendServerCommand( other - g_entities, va( "oid -1 \"You are near objective #%i\n\"", ent->count ) );
+			engine->trap_SendServerCommand( other - g_entities, va( "oid -1 \"You are near objective #%i\n\"", ent->count ) );
 		}
 	}
 
@@ -943,7 +943,7 @@ void SP_trigger_objective_info( gentity_t *ent ) {
 	ent->touch  = Touch_objective_info;
 
 	InitTrigger( ent );
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 }
 
 

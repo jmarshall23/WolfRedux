@@ -450,7 +450,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	// if client is in a nodrop area, don't drop anything
 // JPW NERVE new drop behavior
 	if ( g_gametype.integer == GT_SINGLE_PLAYER ) {   // only drop here in single player; in multiplayer, drop @ limbo
-		contents = trap_PointContents( self->r.currentOrigin, -1 );
+		contents = engine->trap_PointContents( self->r.currentOrigin, -1 );
 		if ( !( contents & CONTENTS_NODROP ) ) {
 			TossClientItems( self );
 		}
@@ -521,9 +521,9 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	memset( self->client->ps.powerups, 0, sizeof( self->client->ps.powerups ) );
 
 	if ( g_gametype.integer == GT_SINGLE_PLAYER ) {
-		trap_SendServerCommand( -1, "mu_play sound/music/l_failed_1.wav 0\n" );
-		trap_SetConfigstring( CS_MUSIC_QUEUE, "" );  // clear queue so it'll be quiet after hit
-		trap_SendServerCommand( -1, "cp missionfail0" );
+		engine->trap_SendServerCommand( -1, "mu_play sound/music/l_failed_1.wav 0\n" );
+		engine->trap_SetConfigstring( CS_MUSIC_QUEUE, "" );  // clear queue so it'll be quiet after hit
+		engine->trap_SendServerCommand( -1, "cp missionfail0" );
 	}
 
 
@@ -581,7 +581,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		i = ( i + 1 ) % 3;
 	}
 
-	trap_LinkEntity( self );
+	engine->trap_LinkEntity( self );
 
 	if ( g_gametype.integer == GT_SINGLE_PLAYER ) {
 		AICast_ScriptEvent( AICast_GetCastState( self->s.number ), "death", "" );
@@ -720,7 +720,7 @@ qboolean IsHeadShot( gentity_t *targ, gentity_t *attacker, vec3_t dir, vec3_t po
 		G_SetOrigin( head, targ->r.currentOrigin );
 
 		// RF, if there is a valid tag_head for this entity, then use that
-		if ( ( targ->r.svFlags & SVF_CASTAI ) && trap_GetTag( targ->s.number, "tag_head", &or ) ) {
+		if ( ( targ->r.svFlags & SVF_CASTAI ) && engine->trap_GetTag( targ->s.number, "tag_head", &or ) ) {
 			VectorCopy( or.origin, head->r.currentOrigin );
 			VectorMA( head->r.currentOrigin, 6, or.axis[2], head->r.currentOrigin );    // tag is at base of neck
 		} else if ( targ->client->ps.pm_flags & PMF_DUCKED ) { // closer fake offset for 'head' box when crouching
@@ -741,12 +741,12 @@ qboolean IsHeadShot( gentity_t *targ, gentity_t *attacker, vec3_t dir, vec3_t po
 		head->clipmask = CONTENTS_SOLID;
 		head->r.contents = CONTENTS_SOLID;
 
-		trap_LinkEntity( head );
+		engine->trap_LinkEntity( head );
 
 		// trace another shot see if we hit the head
 		VectorCopy( point, start );
 		VectorMA( start, 64, dir, end );
-		trap_Trace( &tr, start, NULL, NULL, end, targ->s.number, MASK_SHOT );
+		engine->trap_Trace( &tr, start, NULL, NULL, end, targ->s.number, MASK_SHOT );
 
 		traceEnt = &g_entities[ tr.entityNum ];
 
@@ -1377,7 +1377,7 @@ qboolean CanDamage( gentity_t *targ, vec3_t origin ) {
 	VectorScale( midpoint, 0.5, midpoint );
 
 	VectorCopy( midpoint, dest );
-	trap_Trace( &tr, origin, vec3_origin, vec3_origin, dest, ENTITYNUM_NONE, MASK_SOLID );
+	engine->trap_Trace( &tr, origin, vec3_origin, vec3_origin, dest, ENTITYNUM_NONE, MASK_SOLID );
 	if ( tr.fraction == 1.0 ) {
 		return qtrue;
 	}
@@ -1393,7 +1393,7 @@ qboolean CanDamage( gentity_t *targ, vec3_t origin ) {
 	VectorCopy( midpoint, dest );
 	dest[0] += 15.0;
 	dest[1] += 15.0;
-	trap_Trace( &tr, origin, vec3_origin, vec3_origin, dest, ENTITYNUM_NONE, MASK_SOLID );
+	engine->trap_Trace( &tr, origin, vec3_origin, vec3_origin, dest, ENTITYNUM_NONE, MASK_SOLID );
 	if ( tr.fraction == 1.0 ) {
 		return qtrue;
 	}
@@ -1401,7 +1401,7 @@ qboolean CanDamage( gentity_t *targ, vec3_t origin ) {
 	VectorCopy( midpoint, dest );
 	dest[0] += 15.0;
 	dest[1] -= 15.0;
-	trap_Trace( &tr, origin, vec3_origin, vec3_origin, dest, ENTITYNUM_NONE, MASK_SOLID );
+	engine->trap_Trace( &tr, origin, vec3_origin, vec3_origin, dest, ENTITYNUM_NONE, MASK_SOLID );
 	if ( tr.fraction == 1.0 ) {
 		return qtrue;
 	}
@@ -1409,7 +1409,7 @@ qboolean CanDamage( gentity_t *targ, vec3_t origin ) {
 	VectorCopy( midpoint, dest );
 	dest[0] -= 15.0;
 	dest[1] += 15.0;
-	trap_Trace( &tr, origin, vec3_origin, vec3_origin, dest, ENTITYNUM_NONE, MASK_SOLID );
+	engine->trap_Trace( &tr, origin, vec3_origin, vec3_origin, dest, ENTITYNUM_NONE, MASK_SOLID );
 	if ( tr.fraction == 1.0 ) {
 		return qtrue;
 	}
@@ -1417,7 +1417,7 @@ qboolean CanDamage( gentity_t *targ, vec3_t origin ) {
 	VectorCopy( midpoint, dest );
 	dest[0] -= 15.0;
 	dest[1] -= 15.0;
-	trap_Trace( &tr, origin, vec3_origin, vec3_origin, dest, ENTITYNUM_NONE, MASK_SOLID );
+	engine->trap_Trace( &tr, origin, vec3_origin, vec3_origin, dest, ENTITYNUM_NONE, MASK_SOLID );
 	if ( tr.fraction == 1.0 ) {
 		return qtrue;
 	}
@@ -1462,7 +1462,7 @@ qboolean G_RadiusDamage( vec3_t origin, gentity_t *attacker, float damage, float
 		maxs[i] = origin[i] + boxradius; // JPW NERVE
 	}
 
-	numListedEntities = trap_EntitiesInBox( mins, maxs, entityList, MAX_GENTITIES );
+	numListedEntities = engine->trap_EntitiesInBox( mins, maxs, entityList, MAX_GENTITIES );
 
 	for ( e = 0 ; e < numListedEntities ; e++ ) {
 		ent = &g_entities[entityList[ e ]];
@@ -1528,7 +1528,7 @@ qboolean G_RadiusDamage( vec3_t origin, gentity_t *attacker, float damage, float
 				VectorScale( midpoint, 0.5, midpoint );
 				VectorCopy( midpoint, dest );
 
-				trap_Trace( &tr, origin, vec3_origin, vec3_origin, dest, ENTITYNUM_NONE, MASK_SOLID );
+				engine->trap_Trace( &tr, origin, vec3_origin, vec3_origin, dest, ENTITYNUM_NONE, MASK_SOLID );
 				if ( tr.fraction < 1.0 ) {
 					VectorSubtract( dest,origin,dest );
 					dist = VectorLength( dest );

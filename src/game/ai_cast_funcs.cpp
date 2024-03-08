@@ -123,7 +123,7 @@ float AICast_GetRandomViewAngle( cast_state_t *cs, float tracedist ) {
 		AngleVectors( vec, dir, NULL, NULL );
 		VectorMA( start, tracedist, dir, end );
 		//
-		trap_Trace( &trace, start, NULL, NULL, end, passent, contents_mask );
+		engine->trap_Trace( &trace, start, NULL, NULL, end, passent, contents_mask );
 		//
 		if ( trace.fraction >= 1 ) {
 			return vec[YAW];
@@ -200,7 +200,7 @@ bot_moveresult_t *AICast_MoveToPos( cast_state_t *cs, vec3_t pos, int entnum ) {
 	//
 	// debugging, show the route
 	if ( aicast_debug.integer == 2 && ( g_entities[cs->entityNum].aiName && !strcmp( aicast_debugname.string, g_entities[cs->entityNum].aiName ) ) ) {
-		trap_AAS_RT_ShowRoute( cs->bs->origin, cs->bs->areanum, goal.areanum );
+		engine->trap_AAS_RT_ShowRoute( cs->bs->origin, cs->bs->areanum, goal.areanum );
 	}
 	//
 	//initialize the movement state
@@ -208,24 +208,24 @@ bot_moveresult_t *AICast_MoveToPos( cast_state_t *cs, vec3_t pos, int entnum ) {
 	//if this is a slow moving creature, don't use avoidreach
 	if ( cs->attributes[RUNNING_SPEED] < 100 ) {
 		//reset the avoid reach, otherwise bot is stuck in current area
-		trap_BotResetAvoidReach( bs->ms );
+		engine->trap_BotResetAvoidReach( bs->ms );
 	} else if ( !VectorCompare( cs->lastMoveToPosGoalOrg, pos ) ) {
 		//reset the avoid reach, otherwise bot is stuck in current area
-		trap_BotResetAvoidReach( bs->ms );
+		engine->trap_BotResetAvoidReach( bs->ms );
 		VectorCopy( pos, cs->lastMoveToPosGoalOrg );
 	}
 	//move towards the goal
 	if ( !( cs->aiFlags & AIFL_EXPLICIT_ROUTING ) || ( entnum < 0 ) || Q_strcasecmp( g_entities[entnum].classname, "ai_marker" ) ) {
 		// use AAS routing
-		trap_BotMoveToGoal( &lmoveresult, bs->ms, &goal, tfl );
+		engine->trap_BotMoveToGoal( &lmoveresult, bs->ms, &goal, tfl );
 		//if the movement failed
 		if ( lmoveresult.failure ) {
 
 			//reset the avoid reach, otherwise bot is stuck in current area
-			trap_BotResetAvoidReach( bs->ms );
+			engine->trap_BotResetAvoidReach( bs->ms );
 			//BotAI_Print(PRT_MESSAGE, "movement failure %d\n", lmoveresult.traveltype);
 			// clear all movement
-			trap_EA_Move( cs->entityNum, vec3_origin, 0 );
+			engine->trap_EA_Move( cs->entityNum, vec3_origin, 0 );
 
 		} else {
 
@@ -242,7 +242,7 @@ bot_moveresult_t *AICast_MoveToPos( cast_state_t *cs, vec3_t pos, int entnum ) {
 			} else if ( !( cs->bFlags & BFL_ATTACKED ) )       { // if we are attacking, don't change angles
 				bot_input_t bi;
 
-				trap_EA_GetInput( bs->client, 0.1, &bi );
+				engine->trap_EA_GetInput( bs->client, 0.1, &bi );
 				if ( VectorLength( lmoveresult.movedir ) < 0.5 ) {
 					VectorSubtract( goal.origin, bs->origin, dir );
 					vectoangles( dir, cs->ideal_viewangles );
@@ -276,9 +276,9 @@ bot_moveresult_t *AICast_MoveToPos( cast_state_t *cs, vec3_t pos, int entnum ) {
 
 		VectorSubtract( pos, cs->bs->origin, dir );
 		if ( ( dist = VectorNormalize( dir ) ) < 64 ) {
-			trap_EA_Move( cs->entityNum, dir, 100.0 + 300.0 * ( dist / 64.0 ) );
+			engine->trap_EA_Move( cs->entityNum, dir, 100.0 + 300.0 * ( dist / 64.0 ) );
 		} else {
-			trap_EA_Move( cs->entityNum, dir, 400 );
+			engine->trap_EA_Move( cs->entityNum, dir, 400 );
 		}
 
 		// look towards the marker also
@@ -296,7 +296,7 @@ if(0) // (SA) added to hide the print
 {
 bot_input_t bi;
 
-trap_EA_GetInput(cs->bs->client, (float) level.time / 1000, &bi);
+engine->trap_EA_GetInput(cs->bs->client, (float) level.time / 1000, &bi);
 G_Printf("spd: %i\n", (int)bi.speed );
 }
 */
@@ -374,7 +374,7 @@ void AICast_SpecialFunc( cast_state_t *cs ) {
 				//&&	(infront( ent, enemy ))
 				&&  ( infront( enemy, ent ) ) ) {
 			// crouch
-			trap_EA_Crouch( cs->entityNum );
+			engine->trap_EA_Crouch( cs->entityNum );
 			// enable defense pose
 			ent->flags |= FL_DEFENSE_CROUCH;
 		}
@@ -650,7 +650,7 @@ char *AIFunc_IdleStart( cast_state_t *cs ) {
 		}
 	}
 	// make sure we don't avoid any areas when we start again
-	trap_BotInitAvoidReach( cs->bs->ms );
+	engine->trap_BotInitAvoidReach( cs->bs->ms );
 
 	// randomly choose idle animation
 //----(SA)	try always using the 'casual' stand on spawn and change to crouching one when 'alerted'
@@ -756,7 +756,7 @@ char *AIFunc_InspectFriendly( cast_state_t *cs ) {
 
 			if ( !simTest ) {
 				// trace will eliminate most unsuccessful paths
-				trap_Trace( &tr, cs->bs->origin, NULL /*g_entities[cs->entityNum].r.mins*/, NULL /*g_entities[cs->entityNum].r.maxs*/, followent->r.currentOrigin, cs->entityNum, g_entities[cs->entityNum].clipmask );
+				engine->trap_Trace( &tr, cs->bs->origin, NULL /*g_entities[cs->entityNum].r.mins*/, NULL /*g_entities[cs->entityNum].r.maxs*/, followent->r.currentOrigin, cs->entityNum, g_entities[cs->entityNum].clipmask );
 				if ( tr.entityNum == cs->followEntity || tr.fraction == 1 ) {
 					simTest = qtrue;
 				}
@@ -769,8 +769,8 @@ char *AIFunc_InspectFriendly( cast_state_t *cs ) {
 				if ( !ent->waterlevel ) {
 					dir[2] = 0;
 				}
-				//trap_EA_Move(cs->entityNum, dir, 400);
-				trap_EA_GetInput( cs->entityNum, (float) level.time / 1000, &bi );
+				//engine->trap_EA_Move(cs->entityNum, dir, 400);
+				engine->trap_EA_GetInput( cs->entityNum, (float) level.time / 1000, &bi );
 				VectorCopy( dir, bi.dir );
 				bi.speed = 400;
 				bi.actionflags = 0;
@@ -778,12 +778,12 @@ char *AIFunc_InspectFriendly( cast_state_t *cs ) {
 				AICast_PredictMovement( cs, 10, 0.8, &move, &ucmd, cs->followEntity );
 
 				if ( move.stopevent == PREDICTSTOP_HITENT ) { // success!
-					trap_EA_Move( cs->entityNum, dir, 400 );  // set the movement
+					engine->trap_EA_Move( cs->entityNum, dir, 400 );  // set the movement
 					vectoangles( dir, cs->ideal_viewangles );
 					cs->ideal_viewangles[2] *= 0.5;
 					moved = qtrue;
 				} else {    // clear movement
-					//trap_EA_Move(cs->entityNum, dir, 0);
+					//engine->trap_EA_Move(cs->entityNum, dir, 0);
 				}
 			}
 		}
@@ -795,7 +795,7 @@ char *AIFunc_InspectFriendly( cast_state_t *cs ) {
 			if ( !moveresult || moveresult->failure ) {
 				// if we can get a visible target, then face it
 				if ( !( cs->aiFlags & AIFL_MISCFLAG2 ) ) {
-					if ( trap_AAS_GetRouteFirstVisPos( followent->r.currentOrigin, cs->bs->origin, cs->travelflags, cs->takeCoverEnemyPos ) ) {
+					if ( engine->trap_AAS_GetRouteFirstVisPos( followent->r.currentOrigin, cs->bs->origin, cs->travelflags, cs->takeCoverEnemyPos ) ) {
 						cs->aiFlags |= AIFL_MISCFLAG2;
 					} else {
 						// if it failed, just use their origin for now, but keep checking
@@ -1120,9 +1120,9 @@ char *AIFunc_InspectBulletImpactStart( cast_state_t *cs ) {
 	}
 	//
 	// if the origin is not visible, set the bullet origin to the closest visible area from the src
-	if ( !trap_InPVS( cs->bulletImpactStart, cs->bs->origin ) ) {
+	if ( !engine->trap_InPVS( cs->bulletImpactStart, cs->bs->origin ) ) {
 		// if it fails, then just look at the source
-		trap_AAS_GetRouteFirstVisPos( g_entities[cs->bulletImpactEntity].s.pos.trBase, cs->bs->origin, cs->travelflags, cs->bulletImpactStart );
+		engine->trap_AAS_GetRouteFirstVisPos( g_entities[cs->bulletImpactEntity].s.pos.trBase, cs->bs->origin, cs->travelflags, cs->bulletImpactStart );
 	}
 	//
 	cs->aifunc = AIFunc_InspectBulletImpact;
@@ -1211,7 +1211,7 @@ char *AIFunc_InspectAudibleEvent( cast_state_t *cs ) {
 
 			if ( !simTest ) {
 				// trace will eliminate most unsuccessful paths
-				trap_Trace( &tr, cs->bs->origin, NULL /*g_entities[cs->entityNum].r.mins*/, NULL /*g_entities[cs->entityNum].r.maxs*/, destorg, cs->entityNum, g_entities[cs->entityNum].clipmask );
+				engine->trap_Trace( &tr, cs->bs->origin, NULL /*g_entities[cs->entityNum].r.mins*/, NULL /*g_entities[cs->entityNum].r.maxs*/, destorg, cs->entityNum, g_entities[cs->entityNum].clipmask );
 				if ( tr.fraction == 1 ) {
 					simTest = qtrue;
 				}
@@ -1229,8 +1229,8 @@ char *AIFunc_InspectAudibleEvent( cast_state_t *cs ) {
 				if ( !ent->waterlevel ) {
 					dir[2] = 0;
 				}
-				//trap_EA_Move(cs->entityNum, dir, 400);
-				trap_EA_GetInput( cs->entityNum, (float) level.time / 1000, &bi );
+				//engine->trap_EA_Move(cs->entityNum, dir, 400);
+				engine->trap_EA_GetInput( cs->entityNum, (float) level.time / 1000, &bi );
 				VectorCopy( dir, bi.dir );
 				bi.speed = 400;
 				bi.actionflags = 0;
@@ -1238,12 +1238,12 @@ char *AIFunc_InspectAudibleEvent( cast_state_t *cs ) {
 				AICast_PredictMovement( cs, 10, 0.8, &move, &ucmd, gent->s.number );
 				//
 				if ( move.stopevent == PREDICTSTOP_HITENT ) { // success!
-					trap_EA_Move( cs->entityNum, dir, 400 );
+					engine->trap_EA_Move( cs->entityNum, dir, 400 );
 					vectoangles( dir, cs->ideal_viewangles );
 					cs->ideal_viewangles[2] *= 0.5;
 					moved = qtrue;
 				} else {    // clear movement
-					//trap_EA_Move(cs->entityNum, dir, 0);
+					//engine->trap_EA_Move(cs->entityNum, dir, 0);
 				}
 				//
 				G_FreeEntity( gent );
@@ -1257,7 +1257,7 @@ char *AIFunc_InspectAudibleEvent( cast_state_t *cs ) {
 			if ( moveresult && moveresult->failure ) {
 
 				// if we can get a visible target, then face it
-				if ( trap_AAS_GetRouteFirstVisPos( cs->audibleEventOrg, cs->bs->origin, cs->travelflags, destorg ) ) {
+				if ( engine->trap_AAS_GetRouteFirstVisPos( cs->audibleEventOrg, cs->bs->origin, cs->travelflags, destorg ) ) {
 					cs->aiFlags |= AIFL_MISCFLAG2;
 					VectorSubtract( destorg, cs->bs->origin, destorg );
 					VectorNormalize( destorg );
@@ -1271,7 +1271,7 @@ char *AIFunc_InspectAudibleEvent( cast_state_t *cs ) {
 				}
 				return AIFunc_DefaultStart( cs );
 			} else if ( !moveresult ) {   // face it?
-				if ( trap_InPVS( destorg, cs->bs->origin ) ) {
+				if ( engine->trap_InPVS( destorg, cs->bs->origin ) ) {
 					VectorSubtract( destorg, cs->bs->origin, vec );
 					VectorNormalize( vec );
 					vectoangles( vec, cs->ideal_viewangles );
@@ -1546,7 +1546,7 @@ AIFunc_ChaseGoalIdleStart()
 */
 char *AIFunc_ChaseGoalIdleStart( cast_state_t *cs, int entitynum, float reachdist ) {
 	// make sure we don't avoid any areas when we start again
-	trap_BotInitAvoidReach( cs->bs->ms );
+	engine->trap_BotInitAvoidReach( cs->bs->ms );
 
 	// if we are following someone, always use the default (ready for action) anim
 	if ( entitynum < MAX_CLIENTS ) {
@@ -1652,7 +1652,7 @@ char *AIFunc_ChaseGoal( cast_state_t *cs ) {
 				} else {
 					trace_t tr;
 					// if we have a clear line to our leader, move closer, since there may be others following also
-					trap_Trace( &tr, cs->bs->origin, cs->bs->cur_ps.mins, cs->bs->cur_ps.maxs, g_entities[cs->followEntity].r.currentOrigin, cs->entityNum, g_entities[cs->entityNum].clipmask );
+					engine->trap_Trace( &tr, cs->bs->origin, cs->bs->cur_ps.mins, cs->bs->cur_ps.maxs, g_entities[cs->followEntity].r.currentOrigin, cs->entityNum, g_entities[cs->entityNum].clipmask );
 					if ( tr.entityNum != cs->followEntity ) {
 						AICast_EndChase( cs );
 						return AIFunc_IdleStart( cs );
@@ -1696,7 +1696,7 @@ char *AIFunc_ChaseGoal( cast_state_t *cs ) {
 
 		if ( !simTest ) {
 			// trace will eliminate most unsuccessful paths
-			trap_Trace( &tr, cs->bs->origin, NULL /*g_entities[cs->entityNum].r.mins*/, NULL /*g_entities[cs->entityNum].r.maxs*/, followent->r.currentOrigin, cs->entityNum, g_entities[cs->entityNum].clipmask );
+			engine->trap_Trace( &tr, cs->bs->origin, NULL /*g_entities[cs->entityNum].r.mins*/, NULL /*g_entities[cs->entityNum].r.maxs*/, followent->r.currentOrigin, cs->entityNum, g_entities[cs->entityNum].clipmask );
 			if ( tr.entityNum == cs->followEntity || tr.fraction == 1 ) {
 				simTest = qtrue;
 			}
@@ -1709,8 +1709,8 @@ char *AIFunc_ChaseGoal( cast_state_t *cs ) {
 				dir[2] = 0;
 			}
 			goaldist = VectorNormalize( dir );
-			//trap_EA_Move(cs->entityNum, dir, 400);
-			trap_EA_GetInput( cs->entityNum, (float) level.time / 1000, &bi );
+			//engine->trap_EA_Move(cs->entityNum, dir, 400);
+			engine->trap_EA_GetInput( cs->entityNum, (float) level.time / 1000, &bi );
 			VectorCopy( dir, bi.dir );
 			bi.speed = 400;
 			bi.actionflags = 0;
@@ -1720,14 +1720,14 @@ char *AIFunc_ChaseGoal( cast_state_t *cs ) {
 			if ( move.stopevent == PREDICTSTOP_HITENT ) { // success!
 				// make sure we didnt spend a lot of time sliding along an obstacle
 				if ( ( move.frames * frameTime ) < ( 1.0 + ( goaldist / ( bs->cur_ps.speed * bs->cur_ps.runSpeedScale ) ) ) ) {
-					trap_EA_Move( cs->entityNum, dir, 400 );
+					engine->trap_EA_Move( cs->entityNum, dir, 400 );
 					vectoangles( dir, cs->ideal_viewangles );
 					cs->ideal_viewangles[2] *= 0.5;
 					moved = qtrue;
 				}
 			}
 			if ( !moved ) {
-				//trap_EA_Move(cs->entityNum, dir, 0);
+				//engine->trap_EA_Move(cs->entityNum, dir, 0);
 			}
 		}
 	}
@@ -1937,13 +1937,13 @@ char *AIFunc_BattleRoll( cast_state_t *cs ) {
 		return AIFunc_DefaultStart( cs );
 	}
 	//
-	trap_EA_Crouch( cs->entityNum );
+	engine->trap_EA_Crouch( cs->entityNum );
 	cs->attackcrouch_time = level.time + 500;
 	// all characters so far only move during the first second of animation
 	if ( cs->thinkFuncChangeTime > level.time - 1000 ) {
 		// just move in the direction of our ideal_viewangles
 		AngleVectors( cs->ideal_viewangles, dir, NULL, NULL );
-		trap_EA_Move( cs->entityNum, dir, 300 );
+		engine->trap_EA_Move( cs->entityNum, dir, 300 );
 		// we are crouching, move a little faster than normal
 		cs->speedScale = 1.5;
 	} else if ( cs->takeCoverTime > level.time ) {
@@ -2056,7 +2056,7 @@ char *AIFunc_FlipMove( cast_state_t *cs ) {
 	//
 	// just move in the direction of our ideal_viewangles
 	AngleVectors( cs->ideal_viewangles, dir, NULL, NULL );
-	trap_EA_Move( cs->entityNum, dir, 400 );
+	engine->trap_EA_Move( cs->entityNum, dir, 400 );
 	// if we are crouching, move a little faster than normal
 	if ( cs->attackcrouch_time > level.time ) {
 		cs->speedScale = 1.5;
@@ -2406,14 +2406,14 @@ char *AIFunc_BattleAmbush( cast_state_t *cs ) {
 				} else if ( AICast_EntityVisible( cs, enemies[i], qfalse ) ) {
 					bot_input_t bi_back;
 					// try and move to them, if successful, then start chasing
-					trap_EA_GetInput( cs->entityNum, (float) level.time / 1000, &bi_back );
+					engine->trap_EA_GetInput( cs->entityNum, (float) level.time / 1000, &bi_back );
 					if ( AICast_MoveToPos( cs, g_entities[enemies[i]].client->ps.origin, enemies[i] ) ) {
 						if ( !moveresult->failure ) {
 							cs->enemyNum = enemies[i];
 							return AIFunc_BattleChaseStart( cs );
 						}
 					} else {
-						trap_EA_ResetInput( cs->entityNum, &bi_back );
+						engine->trap_EA_ResetInput( cs->entityNum, &bi_back );
 					}
 				}
 			}
@@ -2451,7 +2451,7 @@ char *AIFunc_BattleAmbush( cast_state_t *cs ) {
 			//if the movement failed
 			if ( moveresult->failure ) {
 				//reset the avoid reach, otherwise bot is stuck in current area
-				trap_BotResetAvoidReach( bs->ms );
+				engine->trap_BotResetAvoidReach( bs->ms );
 				// couldn't get there, so stop trying to get there
 				VectorClear( cs->takeCoverPos );
 				dist = 0;
@@ -2751,7 +2751,7 @@ char *AIFunc_BattleChase( cast_state_t *cs ) {
 	//
 	// if the enemy is inside a CONTENTS_DONOTENTER brush, and we are close enough, stop chasing them
 	if ( AICast_EntityVisible( cs, cs->enemyNum, qtrue ) && VectorDistance( cs->bs->origin, destorg ) < 384 ) {
-		if ( trap_PointContents( destorg, cs->enemyNum ) & ( CONTENTS_DONOTENTER | CONTENTS_DONOTENTER_LARGE ) ) {
+		if ( engine->trap_PointContents( destorg, cs->enemyNum ) & ( CONTENTS_DONOTENTER | CONTENTS_DONOTENTER_LARGE ) ) {
 			// just stay here, and hope they move out of the brush without finding a spot where they can hit us but we can't hit them
 			return NULL;
 		}
@@ -2855,7 +2855,7 @@ char *AIFunc_BattleChase( cast_state_t *cs ) {
 		trace_t tr;
 
 		// trace will eliminate most unsuccessful paths
-		trap_Trace( &tr, cs->bs->origin, NULL, NULL, followent->r.currentOrigin, cs->entityNum, g_entities[cs->entityNum].clipmask );
+		engine->trap_Trace( &tr, cs->bs->origin, NULL, NULL, followent->r.currentOrigin, cs->entityNum, g_entities[cs->entityNum].clipmask );
 		if ( tr.entityNum == followent->s.number ) {
 			// try walking straight to them
 			VectorSubtract( followent->r.currentOrigin, cs->bs->origin, dir );
@@ -2863,8 +2863,8 @@ char *AIFunc_BattleChase( cast_state_t *cs ) {
 			if ( !ent->waterlevel ) {
 				dir[2] = 0;
 			}
-			//trap_EA_Move(cs->entityNum, dir, 400);
-			trap_EA_GetInput( cs->entityNum, (float) level.time / 1000, &bi );
+			//engine->trap_EA_Move(cs->entityNum, dir, 400);
+			engine->trap_EA_GetInput( cs->entityNum, (float) level.time / 1000, &bi );
 			VectorCopy( dir, bi.dir );
 			bi.speed = 400;
 			bi.actionflags = 0;
@@ -2872,16 +2872,16 @@ char *AIFunc_BattleChase( cast_state_t *cs ) {
 			AICast_PredictMovement( cs, 5, 2.0, &move, &ucmd, cs->enemyNum );
 
 			if ( move.stopevent == PREDICTSTOP_HITENT ) { // success!
-				trap_EA_Move( cs->entityNum, dir, 400 );
+				engine->trap_EA_Move( cs->entityNum, dir, 400 );
 				// RF, if we are really close, we might be stuck on a corner, so randomly move sideways
 				if ( ( VectorLength( followent->client->ps.velocity ) < 50 ) && ( dist < 10 + ( sqrt( cs->bs->cur_ps.maxs[0] * cs->bs->cur_ps.maxs[0] * 8.0 ) / 2.0 + sqrt( followent->client->ps.maxs[0] * followent->client->ps.maxs[0] * 8.0 ) / 2.0 ) ) ) {
 					// if the box trace is unsuccessful
-					trap_Trace( &tr, cs->bs->origin, cs->bs->cur_ps.mins, cs->bs->cur_ps.maxs, followent->r.currentOrigin, cs->entityNum, g_entities[cs->entityNum].clipmask );
+					engine->trap_Trace( &tr, cs->bs->origin, cs->bs->cur_ps.mins, cs->bs->cur_ps.maxs, followent->r.currentOrigin, cs->entityNum, g_entities[cs->entityNum].clipmask );
 					if ( tr.entityNum != followent->s.number ) {
 						if ( level.time % 6000 < 2000 ) {
-							trap_EA_MoveRight( cs->entityNum );
+							engine->trap_EA_MoveRight( cs->entityNum );
 						} else {
-							trap_EA_MoveLeft( cs->entityNum );
+							engine->trap_EA_MoveLeft( cs->entityNum );
 						}
 					}
 				}
@@ -2889,7 +2889,7 @@ char *AIFunc_BattleChase( cast_state_t *cs ) {
 				cs->ideal_viewangles[2] *= 0.5;
 				moved = qtrue;
 			} else {    // clear movement
-				//trap_EA_Move(cs->entityNum, dir, 0);
+				//engine->trap_EA_Move(cs->entityNum, dir, 0);
 			}
 		}
 	}
@@ -2908,7 +2908,7 @@ char *AIFunc_BattleChase( cast_state_t *cs ) {
 			if ( cs->combatGoalTime < level.time ) {
 				if ( cs->attackSpotTime < level.time ) {
 					cs->attackSpotTime = level.time + 500 + rand() % 500;
-					if ( trap_AAS_FindAttackSpotWithinRange( cs->entityNum, cs->leaderNum, cs->enemyNum, MAX_LEADER_DIST, AICAST_TFL_DEFAULT, cs->combatGoalOrigin ) ) {
+					if ( engine->trap_AAS_FindAttackSpotWithinRange( cs->entityNum, cs->leaderNum, cs->enemyNum, MAX_LEADER_DIST, AICAST_TFL_DEFAULT, cs->combatGoalOrigin ) ) {
 						cs->combatGoalTime = level.time + 2000;
 					}
 				}
@@ -2940,7 +2940,7 @@ char *AIFunc_BattleChase( cast_state_t *cs ) {
 			if ( cs->combatGoalTime < level.time ) {
 				if ( cs->attackSpotTime < level.time ) {
 					cs->attackSpotTime = level.time + 500 + rand() % 500;
-					if ( trap_AAS_FindAttackSpotWithinRange( cs->entityNum, cs->entityNum, cs->enemyNum, 512, AICAST_TFL_DEFAULT, cs->combatGoalOrigin ) ) {
+					if ( engine->trap_AAS_FindAttackSpotWithinRange( cs->entityNum, cs->entityNum, cs->enemyNum, 512, AICAST_TFL_DEFAULT, cs->combatGoalOrigin ) ) {
 						cs->combatGoalTime = level.time + 2000;
 					}
 				}
@@ -3018,7 +3018,7 @@ char *AIFunc_BattleChase( cast_state_t *cs ) {
 		if ( cs->weaponNum == WP_GAUNTLET ) {
 			if ( move.stopevent == PREDICTSTOP_HITENT ) {
 				AICast_AimAtEnemy( cs );
-				trap_EA_Attack( bs->client );
+				engine->trap_EA_Attack( bs->client );
 				cs->bFlags |= BFL_ATTACKED;
 			}
 		}
@@ -3035,8 +3035,8 @@ char *AIFunc_BattleChase( cast_state_t *cs ) {
 			// if we'll be closer after the move, proceed
 			destarea = BotPointAreaNum( destorg );
 			simarea = BotPointAreaNum( move.endpos );
-			starttravel = trap_AAS_AreaTravelTimeToGoalArea( cs->bs->areanum, cs->bs->origin, destarea, cs->travelflags );
-			simtravel = trap_AAS_AreaTravelTimeToGoalArea( simarea, move.endpos, destarea, cs->travelflags );
+			starttravel = engine->trap_AAS_AreaTravelTimeToGoalArea( cs->bs->areanum, cs->bs->origin, destarea, cs->travelflags );
+			simtravel = engine->trap_AAS_AreaTravelTimeToGoalArea( simarea, move.endpos, destarea, cs->travelflags );
 			if ( simtravel < starttravel ) {
 				return AIFunc_FlipMoveStart( cs, vec );
 			}
@@ -3065,7 +3065,7 @@ char *AIFunc_BattleChase( cast_state_t *cs ) {
 				case WP_VENOM:
 				case WP_THOMPSON:
 				case WP_STEN:	//----(SA)	added
-					trap_EA_Attack(cs->entityNum);
+					engine->trap_EA_Attack(cs->entityNum);
 				}
 			}
 			*/
@@ -3152,13 +3152,13 @@ char *AIFunc_AvoidDanger( cast_state_t *cs ) {
 					cs->takeCoverPos[2] += -ent->r.mins[2] + 12;
 					VectorCopy( cs->takeCoverPos, end );
 					end[2] -= 90;
-					trap_Trace( &tr, cs->takeCoverPos, ent->r.mins, ent->r.maxs, end, cs->entityNum, MASK_SOLID );
+					engine->trap_Trace( &tr, cs->takeCoverPos, ent->r.mins, ent->r.maxs, end, cs->entityNum, MASK_SOLID );
 					VectorCopy( tr.endpos, cs->takeCoverPos );
 					if ( !tr.startsolid && ( tr.fraction < 1.0 ) &&
 						 VectorDistance( cs->bs->origin, cs->takeCoverPos ) < cs->attributes[RUNNING_SPEED] * 0.0004 * ( danger->nextthink - level.time - 2000 ) ) {
 
 						// check for a clear path to the grenade
-						trap_Trace( &tr, cs->bs->origin, ent->r.mins, ent->r.maxs, cs->takeCoverPos, cs->entityNum, MASK_SOLID );
+						engine->trap_Trace( &tr, cs->bs->origin, ent->r.mins, ent->r.maxs, cs->takeCoverPos, cs->entityNum, MASK_SOLID );
 
 						if ( VectorDistance( tr.endpos, cs->takeCoverPos ) < 8 ) {
 							danger->flags |= FL_AI_GRENADE_KICK;
@@ -3236,7 +3236,7 @@ char *AIFunc_AvoidDanger( cast_state_t *cs ) {
 			//if the movement failed
 			if ( moveresult->failure || moveresult->blocked ) {
 				//reset the avoid reach, otherwise bot is stuck in current area
-				trap_BotResetAvoidReach( bs->ms );
+				engine->trap_BotResetAvoidReach( bs->ms );
 				if ( g_entities[cs->dangerEntity].inuse ) {
 					// find a better spot?
 					AICast_GetTakeCoverPos( cs, cs->dangerEntity, cs->dangerEntityPos, cs->takeCoverPos );
@@ -3477,7 +3477,7 @@ char *AIFunc_BattleTakeCover( cast_state_t *cs ) {
 			//if the movement failed
 			if ( moveresult->failure ) {
 				//reset the avoid reach, otherwise bot is stuck in current area
-				trap_BotResetAvoidReach( bs->ms );
+				engine->trap_BotResetAvoidReach( bs->ms );
 				// couldn't get there, so stop trying to get there
 				VectorClear( cs->takeCoverPos );
 				dist = 0;
@@ -3520,7 +3520,7 @@ char *AIFunc_BattleTakeCover( cast_state_t *cs ) {
 		// if they cant see us, then stay here
 		if ( !( cs->aiFlags & AIFL_MISCFLAG1 ) && !AICast_VisibleFromPos( cs->vislist[cs->enemyNum].real_visible_pos, cs->enemyNum, move.endpos, cs->entityNum, qfalse )
 			 &&  !AICast_VisibleFromPos( cs->vislist[cs->enemyNum].real_visible_pos, cs->enemyNum, cs->bs->origin, cs->entityNum, qfalse )
-			 &&  trap_AAS_PointAreaNum( move.endpos ) ) { // make sure the endpos is in a valid area
+			 &&  engine->trap_AAS_PointAreaNum( move.endpos ) ) { // make sure the endpos is in a valid area
 			VectorCopy( move.endpos, cs->takeCoverPos );
 			dist = 0;
 			cs->aiFlags |= AIFL_MISCFLAG1;  // dont do this again
@@ -3531,8 +3531,8 @@ char *AIFunc_BattleTakeCover( cast_state_t *cs ) {
 			// if we'll be closer after the move, proceed
 			destarea = BotPointAreaNum( destorg );
 			simarea = BotPointAreaNum( move.endpos );
-			starttravel = trap_AAS_AreaTravelTimeToGoalArea( cs->bs->areanum, cs->bs->origin, destarea, cs->travelflags );
-			simtravel = trap_AAS_AreaTravelTimeToGoalArea( simarea, move.endpos, destarea, cs->travelflags );
+			starttravel = engine->trap_AAS_AreaTravelTimeToGoalArea( cs->bs->areanum, cs->bs->origin, destarea, cs->travelflags );
+			simtravel = engine->trap_AAS_AreaTravelTimeToGoalArea( simarea, move.endpos, destarea, cs->travelflags );
 			if ( simtravel < starttravel ) {
 				return AIFunc_FlipMoveStart( cs, vec );
 			}
@@ -3752,7 +3752,7 @@ char *AIFunc_GrenadeFlush( cast_state_t *cs ) {
 			}
 			if ( !cs->bs->cur_ps.grenadeTimeLeft ) {
 				// hold fire button down
-				trap_EA_Attack( bs->client );
+				engine->trap_EA_Attack( bs->client );
 				cs->bFlags |= BFL_ATTACKED;
 			}
 			cs->lockViewAnglesTime = level.time + 500;
@@ -3891,7 +3891,7 @@ char *AIFunc_GrenadeFlush( cast_state_t *cs ) {
 			trace_t tr;
 
 			// trace will eliminate most unsuccessful paths
-			trap_Trace( &tr, cs->bs->origin, g_entities[cs->entityNum].r.mins, g_entities[cs->entityNum].r.maxs, followent->r.currentOrigin, cs->entityNum, g_entities[cs->entityNum].clipmask );
+			engine->trap_Trace( &tr, cs->bs->origin, g_entities[cs->entityNum].r.mins, g_entities[cs->entityNum].r.maxs, followent->r.currentOrigin, cs->entityNum, g_entities[cs->entityNum].clipmask );
 			if ( tr.entityNum == followent->s.number ) {
 				// try walking straight to them
 				VectorSubtract( followent->r.currentOrigin, cs->bs->origin, dir );
@@ -3899,8 +3899,8 @@ char *AIFunc_GrenadeFlush( cast_state_t *cs ) {
 				if ( !ent->waterlevel ) {
 					dir[2] = 0;
 				}
-				//trap_EA_Move(cs->entityNum, dir, 400);
-				trap_EA_GetInput( cs->entityNum, (float) level.time / 1000, &bi );
+				//engine->trap_EA_Move(cs->entityNum, dir, 400);
+				engine->trap_EA_GetInput( cs->entityNum, (float) level.time / 1000, &bi );
 				VectorCopy( dir, bi.dir );
 				bi.speed = 400;
 				bi.actionflags = 0;
@@ -3908,12 +3908,12 @@ char *AIFunc_GrenadeFlush( cast_state_t *cs ) {
 				AICast_PredictMovement( cs, 5, 2.0, &move, &ucmd, cs->enemyNum );
 
 				if ( move.stopevent == PREDICTSTOP_HITENT ) { // success!
-					trap_EA_Move( cs->entityNum, dir, 400 );
+					engine->trap_EA_Move( cs->entityNum, dir, 400 );
 					vectoangles( dir, cs->ideal_viewangles );
 					cs->ideal_viewangles[2] *= 0.5;
 					moved = qtrue;
 				} else {    // clear movement
-					//trap_EA_Move(cs->entityNum, dir, 0);
+					//engine->trap_EA_Move(cs->entityNum, dir, 0);
 				}
 			}
 		}
@@ -3976,7 +3976,7 @@ char *AIFunc_GrenadeFlush( cast_state_t *cs ) {
 		if ( cs->thinkFuncChangeTime < level.time - 200 ) {
 			// if it went reasonably close to them, but safe from us, then fire away
 			if ( Distance( endPos, cs->bs->origin ) > 100 + Distance( endPos, g_entities[cs->enemyNum].r.currentOrigin ) ) {
-				trap_EA_Attack( bs->client );
+				engine->trap_EA_Attack( bs->client );
 				cs->bFlags |= BFL_ATTACKED;
 				cs->weaponNum = grenadeType;    // select grenade launcher
 				cs->grenadeFlushFiring = cs->weaponNum;
@@ -4162,7 +4162,7 @@ char *AIFunc_BattleMG42( cast_state_t *cs ) {
 	//
 	VectorCopy( angles, cs->ideal_viewangles );
 	if ( cs->triggerReleaseTime < level.time ) {
-		trap_EA_Attack( bs->client );
+		engine->trap_EA_Attack( bs->client );
 		cs->bFlags |= BFL_ATTACKED;
 
 		if ( cs->triggerReleaseTime < level.time - 3000 ) {
@@ -4255,7 +4255,7 @@ char *AIFunc_InspectBody( cast_state_t *cs ) {
 		// if they were gibbed, don't go all the way
 		if ( g_entities[cs->enemyNum].health < GIB_HEALTH && ( Distance( cs->bs->origin, enemyOrg ) < 180 ) ) {
 			cs->inspectBodyTime = level.time + 1000 + rand() % 1000;
-			trap_EA_Gesture( cs->entityNum );
+			engine->trap_EA_Gesture( cs->entityNum );
 			G_AddEvent( &g_entities[cs->entityNum], EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].soundScripts[ORDERSSOUNDSCRIPT] ) );
 		}
 		// walk to them
@@ -4268,7 +4268,7 @@ char *AIFunc_InspectBody( cast_state_t *cs ) {
 		//if the movement failed
 		if ( moveresult && ( moveresult->failure || moveresult->blocked ) ) {
 			//reset the avoid reach, otherwise bot is stuck in current area
-			trap_BotResetAvoidReach( bs->ms );
+			engine->trap_BotResetAvoidReach( bs->ms );
 			// couldn't get there, so stop trying to get there
 			cs->enemyNum = -1;
 			return AIFunc_IdleStart( cs );
@@ -4283,7 +4283,7 @@ char *AIFunc_InspectBody( cast_state_t *cs ) {
 	} else if ( cs->inspectBodyTime < 0 ) {
 		// just reached them
 		cs->inspectBodyTime = level.time + 1000 + rand() % 1000;
-		trap_EA_Gesture( cs->entityNum );
+		engine->trap_EA_Gesture( cs->entityNum );
 		G_AddEvent( &g_entities[cs->entityNum], EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].soundScripts[ORDERSSOUNDSCRIPT] ) );
 	} else if ( cs->inspectBodyTime < level.time ) {
 		vec3_t vec;
@@ -4299,7 +4299,7 @@ char *AIFunc_InspectBody( cast_state_t *cs ) {
 			//if the movement failed
 			if ( moveresult && ( moveresult->failure || moveresult->blocked ) ) {
 				//reset the avoid reach, otherwise bot is stuck in current area
-				trap_BotResetAvoidReach( bs->ms );
+				engine->trap_BotResetAvoidReach( bs->ms );
 				// couldn't get there, so stop trying to get there
 				cs->enemyNum = -1;
 				return AIFunc_IdleStart( cs );
@@ -4391,7 +4391,7 @@ char *AIFunc_GrenadeKick( cast_state_t *cs ) {
 			if (!cs->bs->cur_ps.grenadeTimeLeft) {
 				// hold fire button down
 				AICast_AimAtEnemy( cs );
-				trap_EA_Attack(bs->client);
+				engine->trap_EA_Attack(bs->client);
 				cs->bFlags |= BFL_ATTACKED;
 			}
 			//
@@ -4422,7 +4422,7 @@ char *AIFunc_GrenadeKick( cast_state_t *cs ) {
 		cs->weaponNum = weapon;	// select grenade launcher
 		AICast_AimAtEnemy( cs );
 		// hold fire
-		trap_EA_Attack(bs->client);
+		engine->trap_EA_Attack(bs->client);
 		cs->bFlags |= BFL_ATTACKED;
 		cs->grenadeFlushFiring = qtrue;
 		//
@@ -4520,10 +4520,10 @@ char *AIFunc_GrenadeKick( cast_state_t *cs ) {
 						speed = 650;
 				}
 				VectorScale( dir, speed, danger->s.pos.trDelta );
-				trap_LinkEntity( danger );
+				engine->trap_LinkEntity( danger );
 			} else if (ent->client->ps.legsTimer < 800) {
 				// stop showing the grenade
-				trap_UnlinkEntity( danger );
+				engine->trap_UnlinkEntity( danger );
 			}
 		}
 */
@@ -4544,7 +4544,7 @@ char *AIFunc_GrenadeKick( cast_state_t *cs ) {
 		cs->takeCoverPos[2] += -ent->r.mins[2] + 8;
 		VectorCopy( cs->takeCoverPos, end );
 		end[2] -= 80;
-		trap_Trace( &tr, cs->takeCoverPos, ent->r.mins, ent->r.maxs, end, cs->entityNum, MASK_SOLID );
+		engine->trap_Trace( &tr, cs->takeCoverPos, ent->r.mins, ent->r.maxs, end, cs->entityNum, MASK_SOLID );
 		if ( tr.startsolid ) {    // not a valid position, abort
 			level.lastGrenadeKick = level.time;
 			return AIFunc_DefaultStart( cs );
@@ -4601,7 +4601,7 @@ char *AIFunc_GrenadeKick( cast_state_t *cs ) {
 			//if the movement failed
 			if ( moveresult->failure ) {
 				//reset the avoid reach, otherwise bot is stuck in current area
-				trap_BotResetAvoidReach( bs->ms );
+				engine->trap_BotResetAvoidReach( bs->ms );
 				// couldn't get there, so stop trying to get there
 				level.lastGrenadeKick = level.time;
 				return AIFunc_DefaultStart( cs );
@@ -4689,7 +4689,7 @@ char *AIFunc_GrenadeKickStart( cast_state_t *cs ) {
 		// if there are enough friends around, and we have a clear path to the position, sacrifice ourself!
 		if (numFriends > 2) {
 			trace_t tr;
-			trap_Trace( &tr, cs->bs->origin, ent->r.mins, ent->r.maxs, cs->takeCoverPos, cs->entityNum, MASK_SOLID );
+			engine->trap_Trace( &tr, cs->bs->origin, ent->r.mins, ent->r.maxs, cs->takeCoverPos, cs->entityNum, MASK_SOLID );
 			if (tr.fraction == 1.0 && !tr.startsolid) {
 				return AIFunc_GrenadeDiveStart( cs );
 			}
@@ -4773,7 +4773,7 @@ char *AIFunc_Battle( cast_state_t *cs ) {
 		if ( !cs->bs->areanum ) {
 			if ( cs->obstructingTime >= level.time ) {
 				// move there
-				trap_EA_Move( cs->entityNum, cs->takeCoverPos, 200 );
+				engine->trap_EA_Move( cs->entityNum, cs->takeCoverPos, 200 );
 			} else if ( AICast_GetAvoid( cs, NULL, cs->takeCoverPos, qtrue, cs->enemyNum ) ) {
 				VectorSubtract( cs->takeCoverPos, cs->bs->origin, cs->takeCoverPos );
 				if ( VectorNormalize( cs->takeCoverPos ) > 60 ) {
@@ -4878,7 +4878,7 @@ char *AIFunc_Battle( cast_state_t *cs ) {
 	//if the movement failed
 	if (moveresult.failure) {
 		//reset the avoid reach, otherwise bot is stuck in current area
-		trap_BotResetAvoidReach(bs->ms);
+		engine->trap_BotResetAvoidReach(bs->ms);
 		// reset the combatgoal
 		cs->combatGoalTime = 0;
 	} else if (cs->combatGoalTime > level.time && VectorLength(cs->bs->cur_ps.velocity)) {	// crouch if moving?
@@ -4960,18 +4960,18 @@ char *AIFunc_Battle( cast_state_t *cs ) {
 
 			cs->lastRollMove = level.time;
 
-			trap_EA_GetInput( cs->entityNum, (float) level.time / 1000, &bi_back );
-			trap_EA_ResetInput( cs->entityNum, NULL );
+			engine->trap_EA_GetInput( cs->entityNum, (float) level.time / 1000, &bi_back );
+			engine->trap_EA_ResetInput( cs->entityNum, NULL );
 			if ( level.time % 200 < 100 ) {
 				VectorNegate( right, dir );
 			} else { VectorCopy( right, dir );}
-			trap_EA_Move( cs->entityNum, dir, 400 );
-			trap_EA_GetInput( cs->entityNum, (float) level.time / 1000, &bi );
+			engine->trap_EA_Move( cs->entityNum, dir, 400 );
+			engine->trap_EA_GetInput( cs->entityNum, (float) level.time / 1000, &bi );
 			VectorCopy( dir, bi.dir );
 			AICast_InputToUserCommand( cs, &bi, &ucmd, bs->cur_ps.delta_angles );
 			AICast_PredictMovement( cs, 4, simTime / 4, &move, &ucmd, cs->enemyNum );
 
-			trap_EA_ResetInput( cs->entityNum, &bi_back );
+			engine->trap_EA_ResetInput( cs->entityNum, &bi_back );
 
 			if ( move.groundEntityNum == ENTITYNUM_WORLD &&
 				 VectorDistance( move.endpos, cs->bs->origin ) > simTime * cs->attributes[RUNNING_SPEED] * 0.8 ) {
@@ -4987,7 +4987,7 @@ char *AIFunc_Battle( cast_state_t *cs ) {
 	// reload?
 	if ( ( cs->bs->cur_ps.weaponstate != WEAPON_RELOADING ) && ( cs->bs->cur_ps.ammoclip[BG_FindClipForWeapon( (weapon_t)cs->bs->cur_ps.weapon )] < (int)( ammoTable[cs->bs->cur_ps.weapon].uses ) ) ) {
 		if ( AICast_GotEnoughAmmoForWeapon( cs, cs->weaponNum ) ) {
-			trap_EA_Reload( cs->entityNum );
+			engine->trap_EA_Reload( cs->entityNum );
 		} else {    // no ammo, switch?
 			AICast_ChooseWeapon( cs, qfalse );
 			if ( cs->weaponNum == WP_NONE ) {
@@ -5016,7 +5016,7 @@ char *AIFunc_BattleStart( cast_state_t *cs ) {
 	char *rval;
 	int lastweap;
 	// make sure we don't avoid any areas when we start again
-	trap_BotInitAvoidReach( cs->bs->ms );
+	engine->trap_BotInitAvoidReach( cs->bs->ms );
 	// wait some time before taking cover again
 	cs->takeCoverTime = level.time + 300 + rand() % ( 2000 + (int)( 2000.0 * cs->attributes[AGGRESSION] ) );
 	// wait some time before going to a combat spot

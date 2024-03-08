@@ -370,7 +370,7 @@ qboolean G_ScriptAction_MusicStart( gentity_t *ent, char *params ) {
 		fadeupTime = atoi( token );
 	}
 
-	trap_SendServerCommand( -1, va( "mu_start %s %d", cvarName, fadeupTime ) );
+	engine->trap_SendServerCommand( -1, va( "mu_start %s %d", cvarName, fadeupTime ) );
 
 	return qtrue;
 }
@@ -393,7 +393,7 @@ qboolean G_ScriptAction_MusicPlay( gentity_t *ent, char *params ) {
 	}
 	Q_strncpyz( cvarName, token, sizeof( cvarName ) );
 
-	trap_SendServerCommand( -1, va( "mu_play %s %d", cvarName, fadeupTime ) );
+	engine->trap_SendServerCommand( -1, va( "mu_play %s %d", cvarName, fadeupTime ) );
 
 	return qtrue;
 }
@@ -414,7 +414,7 @@ qboolean G_ScriptAction_MusicStop( gentity_t *ent, char *params ) {
 		fadeoutTime = atoi( token );
 	}
 
-	trap_SendServerCommand( -1, va( "mu_stop %i\n", fadeoutTime ) );
+	engine->trap_SendServerCommand( -1, va( "mu_stop %i\n", fadeoutTime ) );
 
 	return qtrue;
 }
@@ -443,7 +443,7 @@ qboolean G_ScriptAction_MusicFade( gentity_t *ent, char *params ) {
 	}
 	fadetime = atoi( token );
 
-	trap_SendServerCommand( -1, va( "mu_fade %f %i\n", targetvol, fadetime ) );
+	engine->trap_SendServerCommand( -1, va( "mu_fade %f %i\n", targetvol, fadetime ) );
 
 	return qtrue;
 }
@@ -465,7 +465,7 @@ qboolean G_ScriptAction_MusicQueue( gentity_t *ent, char *params ) {
 	}
 	Q_strncpyz( cvarName, token, sizeof( cvarName ) );
 
-	trap_SetConfigstring( CS_MUSIC_QUEUE, cvarName );
+	engine->trap_SetConfigstring( CS_MUSIC_QUEUE, cvarName );
 
 	return qtrue;
 }
@@ -762,20 +762,20 @@ qboolean G_ScriptAction_MissionFailed( gentity_t *ent, char *params ) {
 	}
 
 	// play mission fail music
-	trap_SendServerCommand( -1, "mu_play sound/music/l_failed_1.wav 0\n" );
-	trap_SetConfigstring( CS_MUSIC_QUEUE, "" );  // clear queue so it'll be quiet after hit
+	engine->trap_SendServerCommand( -1, "mu_play sound/music/l_failed_1.wav 0\n" );
+	engine->trap_SetConfigstring( CS_MUSIC_QUEUE, "" );  // clear queue so it'll be quiet after hit
 
-	trap_SendServerCommand( -1, va( "snd_fade 0 %d", time * 1000 ) );   //----(SA)	added
+	engine->trap_SendServerCommand( -1, va( "snd_fade 0 %d", time * 1000 ) );   //----(SA)	added
 
 	if ( mof < 0 ) {
 		mof = 0;
 	}
-	trap_SendServerCommand( -1, va( "cp missionfail%d", mof ) );
+	engine->trap_SendServerCommand( -1, va( "cp missionfail%d", mof ) );
 
 	// reload the current savegame, after a delay
-	trap_SetConfigstring( CS_SCREENFADE, va( "1 %i %i", level.time + 250, time * 1000 ) );
+	engine->trap_SetConfigstring( CS_SCREENFADE, va( "1 %i %i", level.time + 250, time * 1000 ) );
 //	reloading = RELOAD_FAILED;
-	trap_Cvar_Set( "g_reloading", va( "%d", RELOAD_FAILED ) );
+	engine->trap_Cvar_Set( "g_reloading", va( "%d", RELOAD_FAILED ) );
 
 	level.reloadDelayTime = level.time + 1000 + time * 1000;
 
@@ -818,9 +818,9 @@ qboolean G_ScriptAction_MissionSuccess( gentity_t *ent, char *params ) {
 	player->missionObjectives |= ( 1 << ( lvl - 1 ) );  // make this bitwise
 
 	//set g_objective<n> cvar
-	trap_Cvar_Register( &cvar, va( "g_objective%i", lvl ), "1", CVAR_ROM );
+	engine->trap_Cvar_Register( &cvar, va( "g_objective%i", lvl ), "1", CVAR_ROM );
 	// set it to make sure
-	trap_Cvar_Set( va( "g_objective%i", lvl ), "1" );
+	engine->trap_Cvar_Set( va( "g_objective%i", lvl ), "1" );
 
 	token = COM_ParseExt( &pString, qfalse );
 	if ( token[0] ) {
@@ -828,7 +828,7 @@ qboolean G_ScriptAction_MissionSuccess( gentity_t *ent, char *params ) {
 			G_Error( "AI Scripting: missionsuccess with unknown parameter: %s\n", token );
 		}
 	} else {    // show on-screen information
-		trap_Cvar_Set( "cg_youGotMail", "2" ); // set flag to draw icon
+		engine->trap_Cvar_Set( "cg_youGotMail", "2" ); // set flag to draw icon
 	}
 
 	return qtrue;
@@ -1086,7 +1086,7 @@ qboolean G_ScriptAction_StartCam( gentity_t *ent, char *params ) {
 	if ( !player ) {
 		G_Error( "player not found, perhaps you should give them more time to spawn in" );
 	}
-	trap_SendServerCommand( player->s.number, va( "startCam %s", token ) );
+	engine->trap_SendServerCommand( player->s.number, va( "startCam %s", token ) );
 
 	return qtrue;
 }
@@ -1097,7 +1097,7 @@ G_ScriptAction_EntityScriptName
 =================
 */
 qboolean G_ScriptAction_EntityScriptName( gentity_t *ent, char *params ) {
-	trap_Cvar_Set( "g_scriptName", params );
+	engine->trap_Cvar_Set( "g_scriptName", params );
 	return qtrue;
 }
 
@@ -1108,7 +1108,7 @@ G_ScriptAction_AIScriptName
 =================
 */
 qboolean G_ScriptAction_AIScriptName( gentity_t *ent, char *params ) {
-	trap_Cvar_Set( "ai_scriptName", params );
+	engine->trap_Cvar_Set( "ai_scriptName", params );
 	return qtrue;
 }
 
@@ -1128,7 +1128,7 @@ qboolean G_ScriptAction_MapDescription( gentity_t *ent, char *params ) {
 	pString = params;
 	token = COM_Parse( &pString );
 
-	trap_SetConfigstring( CS_MULTI_MAPDESC, token );
+	engine->trap_SetConfigstring( CS_MULTI_MAPDESC, token );
 
 	return qtrue;
 }
@@ -1149,7 +1149,7 @@ qboolean G_ScriptAction_AxisRespawntime( gentity_t *ent, char *params ) {
 		G_Error( "G_ScriptAction_AxisRespawntime: time parameter required\n" );
 	}
 
-	trap_Cvar_Set( "g_redlimbotime", va( "%s000", token ) );
+	engine->trap_Cvar_Set( "g_redlimbotime", va( "%s000", token ) );
 
 	return qtrue;
 }
@@ -1170,7 +1170,7 @@ qboolean G_ScriptAction_AlliedRespawntime( gentity_t *ent, char *params ) {
 		G_Error( "G_ScriptAction_AlliedRespawntime: time parameter required\n" );
 	}
 
-	trap_Cvar_Set( "g_bluelimbotime", va( "%s000", token ) );
+	engine->trap_Cvar_Set( "g_bluelimbotime", va( "%s000", token ) );
 
 	return qtrue;
 }
@@ -1199,11 +1199,11 @@ qboolean G_ScriptAction_NumberofObjectives( gentity_t *ent, char *params ) {
 		G_Error( "G_ScriptAction_NumberofObjectives: Invalid number of objectives\n" );
 	}
 
-	trap_GetConfigstring( CS_MULTI_INFO, cs, sizeof( cs ) );
+	engine->trap_GetConfigstring( CS_MULTI_INFO, cs, sizeof( cs ) );
 
 	Info_SetValueForKey( cs, "numobjectives", token );
 
-	trap_SetConfigstring( CS_MULTI_INFO, cs );
+	engine->trap_SetConfigstring( CS_MULTI_INFO, cs );
 
 	return qtrue;
 }
@@ -1240,11 +1240,11 @@ qboolean G_ScriptAction_ObjectiveAxisDesc( gentity_t *ent, char *params ) {
 	// Move to correct objective config string
 	cs_obj += ( num - 1 );
 
-	trap_GetConfigstring( cs_obj, cs, sizeof( cs ) );
+	engine->trap_GetConfigstring( cs_obj, cs, sizeof( cs ) );
 
 	Info_SetValueForKey( cs, "axis_desc", token );
 
-	trap_SetConfigstring( cs_obj, cs );
+	engine->trap_SetConfigstring( cs_obj, cs );
 
 	return qtrue;
 }
@@ -1281,11 +1281,11 @@ qboolean G_ScriptAction_ObjectiveAlliedDesc( gentity_t *ent, char *params ) {
 	// Move to correct objective config string
 	cs_obj += ( num - 1 );
 
-	trap_GetConfigstring( cs_obj, cs, sizeof( cs ) );
+	engine->trap_GetConfigstring( cs_obj, cs, sizeof( cs ) );
 
 	Info_SetValueForKey( cs, "allied_desc", token );
 
-	trap_SetConfigstring( cs_obj, cs );
+	engine->trap_SetConfigstring( cs_obj, cs );
 
 	return qtrue;
 }
@@ -1316,11 +1316,11 @@ qboolean G_ScriptAction_SetWinner( gentity_t *ent, char *params ) {
 		G_Error( "G_ScriptAction_SetWinner: Invalid team number\n" );
 	}
 
-	trap_GetConfigstring( CS_MULTI_INFO, cs, sizeof( cs ) );
+	engine->trap_GetConfigstring( CS_MULTI_INFO, cs, sizeof( cs ) );
 
 	Info_SetValueForKey( cs, "winner", token );
 
-	trap_SetConfigstring( CS_MULTI_INFO, cs );
+	engine->trap_SetConfigstring( CS_MULTI_INFO, cs );
 
 	return qtrue;
 }
@@ -1364,11 +1364,11 @@ qboolean G_ScriptAction_SetObjectiveStatus( gentity_t *ent, char *params ) {
 	// Move to correct objective config string
 	cs_obj += ( num - 1 );
 
-	trap_GetConfigstring( cs_obj, cs, sizeof( cs ) );
+	engine->trap_GetConfigstring( cs_obj, cs, sizeof( cs ) );
 
 	Info_SetValueForKey( cs, "status", token );
 
-	trap_SetConfigstring( cs_obj, cs );
+	engine->trap_SetConfigstring( cs_obj, cs );
 
 	return qtrue;
 }
@@ -1389,7 +1389,7 @@ qboolean G_ScriptAction_Announce( gentity_t *ent, char *params ) {
 		G_Error( "G_ScriptAction_Announce: statement parameter required\n" );
 	}
 
-	trap_SendServerCommand( -1, va( "cp \"%s\"", token ) );
+	engine->trap_SendServerCommand( -1, va( "cp \"%s\"", token ) );
 
 	return qtrue;
 }
@@ -1426,7 +1426,7 @@ qboolean G_ScriptAction_SetRoundTimelimit( gentity_t *ent, char *params ) {
 		G_Error( "G_ScriptAction_SetRoundTimelimit: number parameter required\n" );
 	}
 
-	trap_Cvar_Set( "timelimit", token );
+	engine->trap_Cvar_Set( "timelimit", token );
 
 	return qtrue;
 }

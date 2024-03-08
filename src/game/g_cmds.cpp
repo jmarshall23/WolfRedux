@@ -76,7 +76,7 @@ void DeathmatchScoreboardMessage( gentity_t *ent ) {
 		stringlength += j;
 	}
 
-	trap_SendServerCommand( ent - g_entities, va( "scores %i %i %i%s", i,
+	engine->trap_SendServerCommand( ent - g_entities, va( "scores %i %i %i%s", i,
 												  level.teamScores[TEAM_RED], level.teamScores[TEAM_BLUE],
 												  string ) );
 }
@@ -101,11 +101,11 @@ CheatsOk
 */
 qboolean    CheatsOk( gentity_t *ent ) {
 	if ( !g_cheats.integer ) {
-		trap_SendServerCommand( ent - g_entities, va( "print \"Cheats are not enabled on this server.\n\"" ) );
+		engine->trap_SendServerCommand( ent - g_entities, va( "print \"Cheats are not enabled on this server.\n\"" ) );
 		return qfalse;
 	}
 	if ( ent->health <= 0 ) {
-		trap_SendServerCommand( ent - g_entities, va( "print \"You must be alive to use this command.\n\"" ) );
+		engine->trap_SendServerCommand( ent - g_entities, va( "print \"You must be alive to use this command.\n\"" ) );
 		return qfalse;
 	}
 	return qtrue;
@@ -124,9 +124,9 @@ char    *ConcatArgs( int start ) {
 	char arg[MAX_STRING_CHARS];
 
 	len = 0;
-	c = trap_Argc();
+	c = engine->trap_Argc();
 	for ( i = start ; i < c ; i++ ) {
-		trap_Argv( i, arg, sizeof( arg ) );
+		engine->trap_Argv( i, arg, sizeof( arg ) );
 		tlen = strlen( arg );
 		if ( len + tlen >= MAX_STRING_CHARS - 1 ) {
 			break;
@@ -185,13 +185,13 @@ int ClientNumberFromString( gentity_t *to, char *s ) {
 	if ( s[0] >= '0' && s[0] <= '9' ) {
 		idnum = atoi( s );
 		if ( idnum < 0 || idnum >= level.maxclients ) {
-			trap_SendServerCommand( to - g_entities, va( "print \"Bad client slot: %i\n\"", idnum ) );
+			engine->trap_SendServerCommand( to - g_entities, va( "print \"Bad client slot: %i\n\"", idnum ) );
 			return -1;
 		}
 
 		cl = &level.clients[idnum];
 		if ( cl->pers.connected != CON_CONNECTED ) {
-			trap_SendServerCommand( to - g_entities, va( "print \"Client %i is not active\n\"", idnum ) );
+			engine->trap_SendServerCommand( to - g_entities, va( "print \"Client %i is not active\n\"", idnum ) );
 			return -1;
 		}
 		return idnum;
@@ -209,7 +209,7 @@ int ClientNumberFromString( gentity_t *to, char *s ) {
 		}
 	}
 
-	trap_SendServerCommand( to - g_entities, va( "print \"User %s is not on the server\n\"", s ) );
+	engine->trap_SendServerCommand( to - g_entities, va( "print \"User %s is not on the server\n\"", s ) );
 	return -1;
 }
 
@@ -222,7 +222,7 @@ G_setfog
 ==============
 */
 void G_setfog( char *fogstring ) {
-	trap_SetConfigstring( CS_FOGVARS, fogstring );
+	engine->trap_SetConfigstring( CS_FOGVARS, fogstring );
 }
 
 /*
@@ -415,7 +415,7 @@ void Cmd_God_f( gentity_t *ent ) {
 		msg = "godmode ON\n";
 	}
 
-	trap_SendServerCommand( ent - g_entities, va( "print \"%s\"", msg ) );
+	engine->trap_SendServerCommand( ent - g_entities, va( "print \"%s\"", msg ) );
 }
 
 /*
@@ -442,7 +442,7 @@ void Cmd_Nofatigue_f( gentity_t *ent ) {
 		msg = "nofatigue ON\n";
 	}
 
-	trap_SendServerCommand( ent - g_entities, va( "print \"%s\"", msg ) );
+	engine->trap_SendServerCommand( ent - g_entities, va( "print \"%s\"", msg ) );
 }
 
 /*
@@ -468,7 +468,7 @@ void Cmd_Notarget_f( gentity_t *ent ) {
 		msg = "notarget ON\n";
 	}
 
-	trap_SendServerCommand( ent - g_entities, va( "print \"%s\"", msg ) );
+	engine->trap_SendServerCommand( ent - g_entities, va( "print \"%s\"", msg ) );
 }
 
 
@@ -493,7 +493,7 @@ void Cmd_Noclip_f( gentity_t *ent ) {
 	}
 	ent->client->noclip = !ent->client->noclip;
 
-	trap_SendServerCommand( ent - g_entities, va( "print \"%s\"", msg ) );
+	engine->trap_SendServerCommand( ent - g_entities, va( "print \"%s\"", msg ) );
 }
 
 
@@ -514,13 +514,13 @@ void Cmd_LevelShot_f( gentity_t *ent ) {
 
 	// doesn't work in single player
 	if ( g_gametype.integer != 0 ) {
-		trap_SendServerCommand( ent - g_entities,
+		engine->trap_SendServerCommand( ent - g_entities,
 								"print \"Must be in g_gametype 0 for levelshot\n\"" );
 		return;
 	}
 
 	BeginIntermission();
-	trap_SendServerCommand( ent - g_entities, "clientLevelShot" );
+	engine->trap_SendServerCommand( ent - g_entities, "clientLevelShot" );
 }
 
 
@@ -636,16 +636,16 @@ void SetTeam( gentity_t *ent, char *s ) {
 	client->sess.spectatorClient = specClient;
 
 	if ( team == TEAM_RED ) {
-		trap_SendServerCommand( -1, va( "cp \"%s" S_COLOR_WHITE " joined the red team.\n\"",
+		engine->trap_SendServerCommand( -1, va( "cp \"%s" S_COLOR_WHITE " joined the red team.\n\"",
 										client->pers.netname ) );
 	} else if ( team == TEAM_BLUE ) {
-		trap_SendServerCommand( -1, va( "cp \"%s" S_COLOR_WHITE " joined the blue team.\n\"",
+		engine->trap_SendServerCommand( -1, va( "cp \"%s" S_COLOR_WHITE " joined the blue team.\n\"",
 										client->pers.netname ) );
 	} else if ( team == TEAM_SPECTATOR && oldTeam != TEAM_SPECTATOR ) {
-		trap_SendServerCommand( -1, va( "cp \"%s" S_COLOR_WHITE " joined the spectators.\n\"",
+		engine->trap_SendServerCommand( -1, va( "cp \"%s" S_COLOR_WHITE " joined the spectators.\n\"",
 										client->pers.netname ) );
 	} else if ( team == TEAM_FREE ) {
-		trap_SendServerCommand( -1, va( "cp \"%s" S_COLOR_WHITE " joined the battle.\n\"",
+		engine->trap_SendServerCommand( -1, va( "cp \"%s" S_COLOR_WHITE " joined the battle.\n\"",
 										client->pers.netname ) );
 	}
 
@@ -702,20 +702,20 @@ void Cmd_Team_f( gentity_t *ent ) {
 	char s[MAX_TOKEN_CHARS];
 	char ptype[4], weap[4], pistol[4], grenade[4], skinnum[4];
 
-	if ( trap_Argc() < 2 ) {
+	if ( engine->trap_Argc() < 2 ) {
 		oldTeam = ent->client->sess.sessionTeam;
 		switch ( oldTeam ) {
 		case TEAM_BLUE:
-			trap_SendServerCommand( ent - g_entities, "print \"Blue team\n\"" );
+			engine->trap_SendServerCommand( ent - g_entities, "print \"Blue team\n\"" );
 			break;
 		case TEAM_RED:
-			trap_SendServerCommand( ent - g_entities, "print \"Red team\n\"" );
+			engine->trap_SendServerCommand( ent - g_entities, "print \"Red team\n\"" );
 			break;
 		case TEAM_FREE:
-			trap_SendServerCommand( ent - g_entities, "print \"Free team\n\"" );
+			engine->trap_SendServerCommand( ent - g_entities, "print \"Free team\n\"" );
 			break;
 		case TEAM_SPECTATOR:
-			trap_SendServerCommand( ent - g_entities, "print \"Spectator team\n\"" );
+			engine->trap_SendServerCommand( ent - g_entities, "print \"Spectator team\n\"" );
 			break;
 		}
 		return;
@@ -728,17 +728,17 @@ void Cmd_Team_f( gentity_t *ent ) {
 
 	// DHM - Nerve
 	if ( g_gametype.integer == GT_WOLF ) {
-		trap_Argv( 2, ptype, sizeof( ptype ) );
-		trap_Argv( 3, weap, sizeof( weap ) );
-		trap_Argv( 4, pistol, sizeof( pistol ) );
-		trap_Argv( 5, grenade, sizeof( grenade ) );
-		trap_Argv( 6, skinnum, sizeof( skinnum ) );
+		engine->trap_Argv( 2, ptype, sizeof( ptype ) );
+		engine->trap_Argv( 3, weap, sizeof( weap ) );
+		engine->trap_Argv( 4, pistol, sizeof( pistol ) );
+		engine->trap_Argv( 5, grenade, sizeof( grenade ) );
+		engine->trap_Argv( 6, skinnum, sizeof( skinnum ) );
 
 		SetWolfData( ent, ptype, weap, pistol, grenade, skinnum );
 	}
 	// dhm - end
 
-	trap_Argv( 1, s, sizeof( s ) );
+	engine->trap_Argv( 1, s, sizeof( s ) );
 
 	SetTeam( ent, s );
 }
@@ -753,14 +753,14 @@ void Cmd_Follow_f( gentity_t *ent ) {
 	int i;
 	char arg[MAX_TOKEN_CHARS];
 
-	if ( trap_Argc() != 2 ) {
+	if ( engine->trap_Argc() != 2 ) {
 		if ( ent->client->sess.spectatorState == SPECTATOR_FOLLOW ) {
 			StopFollowing( ent );
 		}
 		return;
 	}
 
-	trap_Argv( 1, arg, sizeof( arg ) );
+	engine->trap_Argv( 1, arg, sizeof( arg ) );
 	i = ClientNumberFromString( ent, arg );
 	if ( i == -1 ) {
 		return;
@@ -888,12 +888,12 @@ void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, const char 
 
 	// NERVE - SMF
 	if ( mode == SAY_LIMBO ) {
-		trap_SendServerCommand( other - g_entities, va( "%s \"%s%c%c%s\"",
+		engine->trap_SendServerCommand( other - g_entities, va( "%s \"%s%c%c%s\"",
 														"lchat", name, Q_COLOR_ESCAPE, color, message ) );
 	}
 	// -NERVE - SMF
 	else {
-		trap_SendServerCommand( other - g_entities, va( "%s \"%s%c%c%s\"",
+		engine->trap_SendServerCommand( other - g_entities, va( "%s \"%s%c%c%s\"",
 														mode == SAY_TEAM ? "tchat" : "chat",
 														name, Q_COLOR_ESCAPE, color, message ) );
 	}
@@ -983,7 +983,7 @@ Cmd_Say_f
 static void Cmd_Say_f( gentity_t *ent, int mode, qboolean arg0 ) {
 	char        *p;
 
-	if ( trap_Argc() < 2 && !arg0 ) {
+	if ( engine->trap_Argc() < 2 && !arg0 ) {
 		return;
 	}
 
@@ -1008,11 +1008,11 @@ static void Cmd_Tell_f( gentity_t *ent ) {
 	char        *p;
 	char arg[MAX_TOKEN_CHARS];
 
-	if ( trap_Argc() < 2 ) {
+	if ( engine->trap_Argc() < 2 ) {
 		return;
 	}
 
-	trap_Argv( 1, arg, sizeof( arg ) );
+	engine->trap_Argv( 1, arg, sizeof( arg ) );
 	targetNum = atoi( arg );
 	if ( targetNum < 0 || targetNum >= level.maxclients ) {
 		return;
@@ -1046,9 +1046,9 @@ void Cmd_GameCommand_f( gentity_t *ent ) {
 	int order;
 	char str[MAX_TOKEN_CHARS];
 
-	trap_Argv( 1, str, sizeof( str ) );
+	engine->trap_Argv( 1, str, sizeof( str ) );
 	player = atoi( str );
-	trap_Argv( 2, str, sizeof( str ) );
+	engine->trap_Argv( 2, str, sizeof( str ) );
 	order = atoi( str );
 
 	if ( player < 0 || player >= MAX_CLIENTS ) {
@@ -1067,7 +1067,7 @@ Cmd_Where_f
 ==================
 */
 void Cmd_Where_f( gentity_t *ent ) {
-	trap_SendServerCommand( ent - g_entities, va( "print \"%s\n\"", vtos( ent->s.origin ) ) );
+	engine->trap_SendServerCommand( ent - g_entities, va( "print \"%s\n\"", vtos( ent->s.origin ) ) );
 }
 
 
@@ -1082,34 +1082,34 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 	char arg2[MAX_STRING_TOKENS];
 
 	if ( !g_allowVote.integer ) {
-		trap_SendServerCommand( ent - g_entities, "print \"Voting not allowed here.\n\"" );
+		engine->trap_SendServerCommand( ent - g_entities, "print \"Voting not allowed here.\n\"" );
 		return;
 	}
 
 	if ( level.voteTime ) {
-		trap_SendServerCommand( ent - g_entities, "print \"A vote is already in progress.\n\"" );
+		engine->trap_SendServerCommand( ent - g_entities, "print \"A vote is already in progress.\n\"" );
 		return;
 	}
 	if ( ent->client->pers.voteCount >= MAX_VOTE_COUNT ) {
-		trap_SendServerCommand( ent - g_entities, "print \"You have called the maximum number of votes.\n\"" );
+		engine->trap_SendServerCommand( ent - g_entities, "print \"You have called the maximum number of votes.\n\"" );
 		return;
 	}
 
 	// make sure it is a valid command to vote on
-	trap_Argv( 1, arg1, sizeof( arg1 ) );
-	trap_Argv( 2, arg2, sizeof( arg2 ) );
+	engine->trap_Argv( 1, arg1, sizeof( arg1 ) );
+	engine->trap_Argv( 2, arg2, sizeof( arg2 ) );
 
 	if ( !Q_stricmp( arg1, "map_restart" ) ) {
 	} else if ( !Q_stricmp( arg1, "map" ) ) {
 	} else if ( !Q_stricmp( arg1, "g_gametype" ) ) {
 	} else if ( !Q_stricmp( arg1, "kick" ) ) {
 	} else {
-		trap_SendServerCommand( ent - g_entities, "print \"Invalid vote string.\n\"" );
+		engine->trap_SendServerCommand( ent - g_entities, "print \"Invalid vote string.\n\"" );
 		return;
 	}
 	Com_sprintf( level.voteString, sizeof( level.voteString ), "%s %s", arg1, arg2 );
 
-	trap_SendServerCommand( -1, va( "print \"%s called a vote.\n\"", ent->client->pers.netname ) );
+	engine->trap_SendServerCommand( -1, va( "print \"%s called a vote.\n\"", ent->client->pers.netname ) );
 
 	// start the voting, the caller autoamtically votes yes
 	level.voteTime = level.time;
@@ -1121,10 +1121,10 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 	}
 	ent->client->ps.eFlags |= EF_VOTED;
 
-	trap_SetConfigstring( CS_VOTE_TIME, va( "%i", level.voteTime ) );
-	trap_SetConfigstring( CS_VOTE_STRING, level.voteString );
-	trap_SetConfigstring( CS_VOTE_YES, va( "%i", level.voteYes ) );
-	trap_SetConfigstring( CS_VOTE_NO, va( "%i", level.voteNo ) );
+	engine->trap_SetConfigstring( CS_VOTE_TIME, va( "%i", level.voteTime ) );
+	engine->trap_SetConfigstring( CS_VOTE_STRING, level.voteString );
+	engine->trap_SetConfigstring( CS_VOTE_YES, va( "%i", level.voteYes ) );
+	engine->trap_SetConfigstring( CS_VOTE_NO, va( "%i", level.voteNo ) );
 }
 
 /*
@@ -1136,26 +1136,26 @@ void Cmd_Vote_f( gentity_t *ent ) {
 	char msg[64];
 
 	if ( !level.voteTime ) {
-		trap_SendServerCommand( ent - g_entities, "print \"No vote in progress.\n\"" );
+		engine->trap_SendServerCommand( ent - g_entities, "print \"No vote in progress.\n\"" );
 		return;
 	}
 	if ( ent->client->ps.eFlags & EF_VOTED ) {
-		trap_SendServerCommand( ent - g_entities, "print \"Vote already cast.\n\"" );
+		engine->trap_SendServerCommand( ent - g_entities, "print \"Vote already cast.\n\"" );
 		return;
 	}
 
-	trap_SendServerCommand( ent - g_entities, "print \"Vote cast.\n\"" );
+	engine->trap_SendServerCommand( ent - g_entities, "print \"Vote cast.\n\"" );
 
 	ent->client->ps.eFlags |= EF_VOTED;
 
-	trap_Argv( 1, msg, sizeof( msg ) );
+	engine->trap_Argv( 1, msg, sizeof( msg ) );
 
 	if ( msg[0] == 'y' || msg[1] == 'Y' || msg[1] == '1' ) {
 		level.voteYes++;
-		trap_SetConfigstring( CS_VOTE_YES, va( "%i", level.voteYes ) );
+		engine->trap_SetConfigstring( CS_VOTE_YES, va( "%i", level.voteYes ) );
 	} else {
 		level.voteNo++;
-		trap_SetConfigstring( CS_VOTE_NO, va( "%i", level.voteNo ) );
+		engine->trap_SetConfigstring( CS_VOTE_NO, va( "%i", level.voteNo ) );
 	}
 
 	// a majority will be determined in G_CheckVote, which will also account
@@ -1199,21 +1199,21 @@ void Cmd_SetViewpos_f( gentity_t *ent ) {
 	int i;
 
 	if ( !g_cheats.integer ) {
-		trap_SendServerCommand( ent - g_entities, va( "print \"Cheats are not enabled on this server.\n\"" ) );
+		engine->trap_SendServerCommand( ent - g_entities, va( "print \"Cheats are not enabled on this server.\n\"" ) );
 		return;
 	}
-	if ( trap_Argc() != 5 ) {
-		trap_SendServerCommand( ent - g_entities, va( "print \"usage: setviewpos x y z yaw\n\"" ) );
+	if ( engine->trap_Argc() != 5 ) {
+		engine->trap_SendServerCommand( ent - g_entities, va( "print \"usage: setviewpos x y z yaw\n\"" ) );
 		return;
 	}
 
 	VectorClear( angles );
 	for ( i = 0 ; i < 3 ; i++ ) {
-		trap_Argv( i + 1, buffer, sizeof( buffer ) );
+		engine->trap_Argv( i + 1, buffer, sizeof( buffer ) );
 		origin[i] = atof( buffer );
 	}
 
-	trap_Argv( 4, buffer, sizeof( buffer ) );
+	engine->trap_Argv( 4, buffer, sizeof( buffer ) );
 	angles[YAW] = atof( buffer );
 
 	TeleportPlayer( ent, origin, angles );
@@ -1261,7 +1261,7 @@ void Cmd_StopCamera_f( gentity_t *ent ) {
 		sp = NULL;
 		// gcc: suggests () around assignment used as truth value
 		while ( ( sp = G_Find( sp, FOFS( classname ), "info_player_deathmatch" ) ) ) { // info_player_start becomes info_player_deathmatch in it's spawn functon
-			if ( Distance( ent->s.pos.trBase, sp->s.origin ) < 256 && trap_InPVS( ent->s.pos.trBase, sp->s.origin ) ) {
+			if ( Distance( ent->s.pos.trBase, sp->s.origin ) < 256 && engine->trap_InPVS( ent->s.pos.trBase, sp->s.origin ) ) {
 				G_SaveGame( NULL );
 				break;
 			}
@@ -1278,13 +1278,13 @@ void Cmd_SetCameraOrigin_f( gentity_t *ent ) {
 	char buffer[MAX_TOKEN_CHARS];
 	int i;
 
-	if ( trap_Argc() != 4 ) {
+	if ( engine->trap_Argc() != 4 ) {
 		return;
 	}
 
 	VectorClear( ent->client->cameraOrigin );
 	for ( i = 0 ; i < 3 ; i++ ) {
-		trap_Argv( i + 1, buffer, sizeof( buffer ) );
+		engine->trap_Argv( i + 1, buffer, sizeof( buffer ) );
 		ent->client->cameraOrigin[i] = atof( buffer );
 	}
 }
@@ -1329,7 +1329,7 @@ qboolean G_ThrowChair( gentity_t *ent, vec3_t dir, qboolean force ) {
 	VectorCopy( start, end );
 	VectorMA( end, 32, dir, end );
 
-	trap_Trace( &trace, start, mins, maxs, end, ent->s.number, MASK_SOLID | MASK_MISSILESHOT );
+	engine->trap_Trace( &trace, start, mins, maxs, end, ent->s.number, MASK_SOLID | MASK_MISSILESHOT );
 
 	traceEnt = &g_entities[ trace.entityNum ];
 
@@ -1384,7 +1384,7 @@ void Cmd_Activate_f( gentity_t *ent ) {
 
 	VectorMA( offset, 96, forward, end );
 
-	trap_Trace( &tr, offset, NULL, NULL, end, ent->s.number, ( CONTENTS_SOLID | CONTENTS_BODY | CONTENTS_CORPSE | CONTENTS_TRIGGER ) );
+	engine->trap_Trace( &tr, offset, NULL, NULL, end, ent->s.number, ( CONTENTS_SOLID | CONTENTS_BODY | CONTENTS_CORPSE | CONTENTS_TRIGGER ) );
 
 	//----(SA)	removed erroneous code
 
@@ -1596,7 +1596,7 @@ int Cmd_WolfKick_f( gentity_t *ent ) {
 	// note to self: we need to determine the usable distance for wolf
 	VectorMA( offset, WOLFKICKDISTANCE, forward, end );
 
-	trap_Trace( &tr, offset, NULL, NULL, end, ent->s.number, ( CONTENTS_SOLID | CONTENTS_BODY | CONTENTS_CORPSE | CONTENTS_TRIGGER ) );
+	engine->trap_Trace( &tr, offset, NULL, NULL, end, ent->s.number, ( CONTENTS_SOLID | CONTENTS_BODY | CONTENTS_CORPSE | CONTENTS_TRIGGER ) );
 
 	if ( tr.surfaceFlags & SURF_NOIMPACT || tr.fraction == 1.0 ) {
 		tent = G_TempEntity( tr.endpos, EV_WOLFKICK_MISS );
@@ -1747,20 +1747,20 @@ void Cmd_ClientMonsterSlickAngle (gentity_t *clent) {
 	vec3_t	dir, kvel;
 	vec3_t	forward;
 
-	if (trap_Argc() != 3) {
+	if (engine->trap_Argc() != 3) {
 		G_Printf( "ClientDamage command issued with incorrect number of args\n" );
 	}
 
-	trap_Argv( 1, s, sizeof( s ) );
+	engine->trap_Argv( 1, s, sizeof( s ) );
 	entnum = atoi(s);
 	ent = &g_entities[entnum];
 
-	trap_Argv( 2, s, sizeof( s ) );
+	engine->trap_Argv( 2, s, sizeof( s ) );
 	angle = atoi(s);
 
 	// sanity check (also protect from cheaters)
 	if (g_gametype.integer != GT_SINGLE_PLAYER && entnum != clent->s.number) {
-		trap_DropClient( clent->s.number, "Dropped due to illegal ClientMonsterSlick command\n" );
+		engine->trap_DropClient( clent->s.number, "Dropped due to illegal ClientMonsterSlick command\n" );
 		return;
 	}
 
@@ -1791,7 +1791,7 @@ void ClientDamage( gentity_t *clent, int entnum, int enemynum, int id ) {
 	//  Either a new way has to be found, or this check needs to change.
 	// sanity check (also protect from cheaters)
 //	if (g_gametype.integer != GT_SINGLE_PLAYER && entnum != clent->s.number) {
-//		trap_DropClient( clent->s.number, "Dropped due to illegal ClientDamage command\n" );
+//		engine->trap_DropClient( clent->s.number, "Dropped due to illegal ClientDamage command\n" );
 //		return;
 //	}
 	// -NERVE - SMF
@@ -1928,17 +1928,17 @@ void Cmd_ClientDamage_f( gentity_t *clent ) {
 	char s[MAX_STRING_CHARS];
 	int entnum, id, enemynum;
 
-	if ( trap_Argc() != 4 ) {
+	if ( engine->trap_Argc() != 4 ) {
 		G_Printf( "ClientDamage command issued with incorrect number of args\n" );
 	}
 
-	trap_Argv( 1, s, sizeof( s ) );
+	engine->trap_Argv( 1, s, sizeof( s ) );
 	entnum = atoi( s );
 
-	trap_Argv( 2, s, sizeof( s ) );
+	engine->trap_Argv( 2, s, sizeof( s ) );
 	enemynum = atoi( s );
 
-	trap_Argv( 3, s, sizeof( s ) );
+	engine->trap_Argv( 3, s, sizeof( s ) );
 	id = atoi( s );
 
 	ClientDamage( clent, entnum, enemynum, id );
@@ -2018,11 +2018,11 @@ void Cmd_SetSpawnPoint_f( gentity_t *clent ) {
 	char arg[MAX_TOKEN_CHARS];
 	int spawnIndex;
 
-	if ( trap_Argc() != 2 ) {
+	if ( engine->trap_Argc() != 2 ) {
 		return;
 	}
 
-	trap_Argv( 1, arg, sizeof( arg ) );
+	engine->trap_Argv( 1, arg, sizeof( arg ) );
 	spawnIndex = atoi( arg );
 }
 // -NERVE - SMF
@@ -2042,7 +2042,7 @@ void ClientCommand( int clientNum ) {
 	}
 
 
-	trap_Argv( 0, cmd, sizeof( cmd ) );
+	engine->trap_Argv( 0, cmd, sizeof( cmd ) );
 
 	// Ridah, AI Cast debugging
 	if ( Q_stricmp( cmd, "aicast" ) == 0 ) {
@@ -2142,6 +2142,6 @@ void ClientCommand( int clientNum ) {
 	} else if ( Q_stricmp( cmd, "setspawnpt" ) == 0 )  {
 		Cmd_SetSpawnPoint_f( ent );
 	} else {
-		trap_SendServerCommand( clientNum, va( "print \"unknown cmd %s\n\"", cmd ) );
+		engine->trap_SendServerCommand( clientNum, va( "print \"unknown cmd %s\n\"", cmd ) );
 	}
 }

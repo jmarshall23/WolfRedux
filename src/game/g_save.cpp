@@ -292,7 +292,7 @@ G_SaveWrite
 int G_SaveWrite( const void *buffer, int len, fileHandle_t f ) {
 	saveByteCount += len;
 
-	return trap_FS_Write( buffer, len, f );
+	return engine->trap_FS_Write( buffer, len, f );
 }
 
 //=========================================================
@@ -438,7 +438,7 @@ void ReadField( fileHandle_t f, saveField_t *field, byte *base ) {
 		} else
 		{
 			*(char **)p = (char *)G_Alloc( len );
-			trap_FS_Read( *(char **)p, len, f );
+			engine->trap_FS_Read( *(char **)p, len, f );
 		}
 		break;
 	case F_ENTITY:
@@ -483,7 +483,7 @@ void ReadField( fileHandle_t f, saveField_t *field, byte *base ) {
 			if ( len > sizeof( funcStr ) ) {
 				G_Error( "ReadField: function name is greater than buffer (%i chars)", sizeof( funcStr ) );
 			}
-			trap_FS_Read( funcStr, len, f );
+			engine->trap_FS_Read( funcStr, len, f );
 			if ( !( *(byte **)p = G_FindFuncByName( funcStr ) ) ) {
 				G_Error( "ReadField: unknown function '%s'\ncannot load game", funcStr );
 			}
@@ -635,14 +635,14 @@ void ReadClient( fileHandle_t f, gclient_t *client, int size ) {
 	int decodedSize;
 
 	if ( ver == 10 ) {
-		trap_FS_Read( &temp, size, f );
+		engine->trap_FS_Read( &temp, size, f );
 	} else {
 		// read the encoded chunk
-		trap_FS_Read( &decodedSize, sizeof( int ), f );
+		engine->trap_FS_Read( &decodedSize, sizeof( int ), f );
 		if ( decodedSize > sizeof( clientBuf ) ) {
 			G_Error( "G_LoadGame: encoded chunk is greater than buffer" );
 		}
-		trap_FS_Read( clientBuf, decodedSize, f ); \
+		engine->trap_FS_Read( clientBuf, decodedSize, f ); \
 		// decode it
 		G_Save_Decode( clientBuf, decodedSize, (byte *)&temp, sizeof( temp ) );
 	}
@@ -688,19 +688,19 @@ void ReadClient( fileHandle_t f, gclient_t *client, int size ) {
 				G_SetOrigin( ent, trav->s.origin );
 				VectorCopy( trav->s.origin, ent->client->ps.origin );
 
-				trap_GetUsercmd( ent->client - level.clients, &ent->client->pers.cmd );
+				engine->trap_GetUsercmd( ent->client - level.clients, &ent->client->pers.cmd );
 				SetClientViewAngle( ent, trav->s.angles );
 				break;
 			}
 		}
 
 		if (!trav) {
-			trap_GetUsercmd( ent->client - level.clients, &ent->client->pers.cmd );
+			engine->trap_GetUsercmd( ent->client - level.clients, &ent->client->pers.cmd );
 			SetClientViewAngle( ent, ent->client->ps.viewangles );
 		}
 	} else {
 */
-	trap_GetUsercmd( ent->client - level.clients, &ent->client->pers.cmd );
+	engine->trap_GetUsercmd( ent->client - level.clients, &ent->client->pers.cmd );
 	SetClientViewAngle( ent, ent->client->ps.viewangles );
 //	}
 
@@ -713,7 +713,7 @@ void ReadClient( fileHandle_t f, gclient_t *client, int size ) {
 	// before they are known in the cgame
 	// run a client frame to drop exactly to the floor,
 	// initialize animations and other things
-	//trap_GetUsercmd( ent-g_entities, &ent->client->pers.cmd );
+	//engine->trap_GetUsercmd( ent-g_entities, &ent->client->pers.cmd );
 	//ent->client->ps.commandTime = ent->client->pers.cmd.serverTime - 100;
 	//ClientThink( ent-g_entities );
 
@@ -721,10 +721,10 @@ void ReadClient( fileHandle_t f, gclient_t *client, int size ) {
 	if ( !( ent->r.svFlags & SVF_CASTAI ) ) {
 		vmCvar_t cvar;
 		// tell it which weapon to use after spawning in
-		trap_Cvar_Register( &cvar, "cg_loadWeaponSelect", "0", CVAR_ROM );
-		trap_Cvar_Set( "cg_loadWeaponSelect", va( "%i", client->ps.weapon ) );
+		engine->trap_Cvar_Register( &cvar, "cg_loadWeaponSelect", "0", CVAR_ROM );
+		engine->trap_Cvar_Set( "cg_loadWeaponSelect", va( "%i", client->ps.weapon ) );
 		//
-		trap_SendServerCommand( client->ps.clientNum, "map_restart\n" );
+		engine->trap_SendServerCommand( client->ps.clientNum, "map_restart\n" );
 	}
 }
 
@@ -795,14 +795,14 @@ void ReadEntity( fileHandle_t f, gentity_t *ent, int size ) {
 	backup = *ent;
 
 	if ( ver == 10 ) {
-		trap_FS_Read( &temp, size, f );
+		engine->trap_FS_Read( &temp, size, f );
 	} else {
 		// read the encoded chunk
-		trap_FS_Read( &decodedSize, sizeof( int ), f );
+		engine->trap_FS_Read( &decodedSize, sizeof( int ), f );
 		if ( decodedSize > sizeof( entityBuf ) ) {
 			G_Error( "G_LoadGame: encoded chunk is greater than buffer" );
 		}
-		trap_FS_Read( entityBuf, decodedSize, f );
+		engine->trap_FS_Read( entityBuf, decodedSize, f );
 		// decode it
 		G_Save_Decode( entityBuf, decodedSize, (byte *)&temp, sizeof( temp ) );
 	}
@@ -838,9 +838,9 @@ void ReadEntity( fileHandle_t f, gentity_t *ent, int size ) {
 
 	// notify server of changes in position/orientation
 	if ( ent->r.linked && ( !( ent->r.svFlags & SVF_CASTAI ) || !ent->aiInactive ) ) {
-		trap_LinkEntity( ent );
+		engine->trap_LinkEntity( ent );
 	} else {
-		trap_UnlinkEntity( ent );
+		engine->trap_UnlinkEntity( ent );
 	}
 
 	// if this is a mover, check areaportals
@@ -848,19 +848,19 @@ void ReadEntity( fileHandle_t f, gentity_t *ent, int size ) {
 		if ( ent->teammaster == ent || !ent->teammaster ) {
 			if ( ent->moverState == MOVER_POS1ROTATE || ent->moverState == MOVER_POS1 ) {
 				// closed areaportal
-				trap_AdjustAreaPortalState( ent, qfalse );
+				engine->trap_AdjustAreaPortalState( ent, qfalse );
 			} else {    // must be open
 				// portals are always opened before the mover starts to open, so we must move
 				// it back to the start position, link, set portals, then move it back
 				backup2 = *ent;
 				*ent = backup;
 				// link it at original position
-				trap_LinkEntity( ent );
+				engine->trap_LinkEntity( ent );
 				// set portals
-				trap_AdjustAreaPortalState( ent, qtrue );
+				engine->trap_AdjustAreaPortalState( ent, qtrue );
 				// put it back
 				*ent = backup2;
-				trap_LinkEntity( ent );
+				engine->trap_LinkEntity( ent );
 			}
 		}
 	}
@@ -884,21 +884,21 @@ void ReadEntity( fileHandle_t f, gentity_t *ent, int size ) {
 	if ( ent->s.number == 0 ) {
 		int i;
 
-		trap_Cvar_Set( "cg_yougotMail", "0" );
+		engine->trap_Cvar_Set( "cg_yougotMail", "0" );
 
 		// set up met objectives
 		for ( i = 0; i < sizeof( ent->missionObjectives ) * 8; i++ ) {
 			if ( ent->missionObjectives & ( 1 << i ) ) {
-				trap_Cvar_Register( &cvar, va( "g_objective%i", i + 1 ), "1", CVAR_ROM ); //set g_objective<n> cvar
-				trap_Cvar_Set( va( "g_objective%i", i + 1 ), "1" );                           // set it to make sure
+				engine->trap_Cvar_Register( &cvar, va( "g_objective%i", i + 1 ), "1", CVAR_ROM ); //set g_objective<n> cvar
+				engine->trap_Cvar_Set( va( "g_objective%i", i + 1 ), "1" );                           // set it to make sure
 			} else {
-				trap_Cvar_Set( va( "g_objective%i", i + 1 ), "0" );                           // make sure it's clear
+				engine->trap_Cvar_Set( va( "g_objective%i", i + 1 ), "0" );                           // make sure it's clear
 			}
 		}
 
 		// set up current episode (for notebook de-briefing tabs)
-		trap_Cvar_Register( &cvar, "g_episode", "0", CVAR_ROM );
-		trap_Cvar_Set( "g_episode", va( "%s", ent->missionLevel ) );
+		engine->trap_Cvar_Register( &cvar, "g_episode", "0", CVAR_ROM );
+		engine->trap_Cvar_Set( "g_episode", va( "%s", ent->missionLevel ) );
 
 	}
 
@@ -957,14 +957,14 @@ void ReadCastState( fileHandle_t f, cast_state_t *cs, int size ) {
 	int decodedSize;
 
 	if ( ver == 10 ) {
-		trap_FS_Read( &temp, size, f );
+		engine->trap_FS_Read( &temp, size, f );
 	} else {
 		// read the encoded chunk
-		trap_FS_Read( &decodedSize, sizeof( int ), f );
+		engine->trap_FS_Read( &decodedSize, sizeof( int ), f );
 		if ( decodedSize > sizeof( castStateBuf ) ) {
 			G_Error( "G_LoadGame: encoded chunk is greater than buffer" );
 		}
-		trap_FS_Read( castStateBuf, decodedSize, f ); \
+		engine->trap_FS_Read( castStateBuf, decodedSize, f ); \
 		// decode it
 		G_Save_Decode( castStateBuf, decodedSize, (byte *)&temp, sizeof( temp ) );
 	}
@@ -995,7 +995,7 @@ void ReadCastState( fileHandle_t f, cast_state_t *cs, int size ) {
 		// make sure they think right away
 		cs->lastThink = -9999;
 		// reset the input
-		trap_EA_ResetInput( cs->entityNum, NULL );
+		engine->trap_EA_ResetInput( cs->entityNum, NULL );
 	}
 
 }
@@ -1010,7 +1010,7 @@ void WriteTime( fileHandle_t f ) {
 	qtime_t tm;
 
 	// just save it all so it can be interpreted as desired
-	trap_RealTime( &tm );
+	engine->trap_RealTime( &tm );
 	G_SaveWrite( &tm.tm_sec,       sizeof( tm.tm_sec ),  f );     /* seconds after the minute - [0,59] */
 	G_SaveWrite( &tm.tm_min,       sizeof( tm.tm_min ),  f );     /* minutes after the hour - [0,59] */
 	G_SaveWrite( &tm.tm_hour,  sizeof( tm.tm_hour ), f );     /* hours since midnight - [0,23] */
@@ -1028,15 +1028,15 @@ ReadTime
 ==============
 */
 void ReadTime( fileHandle_t f, qtime_t *tm ) {
-	trap_FS_Read( &tm->tm_sec, sizeof( tm->tm_sec ), f );
-	trap_FS_Read( &tm->tm_min, sizeof( tm->tm_min ), f );
-	trap_FS_Read( &tm->tm_hour, sizeof( tm->tm_hour ), f );
-	trap_FS_Read( &tm->tm_mday, sizeof( tm->tm_mday ), f );
-	trap_FS_Read( &tm->tm_mon, sizeof( tm->tm_mon ), f );
-	trap_FS_Read( &tm->tm_year, sizeof( tm->tm_year ), f );
-	trap_FS_Read( &tm->tm_wday, sizeof( tm->tm_wday ), f );
-	trap_FS_Read( &tm->tm_yday, sizeof( tm->tm_yday ), f );
-	trap_FS_Read( &tm->tm_isdst, sizeof( tm->tm_isdst ), f );
+	engine->trap_FS_Read( &tm->tm_sec, sizeof( tm->tm_sec ), f );
+	engine->trap_FS_Read( &tm->tm_min, sizeof( tm->tm_min ), f );
+	engine->trap_FS_Read( &tm->tm_hour, sizeof( tm->tm_hour ), f );
+	engine->trap_FS_Read( &tm->tm_mday, sizeof( tm->tm_mday ), f );
+	engine->trap_FS_Read( &tm->tm_mon, sizeof( tm->tm_mon ), f );
+	engine->trap_FS_Read( &tm->tm_year, sizeof( tm->tm_year ), f );
+	engine->trap_FS_Read( &tm->tm_wday, sizeof( tm->tm_wday ), f );
+	engine->trap_FS_Read( &tm->tm_yday, sizeof( tm->tm_yday ), f );
+	engine->trap_FS_Read( &tm->tm_isdst, sizeof( tm->tm_isdst ), f );
 }
 
 /*
@@ -1047,7 +1047,7 @@ G_Save_TimeStr
 char *G_Save_TimeStr( void ) {
 	qtime_t tm;
 	//
-	trap_RealTime( &tm );
+	engine->trap_RealTime( &tm );
 	//
 	return va( "%2i:%s%i:%s%i %s",
 			   ( 1 + ( tm.tm_hour + 11 ) % 12 ), // 12 hour format
@@ -1071,7 +1071,7 @@ G_Save_DateStr
 char *G_Save_DateStr( void ) {
 	qtime_t tm;
 	//
-	trap_RealTime( &tm );
+	engine->trap_RealTime( &tm );
 	//
 	return va( "%s %i, %i",
 			   monthStr[tm.tm_mon],
@@ -1147,7 +1147,7 @@ qboolean G_SaveGame( char *username ) {
 
 	// open the file
 	Com_sprintf( filename, MAX_QPATH, "save\\temp.svg", username );
-	if ( trap_FS_FOpenFile( filename, &f, FS_WRITE ) < 0 ) {
+	if ( engine->trap_FS_FOpenFile( filename, &f, FS_WRITE ) < 0 ) {
 		G_Error( "G_SaveGame: cannot open file for saving\n" );
 	}
 
@@ -1162,7 +1162,7 @@ qboolean G_SaveGame( char *username ) {
 	}
 
 	// write the mapname
-	trap_Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
+	engine->trap_Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
 	Com_sprintf( mapstr, MAX_QPATH, mapname.string );
 	if ( !G_SaveWrite( mapstr, MAX_QPATH, f ) ) {
 		G_SaveWriteError();
@@ -1184,7 +1184,7 @@ qboolean G_SaveGame( char *username ) {
 
 	// write the 'episode'
 	if ( SAVE_VERSION >= 13 ) {
-		trap_Cvar_Register( &episode, "g_episode", "0", CVAR_ROM );
+		engine->trap_Cvar_Register( &episode, "g_episode", "0", CVAR_ROM );
 
 		i = episode.integer;
 		if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
@@ -1209,12 +1209,12 @@ qboolean G_SaveGame( char *username ) {
 	for ( i = 0; i < strlen( mapstr ); i++ ) mapstr[i] = toupper( mapstr[i] );
 	memset( infoString, 0, sizeof( infoString ) );
 
-	trap_Cvar_VariableStringBuffer( "svg_timestring", leveltime, sizeof( leveltime ) );
+	engine->trap_Cvar_VariableStringBuffer( "svg_timestring", leveltime, sizeof( leveltime ) );
 	if ( !strlen( leveltime ) ) {
 		Com_sprintf( leveltime, sizeof( leveltime ), "Leveltime" );
 	}
 
-	trap_Cvar_VariableStringBuffer( "svg_healthstring", healthstr, sizeof( healthstr ) );
+	engine->trap_Cvar_VariableStringBuffer( "svg_healthstring", healthstr, sizeof( healthstr ) );
 	if ( !strlen( healthstr ) ) {
 		Com_sprintf( healthstr, sizeof( healthstr ), "Health" );
 	}
@@ -1254,14 +1254,14 @@ qboolean G_SaveGame( char *username ) {
 //----(SA)	end
 
 	// write music
-	trap_Cvar_Register( &musicCvar, "s_currentMusic", "", CVAR_ROM );
+	engine->trap_Cvar_Register( &musicCvar, "s_currentMusic", "", CVAR_ROM );
 	if ( !G_SaveWrite( musicCvar.string, MAX_QPATH, f ) ) {
 		G_SaveWriteError();
 	}
 
 //----(SA)	write fog
-//	trap_Cvar_VariableStringBuffer( "sg_fog", infoString, sizeof(infoString) );
-	trap_GetConfigstring( CS_FOGVARS, infoString, sizeof( infoString ) );
+//	engine->trap_Cvar_VariableStringBuffer( "sg_fog", infoString, sizeof(infoString) );
+	engine->trap_GetConfigstring( CS_FOGVARS, infoString, sizeof( infoString ) );
 
 	i = strlen( infoString );
 	if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
@@ -1349,31 +1349,31 @@ qboolean G_SaveGame( char *username ) {
 	}
 
 
-	trap_FS_FCloseFile( f );
+	engine->trap_FS_FCloseFile( f );
 
 	// check the byte count
-	if ( ( len = trap_FS_FOpenFile( filename, &f, FS_READ ) ) != saveByteCount ) {
-		trap_FS_FCloseFile( f );
+	if ( ( len = engine->trap_FS_FOpenFile( filename, &f, FS_READ ) ) != saveByteCount ) {
+		engine->trap_FS_FCloseFile( f );
 		G_SaveWriteError();
 		return qfalse;
 	}
 
-	trap_FS_FCloseFile( f );
+	engine->trap_FS_FCloseFile( f );
 
 	// now rename the file to the actual file
 	Com_sprintf( mapstr, MAX_QPATH, "save\\%s.svg", username );
-	trap_FS_Rename( filename, mapstr );
+	engine->trap_FS_Rename( filename, mapstr );
 
 	// double check that it saved ok
-	if ( ( len = trap_FS_FOpenFile( mapstr, &f, FS_READ ) ) != saveByteCount ) {
-		trap_FS_FCloseFile( f );
+	if ( ( len = engine->trap_FS_FOpenFile( mapstr, &f, FS_READ ) ) != saveByteCount ) {
+		engine->trap_FS_FCloseFile( f );
 		G_SaveWriteError();
 		return qfalse;
 	}
 
-	trap_FS_FCloseFile( f );
+	engine->trap_FS_FCloseFile( f );
 #ifdef __MACOS__
-	trap_FS_CopyFile( mapstr, "save\\current.svg" );
+	engine->trap_FS_CopyFile( mapstr, "save\\current.svg" );
 
 #endif
 
@@ -1415,17 +1415,17 @@ void G_LoadGame( char *filename ) {
 	filename = "save\\current.svg";
 
 	// open the file
-	if ( trap_FS_FOpenFile( filename, &f, FS_READ ) < 0 ) {
+	if ( engine->trap_FS_FOpenFile( filename, &f, FS_READ ) < 0 ) {
 		G_Error( "G_LoadGame: savegame '%s' not found\n", filename );
 	}
 
 	// read the version
-	trap_FS_Read( &i, sizeof( i ), f );
+	engine->trap_FS_Read( &i, sizeof( i ), f );
 	// TTimo
 	// show_bug.cgi?id=434
 	// 17 is the only version actually out in the wild
 	if ( i != SAVE_VERSION && i != 17 && i != 13 && i != 14 && i != 15 ) {    // 13 is beta7, 14 is pre "SA_MOVEDSTUFF"
-		trap_FS_FCloseFile( f );
+		engine->trap_FS_FCloseFile( f );
 		G_Error( "G_LoadGame: savegame '%s' is wrong version (%i, should be %i)\n", filename, i, SAVE_VERSION );
 	}
 	ver = i;
@@ -1437,34 +1437,34 @@ void G_LoadGame( char *filename ) {
 	}
 
 	// read the mapname (this is only used in the sever exe, so just discard it)
-	trap_FS_Read( mapname, MAX_QPATH, f );
+	engine->trap_FS_Read( mapname, MAX_QPATH, f );
 
 	// read the level time
-	trap_FS_Read( &i, sizeof( i ), f );
+	engine->trap_FS_Read( &i, sizeof( i ), f );
 	leveltime = i;
 
 	// read the totalPlayTime
-	trap_FS_Read( &i, sizeof( i ), f );
+	engine->trap_FS_Read( &i, sizeof( i ), f );
 	if ( i > g_totalPlayTime.integer ) {
-		trap_Cvar_Set( "g_totalPlayTime", va( "%i", i ) );
+		engine->trap_Cvar_Set( "g_totalPlayTime", va( "%i", i ) );
 	}
 
 //----(SA)	had to add 'episode' tracking.
 	// this is only set in the map scripts, and was previously only handled in the menu's
 	// read the 'episode'
 	if ( ver >= 13 ) {
-		trap_FS_Read( &i, sizeof( i ), f );
-		trap_Cvar_Set( "g_episode", va( "%i", i ) );
+		engine->trap_FS_Read( &i, sizeof( i ), f );
+		engine->trap_Cvar_Set( "g_episode", va( "%i", i ) );
 	}
 //----(SA)	end
 
 	// NOTE: do not change the above order without also changing the server code
 
 	// read the info string length
-	trap_FS_Read( &i, sizeof( i ), f );
+	engine->trap_FS_Read( &i, sizeof( i ), f );
 
 	// read the info string
-	trap_FS_Read( infoString, i, f );
+	engine->trap_FS_Read( infoString, i, f );
 
 	if ( ver >= SA_MOVEDSTUFF ) {
 		if ( ver > SA_ADDEDMUSIC ) {
@@ -1472,14 +1472,14 @@ void G_LoadGame( char *filename ) {
 			ReadTime( f, &tm );
 
 			// read music
-			trap_FS_Read( musicString, MAX_QPATH, f );
+			engine->trap_FS_Read( musicString, MAX_QPATH, f );
 
 			if ( strlen( musicString ) ) {
-				trap_Cvar_Register( &musicCvar, "s_currentMusic", "", CVAR_ROM ); // get current music
+				engine->trap_Cvar_Register( &musicCvar, "s_currentMusic", "", CVAR_ROM ); // get current music
 				if ( Q_stricmp( musicString, musicCvar.string ) ) {      // it's different than what's playing, so fade out and queue up
-//					trap_SendServerCommand(-1, "mu_fade 0 1000\n");
-//					trap_SetConfigstring( CS_MUSIC_QUEUE, musicString);
-					trap_SendServerCommand( -1, va( "mu_start %s 1000\n", musicString ) );       // (SA) trying this instead
+//					engine->trap_SendServerCommand(-1, "mu_fade 0 1000\n");
+//					engine->trap_SetConfigstring( CS_MUSIC_QUEUE, musicString);
+					engine->trap_SendServerCommand( -1, va( "mu_start %s 1000\n", musicString ) );       // (SA) trying this instead
 				}
 			}
 
@@ -1491,15 +1491,15 @@ void G_LoadGame( char *filename ) {
 			int k;
 
 			// get length
-			trap_FS_Read( &i, sizeof( i ), f );
+			engine->trap_FS_Read( &i, sizeof( i ), f );
 			// get fog string
-			trap_FS_Read( infoString, i, f );
+			engine->trap_FS_Read( infoString, i, f );
 			infoString[i] = 0;
 
 			// set the configstring so the 'savegame current' has good fog
 
 			if ( !Q_stricmp( infoString, "0" ) ) { // no fog
-				trap_Cvar_Set( "r_savegameFogColor", "none" );
+				engine->trap_Cvar_Set( "r_savegameFogColor", "none" );
 			} else {
 
 				// send it off to get set on the client
@@ -1513,18 +1513,18 @@ void G_LoadGame( char *filename ) {
 						break;
 					}
 				}
-				trap_Cvar_Set( "r_savegameFogColor", infoString );
+				engine->trap_Cvar_Set( "r_savegameFogColor", infoString );
 			}
 
-			trap_SetConfigstring( CS_FOGVARS, infoString );
+			engine->trap_SetConfigstring( CS_FOGVARS, infoString );
 		}
 //----(SA)	end
 
 		if ( ver > 13 ) {
 			// read the game skill
-			trap_FS_Read( &i, sizeof( i ), f );
+			engine->trap_FS_Read( &i, sizeof( i ), f );
 			// set the skill level
-			trap_Cvar_Set( "g_gameskill", va( "%i",i ) );
+			engine->trap_Cvar_Set( "g_gameskill", va( "%i",i ) );
 			// update this
 			aicast_skillscale = (float)i / (float)GSKILL_MAX;
 		}
@@ -1534,20 +1534,20 @@ void G_LoadGame( char *filename ) {
 
 
 	// reset all AAS blocking entities
-	trap_AAS_SetAASBlockingEntity( vec3_origin, vec3_origin, -1 );
+	engine->trap_AAS_SetAASBlockingEntity( vec3_origin, vec3_origin, -1 );
 
 	// read the entity structures
-	trap_FS_Read( &i, sizeof( i ), f );
+	engine->trap_FS_Read( &i, sizeof( i ), f );
 	size = i;
 	last = 0;
 	while ( 1 )
 	{
-		trap_FS_Read( &i, sizeof( i ), f );
+		engine->trap_FS_Read( &i, sizeof( i ), f );
 		if ( i < 0 ) {
 			break;
 		}
 		if ( i >= MAX_GENTITIES ) {
-			trap_FS_FCloseFile( f );
+			engine->trap_FS_FCloseFile( f );
 			G_Error( "G_LoadGame: entitynum out of range (%i, MAX = %i)\n", i, MAX_GENTITIES );
 		}
 		if ( i >= level.num_entities ) {  // notify server
@@ -1560,7 +1560,7 @@ void G_LoadGame( char *filename ) {
 		for ( ; last < i; last++ ) {
 			if ( g_entities[last].inuse && i != ENTITYNUM_WORLD ) {
 				if ( last < MAX_CLIENTS ) {
-					trap_DropClient( last, "" );
+					engine->trap_DropClient( last, "" );
 				} else {
 					G_FreeEntity( &g_entities[last] );
 				}
@@ -1578,37 +1578,37 @@ void G_LoadGame( char *filename ) {
 	}
 
 	// read the client structures
-	trap_FS_Read( &i, sizeof( i ), f );
+	engine->trap_FS_Read( &i, sizeof( i ), f );
 	size = i;
 	while ( 1 )
 	{
-		trap_FS_Read( &i, sizeof( i ), f );
+		engine->trap_FS_Read( &i, sizeof( i ), f );
 		if ( i < 0 ) {
 			break;
 		}
 		if ( i > MAX_CLIENTS ) {
-			trap_FS_FCloseFile( f );
+			engine->trap_FS_FCloseFile( f );
 			G_Error( "G_LoadGame: clientnum out of range\n" );
 		}
 		cl = &level.clients[i];
 		if ( cl->pers.connected == CON_DISCONNECTED ) {
-			trap_FS_FCloseFile( f );
+			engine->trap_FS_FCloseFile( f );
 			G_Error( "G_LoadGame: client mis-match in savegame" );
 		}
 		ReadClient( f, cl, size );
 	}
 
 	// read the cast_state structures
-	trap_FS_Read( &i, sizeof( i ), f );
+	engine->trap_FS_Read( &i, sizeof( i ), f );
 	size = i;
 	while ( 1 )
 	{
-		trap_FS_Read( &i, sizeof( i ), f );
+		engine->trap_FS_Read( &i, sizeof( i ), f );
 		if ( i < 0 ) {
 			break;
 		}
 		if ( i > MAX_CLIENTS ) {
-			trap_FS_FCloseFile( f );
+			engine->trap_FS_FCloseFile( f );
 			G_Error( "G_LoadGame: clientnum out of range\n" );
 		}
 		cs = &caststates[i];
@@ -1618,7 +1618,7 @@ void G_LoadGame( char *filename ) {
 	// inform server of entity count if it has increased
 	if ( serverEntityUpdate ) {
 		// let the server system know that there are more entities
-		trap_LocateGameData( level.gentities, level.num_entities, sizeof( gentity_t ),
+		engine->trap_LocateGameData( level.gentities, level.num_entities, sizeof( gentity_t ),
 							 &level.clients[0].ps, sizeof( level.clients[0] ) );
 	}
 
@@ -1629,13 +1629,13 @@ void G_LoadGame( char *filename ) {
 			ReadTime( f, &tm );
 
 			// read music
-			trap_FS_Read( musicString, MAX_QPATH, f );
+			engine->trap_FS_Read( musicString, MAX_QPATH, f );
 
 			if ( strlen( musicString ) ) {
-				trap_Cvar_Register( &musicCvar, "s_currentMusic", "", CVAR_ROM ); // get current music
+				engine->trap_Cvar_Register( &musicCvar, "s_currentMusic", "", CVAR_ROM ); // get current music
 				if ( Q_stricmp( musicString, musicCvar.string ) ) {      // it's different than what's playing, so fade out and queue up
-					trap_SendServerCommand( -1, "mu_fade 0 1000\n" );
-					trap_SetConfigstring( CS_MUSIC_QUEUE, musicString );
+					engine->trap_SendServerCommand( -1, "mu_fade 0 1000\n" );
+					engine->trap_SetConfigstring( CS_MUSIC_QUEUE, musicString );
 				}
 			}
 
@@ -1643,9 +1643,9 @@ void G_LoadGame( char *filename ) {
 
 		if ( ver > 13 ) {
 			// read the game skill
-			trap_FS_Read( &i, sizeof( i ), f );
+			engine->trap_FS_Read( &i, sizeof( i ), f );
 			// set the skill level
-			trap_Cvar_Set( "g_gameskill", va( "%i",i ) );
+			engine->trap_Cvar_Set( "g_gameskill", va( "%i",i ) );
 			// update this
 			aicast_skillscale = (float)i / (float)GSKILL_MAX;
 		}
@@ -1655,11 +1655,11 @@ void G_LoadGame( char *filename ) {
 
 
 
-	trap_FS_FCloseFile( f );
+	engine->trap_FS_FCloseFile( f );
 
 	// now increment the attempts field and update totalplaytime according to cvar
-	trap_Cvar_Update( &g_attempts );
-	trap_Cvar_Set( "g_attempts", va( "%i", g_attempts.integer + 1 ) );
+	engine->trap_Cvar_Update( &g_attempts );
+	engine->trap_Cvar_Set( "g_attempts", va( "%i", g_attempts.integer + 1 ) );
 	caststates[0].attempts = g_attempts.integer + 1;
 	caststates[0].lastLoadTime = level.time;
 	if ( caststates[0].totalPlayTime < g_totalPlayTime.integer ) {
@@ -1674,10 +1674,10 @@ void G_LoadGame( char *filename ) {
 	level.time = leveltime;	// use the value we just for the save time
 	G_SaveGame(NULL);
 	// additionally update the last game that was loaded
-	trap_Cvar_VariableStringBuffer( "savegame_filename", mapname, sizeof(mapname) );
+	engine->trap_Cvar_VariableStringBuffer( "savegame_filename", mapname, sizeof(mapname) );
 	if (strlen( mapname ) > 0 && !strstr( mapname, "autosave" )) {
 		// clear it out so we dont lose it after a map_restart
-		trap_Cvar_Set( "savegame_filename", "" );
+		engine->trap_Cvar_Set( "savegame_filename", "" );
 		if (strstr(mapname, ".svg")) mapname[strstr(mapname, ".svg") - mapname] = '\0';
 		if (strstr(mapname, "/")) {
 			G_SaveGame( strstr(mapname, "/") + 1 );
@@ -1718,7 +1718,7 @@ void PersReadClient( fileHandle_t f, gclient_t *cl ) {
 	// read the fields
 	for ( field = gclientPersFields ; field->len ; field++ )
 	{   // read the block
-		trap_FS_Read( ( void * )( (byte *)cl + field->ofs ), field->len, f );
+		engine->trap_FS_Read( ( void * )( (byte *)cl + field->ofs ), field->len, f );
 	}
 }
 
@@ -1750,7 +1750,7 @@ void PersReadEntity( fileHandle_t f, gentity_t *cl ) {
 	// read the fields
 	for ( field = gentityPersFields ; field->len ; field++ )
 	{   // read the block
-		trap_FS_Read( ( void * )( (byte *)cl + field->ofs ), field->len, f );
+		engine->trap_FS_Read( ( void * )( (byte *)cl + field->ofs ), field->len, f );
 	}
 }
 
@@ -1784,7 +1784,7 @@ void PersReadCastState( fileHandle_t f, cast_state_t *cs ) {
 	// read the fields
 	for ( field = castStatePersFields ; field->len ; field++ )
 	{   // read the block
-		trap_FS_Read( ( void * )( (byte *)cs + field->ofs ), field->len, f );
+		engine->trap_FS_Read( ( void * )( (byte *)cs + field->ofs ), field->len, f );
 	}
 }
 
@@ -1813,7 +1813,7 @@ qboolean G_SavePersistant( char *nextmap ) {
 
 	// open the file
 	Com_sprintf( filename, MAX_QPATH, "save\\temp.psw" );
-	if ( trap_FS_FOpenFile( filename, &f, FS_WRITE ) < 0 ) {
+	if ( engine->trap_FS_FOpenFile( filename, &f, FS_WRITE ) < 0 ) {
 		G_Error( "G_SavePersistant: cannot open '%s' for saving\n", filename );
 	}
 
@@ -1821,9 +1821,9 @@ qboolean G_SavePersistant( char *nextmap ) {
 	G_SaveWrite( nextmap, MAX_QPATH, f );
 
 	// save out the pers id
-	persid = trap_Milliseconds() + ( rand() & 0xffff );
+	persid = engine->trap_Milliseconds() + ( rand() & 0xffff );
 	G_SaveWrite( &persid, sizeof( persid ), f );
-	trap_Cvar_Set( "persid", va( "%i", persid ) );
+	engine->trap_Cvar_Set( "persid", va( "%i", persid ) );
 
 	// write out the entity structure
 	PersWriteEntity( f, &g_entities[0] );
@@ -1834,28 +1834,28 @@ qboolean G_SavePersistant( char *nextmap ) {
 	// write out the cast_state structure
 	PersWriteCastState( f, AICast_GetCastState( 0 ) );
 
-	trap_FS_FCloseFile( f );
+	engine->trap_FS_FCloseFile( f );
 
 	// now check that it is the correct size
 	Com_sprintf( filename, MAX_QPATH, "save\\temp.psw" );
-	if ( trap_FS_FOpenFile( filename, &f, FS_READ ) < saveByteCount ) {
-		trap_FS_FCloseFile( f );
+	if ( engine->trap_FS_FOpenFile( filename, &f, FS_READ ) < saveByteCount ) {
+		engine->trap_FS_FCloseFile( f );
 		G_SaveWriteError();
 		return qfalse;
 	}
-	trap_FS_FCloseFile( f );
+	engine->trap_FS_FCloseFile( f );
 
 	// rename it to the real file
-	trap_FS_Rename( "save\\temp.psw", "save\\current.psw" );
+	engine->trap_FS_Rename( "save\\temp.psw", "save\\current.psw" );
 
 	// now check that it is the correct size
 	Com_sprintf( filename, MAX_QPATH, "save\\current.psw" );
-	if ( trap_FS_FOpenFile( filename, &f, FS_READ ) < saveByteCount ) {
-		trap_FS_FCloseFile( f );
+	if ( engine->trap_FS_FOpenFile( filename, &f, FS_READ ) < saveByteCount ) {
+		engine->trap_FS_FCloseFile( f );
 		G_SaveWriteError();
 		return qfalse;
 	}
-	trap_FS_FCloseFile( f );
+	engine->trap_FS_FCloseFile( f );
 
 	return qtrue;
 }
@@ -1875,23 +1875,23 @@ void G_LoadPersistant( void ) {
 	filename = "save\\current.psw";
 
 	// open the file
-	if ( trap_FS_FOpenFile( filename, &f, FS_READ ) < 0 ) {
+	if ( engine->trap_FS_FOpenFile( filename, &f, FS_READ ) < 0 ) {
 		// not here, we shall assume they didn't want one
 		return;
 	}
 
 	// read the mapname, if it's not the same, then ignore the file
-	trap_FS_Read( mapstr, MAX_QPATH, f );
-	trap_Cvar_Register( &cvar_mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
+	engine->trap_FS_Read( mapstr, MAX_QPATH, f );
+	engine->trap_Cvar_Register( &cvar_mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
 	if ( Q_strcasecmp( cvar_mapname.string, mapstr ) ) {
-		trap_FS_FCloseFile( f );
+		engine->trap_FS_FCloseFile( f );
 		return;
 	}
 
 	// check the pers id
-	trap_FS_Read( &persid, sizeof( persid ), f );
-	if ( persid != trap_Cvar_VariableIntegerValue( "persid" ) ) {
-		trap_FS_FCloseFile( f );
+	engine->trap_FS_Read( &persid, sizeof( persid ), f );
+	if ( persid != engine->trap_Cvar_VariableIntegerValue( "persid" ) ) {
+		engine->trap_FS_FCloseFile( f );
 		return;
 	}
 
@@ -1904,8 +1904,8 @@ void G_LoadPersistant( void ) {
 	// read the cast_state structure
 	PersReadCastState( f, AICast_GetCastState( 0 ) );
 
-	trap_FS_FCloseFile( f );
+	engine->trap_FS_FCloseFile( f );
 
 	// clear out the persid, since the persistent data has been read
-	trap_Cvar_Set( "persid", "0" );
+	engine->trap_Cvar_Set( "persid", "0" );
 }

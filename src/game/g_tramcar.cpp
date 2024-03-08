@@ -186,7 +186,7 @@ void InitTramcar( gentity_t *ent ) {
 
 	VectorCopy( ent->pos1, ent->r.currentOrigin );
 
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 	ent->s.pos.trType = TR_STATIONARY;
 	VectorCopy( ent->pos1, ent->s.pos.trBase );
@@ -257,7 +257,7 @@ void Calc_Roll( gentity_t *ent ) {
 
 //	VectorCopy (ent->r.currentAngles, ent->TargetAngles);
 
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 	ent->nextthink = level.time + 50;
 }
@@ -411,7 +411,7 @@ void Reached_Tramcar( gentity_t *ent ) {
 		SetMoverState( ent, MOVER_1TO2ROTATE, level.time );
 		VectorCopy( ent->r.currentAngles, ent->s.apos.trBase );
 
-		trap_LinkEntity( ent );
+		engine->trap_LinkEntity( ent );
 
 		ent->think = props_me109_think;
 		ent->nextthink = level.time + 50;
@@ -457,7 +457,7 @@ void Reached_Tramcar( gentity_t *ent ) {
 			SetMoverState( ent, MOVER_1TO2ROTATE, level.time );
 			VectorCopy( ent->r.currentAngles, ent->s.apos.trBase );
 
-			trap_LinkEntity( ent );
+			engine->trap_LinkEntity( ent );
 		}
 
 		if ( next->wait == -1 ) {
@@ -592,7 +592,7 @@ void Tramcar_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, in
 			slave->use = self->use;
 		}
 
-		trap_LinkEntity( slave );
+		engine->trap_LinkEntity( slave );
 	}
 
 	self->use = NULL;
@@ -611,7 +611,7 @@ void Tramcar_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, in
 	VectorCopy( self->r.currentAngles, self->s.apos.trBase );
 
 	self->flags |= FL_TEAMSLAVE;
-	trap_UnlinkEntity( self );
+	engine->trap_UnlinkEntity( self );
 
 }
 
@@ -726,7 +726,7 @@ void SP_func_tramcar( gentity_t *self ) {
 		}
 	}
 
-	trap_SetBrushModel( self, self->model );
+	engine->trap_SetBrushModel( self, self->model );
 
 	if ( G_SpawnInt( "mass", "75", &mass ) ) {
 		self->count = mass;
@@ -851,7 +851,7 @@ void ExplodePlaneSndFx( gentity_t *self ) {
 	G_AddEvent( temp, EV_GLOBAL_SOUND, fpexpdebris_snd );
 	temp->think = G_FreeEntity;
 	temp->nextthink = level.time + 10000;
-	trap_LinkEntity( temp );
+	engine->trap_LinkEntity( temp );
 
 	// added this because plane may be parked on runway
 	// we may want to add some exotic deaths to parked aircraft
@@ -996,7 +996,7 @@ void props_me109_think( gentity_t *self ) {
 		player = AICast_FindEntityForName( "player" );
 
 		if ( player ) {
-			in_PVS = trap_InPVS( player->r.currentOrigin, self->s.pos.trBase );
+			in_PVS = engine->trap_InPVS( player->r.currentOrigin, self->s.pos.trBase );
 
 			if ( in_PVS ) {
 				self->melee->s.eType = ET_GENERAL;
@@ -1022,7 +1022,7 @@ void props_me109_think( gentity_t *self ) {
 				self->melee->s.eType = ET_GENERAL;
 			}
 
-			trap_LinkEntity( self->melee );
+			engine->trap_LinkEntity( self->melee );
 		}
 	}
 
@@ -1117,7 +1117,7 @@ void Think_SetupAirplaneWaypoints( gentity_t *ent ) {
 	if ( ent->spawnflags & 2 ) { // Toggle
 		VectorCopy( ent->nextTrain->s.origin, ent->s.pos.trBase );
 		VectorCopy( ent->nextTrain->s.origin, ent->r.currentOrigin );
-		trap_LinkEntity( ent );
+		engine->trap_LinkEntity( ent );
 	} else {
 		Reached_Tramcar( ent );
 	}
@@ -1165,7 +1165,7 @@ void InitPlaneSpeaker( gentity_t *ent ) {
 
 	ent->melee = snd;
 
-	trap_LinkEntity( snd );
+	engine->trap_LinkEntity( snd );
 
 }
 
@@ -1211,7 +1211,7 @@ void SP_props_me109( gentity_t *ent ) {
 		ent->s.density = 7;
 	}
 
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 	fploop_snd = G_SoundIndex( "sound/fighterplane/fploop.wav" );
 	fpchoke_snd = G_SoundIndex( "sound/fighterplane/fpchoke.wav" );
@@ -1261,7 +1261,7 @@ void truck_cam_touch( gentity_t *self, gentity_t *other, trace_t *trace ) {
 	{
 		vec3_t point;
 
-		trap_UnlinkEntity( other );
+		engine->trap_UnlinkEntity( other );
 
 		// VectorCopy ( self->r.currentOrigin, other->client->ps.origin );
 		VectorCopy( self->r.currentOrigin, point );
@@ -1276,7 +1276,7 @@ void truck_cam_touch( gentity_t *self, gentity_t *other, trace_t *trace ) {
 
 		other->client->ps.persistant[PERS_HWEAPON_USE] = 1;
 
-		trap_LinkEntity( other );
+		engine->trap_LinkEntity( other );
 	}
 
 }
@@ -1300,7 +1300,7 @@ void SP_truck_cam( gentity_t *self ) {
 		return;
 	}
 
-	trap_SetBrushModel( self, self->model );
+	engine->trap_SetBrushModel( self, self->model );
 
 	if ( G_SpawnInt( "mass", "20", &mass ) ) {
 		self->count = mass;
@@ -1368,7 +1368,7 @@ void Init_Camera( gentity_t *ent ) {
 
 	VectorCopy( ent->pos1, ent->r.currentOrigin );
 
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 	ent->s.pos.trType = TR_STATIONARY;
 	VectorCopy( ent->pos1, ent->s.pos.trBase );
@@ -1398,7 +1398,7 @@ void camera_cam_think( gentity_t *ent ) {
 	if ( ent->spawnflags & 2 ) { // tracking
 		vec3_t point;
 
-		trap_UnlinkEntity( player );
+		engine->trap_UnlinkEntity( player );
 
 		// VectorCopy ( self->r.currentOrigin, other->client->ps.origin );
 		VectorCopy( ent->r.currentOrigin, point );
@@ -1429,11 +1429,11 @@ void camera_cam_think( gentity_t *ent ) {
 				VectorCopy( ent->r.currentOrigin, ent->s.pos.trBase );
 				VectorCopy( dang, ent->s.apos.trBase );
 
-				trap_LinkEntity( ent );
+				engine->trap_LinkEntity( ent );
 			}
 		}
 
-		trap_LinkEntity( player );
+		engine->trap_LinkEntity( player );
 	}
 
 	ent->nextthink = level.time + ( FRAMETIME / 2 );
@@ -1515,7 +1515,7 @@ void SP_camera_cam( gentity_t *ent ) {
 		delayOn->think = delayOnthink;
 		delayOn->nextthink = level.time + 1000;
 		delayOn->melee = ent;
-		trap_LinkEntity( delayOn );
+		engine->trap_LinkEntity( delayOn );
 	}
 
 }
@@ -1533,12 +1533,12 @@ defaults are .5 sec
 void screen_fade_use( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 	if ( ent->spawnflags & 1 ) {
 		// fade out
-		trap_SetConfigstring( CS_SCREENFADE, va( "1 %i %i", level.time + 100, (int) ent->wait ) );
+		engine->trap_SetConfigstring( CS_SCREENFADE, va( "1 %i %i", level.time + 100, (int) ent->wait ) );
 		ent->spawnflags &= ~1;
 	} else
 	{
 		// fade in
-		trap_SetConfigstring( CS_SCREENFADE, va( "0 %i %i", level.time + 100, (int) ent->delay ) );
+		engine->trap_SetConfigstring( CS_SCREENFADE, va( "0 %i %i", level.time + 100, (int) ent->delay ) );
 		ent->spawnflags |= 1;
 	}
 
@@ -1586,7 +1586,7 @@ void reset_players_pos( gentity_t *ent, gentity_t *other, gentity_t *activator )
 		return;
 	}
 
-	trap_UnlinkEntity( player );
+	engine->trap_UnlinkEntity( player );
 
 	VectorCopy( ent->s.origin2, player->client->ps.origin );
 
@@ -1602,7 +1602,7 @@ void reset_players_pos( gentity_t *ent, gentity_t *other, gentity_t *activator )
 	player->client->ps.viewlocked = 0;
 	player->client->ps.viewlocked_entNum = 0;
 
-	trap_LinkEntity( player );
+	engine->trap_LinkEntity( player );
 
 }
 
@@ -1616,5 +1616,5 @@ void SP_camera_reset_player( gentity_t *ent ) {
 	ent->touch = mark_players_pos;
 	ent->use = reset_players_pos;
 
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 }

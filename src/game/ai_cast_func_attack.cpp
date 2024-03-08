@@ -334,7 +334,7 @@ char *AIFunc_ZombieMelee( cast_state_t *cs ) {
 					}
 				}
 				if ( !ent->client->ps.legsTimer && cs->castScriptStatus.scriptNoMoveTime < level.time ) {
-					trap_EA_MoveForward( cs->entityNum );
+					engine->trap_EA_MoveForward( cs->entityNum );
 				}
 			}
 		}
@@ -555,7 +555,7 @@ char *AIFunc_LoperAttack2( cast_state_t *cs ) {
 			}
 			// keep moving slightly in our facing direction to simulate landing momentum
 			AngleVectors( cs->viewangles, vec, NULL, NULL );
-			trap_EA_Move( cs->entityNum, vec, ( (float)ent->client->ps.legsTimer / (float)LOPER_LAND_DURATION ) * (float)LOPER_LEAP_LAND_MOMENTUM );
+			engine->trap_EA_Move( cs->entityNum, vec, ( (float)ent->client->ps.legsTimer / (float)LOPER_LAND_DURATION ) * (float)LOPER_LEAP_LAND_MOMENTUM );
 			return NULL;
 		}
 	}
@@ -750,8 +750,8 @@ char *AIFunc_StimSoldierAttack1( cast_state_t *cs ) {
 		}
 		// give us some upwards velocity?
 		if ( cs->thinkFuncChangeTime > level.time - STIMSOLDIER_FLYJUMP_DURATION * 0.9 ) {
-			trap_EA_Move( cs->entityNum, up, 300 );
-			//trap_EA_Jump(cs->entityNum);
+			engine->trap_EA_Move( cs->entityNum, up, 300 );
+			//engine->trap_EA_Jump(cs->entityNum);
 			VectorCopy( cs->bs->origin, cs->stimFlyAttackPos );
 		} else {
 			// attack them
@@ -759,7 +759,7 @@ char *AIFunc_StimSoldierAttack1( cast_state_t *cs ) {
 			// if we can't attack, abort
 			if ( AICast_CheckAttack( cs, cs->enemyNum, qfalse ) ) {
 				// apply weapons..
-				trap_EA_Attack( cs->entityNum );
+				engine->trap_EA_Attack( cs->entityNum );
 			}
 			// we're done here
 			cs->thinkFuncChangeTime = -9999;
@@ -767,7 +767,7 @@ char *AIFunc_StimSoldierAttack1( cast_state_t *cs ) {
 	} else {
 		// still on ground, so move forward to account for stepping animation
 		AngleVectors( cs->viewangles, vec, NULL, NULL );
-		trap_EA_Move( cs->entityNum, vec, 300 );
+		engine->trap_EA_Move( cs->entityNum, vec, 300 );
 	}
 	//
 	if ( ent->client->ps.legsTimer < 1000 ) {
@@ -792,7 +792,7 @@ char *AIFunc_StimSoldierAttack1Start( cast_state_t *cs ) {
 	AngleVectors( cs->ideal_viewangles, dir, NULL, NULL );
 	VectorMA( cs->bs->origin, 300, dir, pos );
 	pos[2] += 128;
-	trap_Trace( &tr, cs->bs->origin, cs->bs->cur_ps.mins, cs->bs->cur_ps.maxs, pos, cs->entityNum, ent->clipmask );
+	engine->trap_Trace( &tr, cs->bs->origin, cs->bs->cur_ps.mins, cs->bs->cur_ps.maxs, pos, cs->entityNum, ent->clipmask );
 	if ( tr.startsolid || tr.allsolid ) {
 		return NULL;    // not a good place
 	}
@@ -1035,7 +1035,7 @@ char *AIFunc_WarriorZombieMelee( cast_state_t *cs ) {
 					}
 				}
 				if ( cs->castScriptStatus.scriptNoMoveTime < level.time ) {
-					trap_EA_MoveForward( cs->entityNum );
+					engine->trap_EA_MoveForward( cs->entityNum );
 				}
 			}
 		}
@@ -1189,7 +1189,7 @@ char *AIFunc_WarriorZombieDefense( cast_state_t *cs ) {
 	// face them
 	AICast_AimAtEnemy( cs );
 	// crouching position, use smaller bounding box
-	trap_EA_Crouch( cs->bs->client );
+	engine->trap_EA_Crouch( cs->bs->client );
 
 	return NULL;
 }

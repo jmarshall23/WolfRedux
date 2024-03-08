@@ -117,29 +117,29 @@ void AICast_DBG_RouteTable_f( vec3_t org, char *param ) {
 //	extern botlib_export_t botlib; // TTimo: unused
 
 	if ( !param || strlen( param ) < 1 ) {
-		trap_Printf( "You must specify 'src', 'dest' or 'show'\n" );
+		engine->trap_Printf( "You must specify 'src', 'dest' or 'show'\n" );
 		return;
 	}
 
-	trap_AAS_SetCurrentWorld( 0 );  // use the default world, which should have a routetable
+	engine->trap_AAS_SetCurrentWorld( 0 );  // use the default world, which should have a routetable
 
 	if ( Q_stricmp( param, "toggle" ) == 0 ) {
-		trap_AAS_RT_ShowRoute( vec3_origin, -666, -666 );   // stupid toggle hack
+		engine->trap_AAS_RT_ShowRoute( vec3_origin, -666, -666 );   // stupid toggle hack
 		return;
 	}
 
 	if ( Q_stricmp( param, "src" ) == 0 ) { // set the src
-		srcarea = 1 + trap_AAS_PointAreaNum( org );
+		srcarea = 1 + engine->trap_AAS_PointAreaNum( org );
 		return;
 	} else if ( Q_stricmp( param, "dest" ) == 0 )        {
-		dstarea = 1 + trap_AAS_PointAreaNum( org );
+		dstarea = 1 + engine->trap_AAS_PointAreaNum( org );
 	}
 
 	if ( srcarea && dstarea ) { // show the path
-		trap_AAS_RT_ShowRoute( org, srcarea - 1, dstarea - 1 );
+		engine->trap_AAS_RT_ShowRoute( org, srcarea - 1, dstarea - 1 );
 	} else
 	{
-		trap_Printf( "You must specify 'src' & 'dest' first\n" );
+		engine->trap_Printf( "You must specify 'src' & 'dest' first\n" );
 	}
 }
 
@@ -181,16 +181,16 @@ void AICast_DBG_Cmd_f( int clientNum ) {
 	}
 
 	// get the first word following "aicast"
-	trap_Argv( 1, cmd, sizeof( cmd ) );
+	engine->trap_Argv( 1, cmd, sizeof( cmd ) );
 
 	if ( Q_stricmp( cmd, "dbg_routetable" ) == 0 ) {
-		trap_Argv( 2, cmd, sizeof( cmd ) );
+		engine->trap_Argv( 2, cmd, sizeof( cmd ) );
 		AICast_DBG_RouteTable_f( ent->client->ps.origin, cmd );
 		return;
 	}
 	if ( Q_stricmp( cmd, "spawn" ) == 0 ) {
 		// spawn a given character
-		trap_Argv( 2, cmd, sizeof( cmd ) );
+		engine->trap_Argv( 2, cmd, sizeof( cmd ) );
 		AICast_DBG_Spawn_f( ent->client, cmd );
 		return;
 	}
@@ -201,7 +201,7 @@ void AICast_DBG_Cmd_f( int clientNum ) {
 	}
 	if ( Q_stricmp( cmd, "followme" ) == 0 ) {
 		// tell character to follow us
-		trap_Argv( 2, cmd, sizeof( cmd ) );
+		engine->trap_Argv( 2, cmd, sizeof( cmd ) );
 //		AICast_DBG_FollowMe_f(ent->client, cmd);
 		return;
 	}

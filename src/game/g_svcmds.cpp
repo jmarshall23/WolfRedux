@@ -146,7 +146,7 @@ static void UpdateIPBans( void ) {
 					 "%i.%i.%i.%i ", b[0], b[1], b[2], b[3] );
 	}
 
-	trap_Cvar_Set( "g_banIPs", iplist );
+	engine->trap_Cvar_Set( "g_banIPs", iplist );
 }
 
 /*
@@ -245,12 +245,12 @@ Svcmd_AddIP_f
 void Svcmd_AddIP_f( void ) {
 	char str[MAX_TOKEN_CHARS];
 
-	if ( trap_Argc() < 2 ) {
+	if ( engine->trap_Argc() < 2 ) {
 		G_Printf( "Usage:  addip <ip-mask>\n" );
 		return;
 	}
 
-	trap_Argv( 1, str, sizeof( str ) );
+	engine->trap_Argv( 1, str, sizeof( str ) );
 
 	AddIP( str );
 
@@ -266,12 +266,12 @@ void Svcmd_RemoveIP_f( void ) {
 	int i;
 	char str[MAX_TOKEN_CHARS];
 
-	if ( trap_Argc() < 2 ) {
+	if ( engine->trap_Argc() < 2 ) {
 		G_Printf( "Usage:  sv removeip <ip-mask>\n" );
 		return;
 	}
 
-	trap_Argv( 1, str, sizeof( str ) );
+	engine->trap_Argv( 1, str, sizeof( str ) );
 
 	if ( !StringToFilter( str, &f ) ) {
 		return;
@@ -419,14 +419,14 @@ void    Svcmd_ForceTeam_f( void ) {
 	char str[MAX_TOKEN_CHARS];
 
 	// find the player
-	trap_Argv( 1, str, sizeof( str ) );
+	engine->trap_Argv( 1, str, sizeof( str ) );
 	cl = ClientForString( str );
 	if ( !cl ) {
 		return;
 	}
 
 	// set the team
-	trap_Argv( 2, str, sizeof( str ) );
+	engine->trap_Argv( 2, str, sizeof( str ) );
 	SetTeam( &g_entities[cl - level.clients], str );
 }
 
@@ -441,7 +441,7 @@ ConsoleCommand
 qboolean    ConsoleCommand( void ) {
 	char cmd[MAX_TOKEN_CHARS];
 
-	trap_Argv( 0, cmd, sizeof( cmd ) );
+	engine->trap_Argv( 0, cmd, sizeof( cmd ) );
 
 	// Ridah, savegame
 	if ( Q_stricmp( cmd, "savegame" ) == 0 ) {
@@ -454,7 +454,7 @@ qboolean    ConsoleCommand( void ) {
 			return qtrue;
 		}
 
-		trap_Argv( 1, cmd, sizeof( cmd ) );
+		engine->trap_Argv( 1, cmd, sizeof( cmd ) );
 		if ( strlen( cmd ) > 0 ) {
 			// strip the extension if provided
 			if ( strrchr( cmd, '.' ) ) {
@@ -466,7 +466,7 @@ qboolean    ConsoleCommand( void ) {
 			}
 
 			if ( G_SaveGame( cmd ) ) {
-				trap_SendServerCommand( -1, "cp gamesaved" );  // deletedgame
+				engine->trap_SendServerCommand( -1, "cp gamesaved" );  // deletedgame
 			} else {
 				G_Printf( "Unable to save game.\n" );
 			}
@@ -518,17 +518,17 @@ qboolean    ConsoleCommand( void ) {
 	}
 
 	if ( Q_stricmp( cmd, "listip" ) == 0 ) {
-		trap_SendConsoleCommand( EXEC_INSERT, "g_banIPs\n" );
+		engine->trap_SendConsoleCommand( EXEC_INSERT, "g_banIPs\n" );
 		return qtrue;
 	}
 
 	if ( g_dedicated.integer ) {
 		if ( Q_stricmp( cmd, "say" ) == 0 ) {
-			trap_SendServerCommand( -1, va( "print \"server: %s\"", ConcatArgs( 1 ) ) );
+			engine->trap_SendServerCommand( -1, va( "print \"server: %s\"", ConcatArgs( 1 ) ) );
 			return qtrue;
 		}
 		// everything else will also be printed as a say command
-		trap_SendServerCommand( -1, va( "print \"server: %s\"", ConcatArgs( 0 ) ) );
+		engine->trap_SendServerCommand( -1, va( "print \"server: %s\"", ConcatArgs( 0 ) ) );
 		return qtrue;
 	}
 

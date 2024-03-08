@@ -321,7 +321,7 @@ void    G_TouchTriggers( gentity_t *ent ) {
 	VectorSubtract( ent->client->ps.origin, range, mins );
 	VectorAdd( ent->client->ps.origin, range, maxs );
 
-	num = trap_EntitiesInBox( mins, maxs, touch, MAX_GENTITIES );
+	num = engine->trap_EntitiesInBox( mins, maxs, touch, MAX_GENTITIES );
 
 	// can't use ent->absmin, because that has a one unit pad
 	VectorAdd( ent->client->ps.origin, ent->r.mins, mins );
@@ -352,7 +352,7 @@ void    G_TouchTriggers( gentity_t *ent ) {
 			}
 		} else {
 			// MrE: always use capsule for player
-			if ( !trap_EntityContactCapsule( mins, maxs, hit ) ) {
+			if ( !engine->trap_EntityContactCapsule( mins, maxs, hit ) ) {
 				continue;
 			}
 		}
@@ -393,8 +393,8 @@ void SpectatorThink( gentity_t *ent, usercmd_t *ucmd ) {
 		pm.ps = &client->ps;
 		pm.cmd = *ucmd;
 		pm.tracemask = MASK_PLAYERSOLID & ~CONTENTS_BODY;   // spectators can fly through bodies
-		pm.trace = trap_Trace;
-		pm.pointcontents = trap_PointContents;
+		pm.trace = engine->trap_Trace;
+		pm.pointcontents = engine->trap_PointContents;
 
 		Pmove( &pm ); // JPW NERVE
 
@@ -408,7 +408,7 @@ void SpectatorThink( gentity_t *ent, usercmd_t *ucmd ) {
 		VectorCopy( client->ps.origin, ent->s.origin );
 
 		G_TouchTriggers( ent );
-		trap_UnlinkEntity( ent );
+		engine->trap_UnlinkEntity( ent );
 	}
 
 	if ( ent->flags & FL_NOFATIGUE ) {
@@ -453,12 +453,12 @@ qboolean ClientInactivityTimer( gclient_t *client ) {
 		client->inactivityWarning = qfalse;
 	} else if ( !client->pers.localClient ) {
 		if ( level.time > client->inactivityTime ) {
-			trap_DropClient( client - level.clients, "Dropped due to inactivity" );
+			engine->trap_DropClient( client - level.clients, "Dropped due to inactivity" );
 			return qfalse;
 		}
 		if ( level.time > client->inactivityTime - 10000 && !client->inactivityWarning ) {
 			client->inactivityWarning = qtrue;
-			trap_SendServerCommand( client - level.clients, "cp \"Ten seconds until inactivity drop!\n\"" );
+			engine->trap_SendServerCommand( client - level.clients, "cp \"Ten seconds until inactivity drop!\n\"" );
 		}
 	}
 	return qtrue;
@@ -805,7 +805,7 @@ void ClientThink_real( gentity_t *ent ) {
 
 	if ( client->cameraPortal ) {
 		G_SetOrigin( client->cameraPortal, client->ps.origin );
-		trap_LinkEntity( client->cameraPortal );
+		engine->trap_LinkEntity( client->cameraPortal );
 		VectorCopy( client->cameraOrigin, client->cameraPortal->s.origin2 );
 	}
 
@@ -852,9 +852,9 @@ void ClientThink_real( gentity_t *ent ) {
 	}
 
 	if ( pmove_msec.integer < 8 ) {
-		trap_Cvar_Set( "pmove_msec", "8" );
+		engine->trap_Cvar_Set( "pmove_msec", "8" );
 	} else if ( pmove_msec.integer > 33 )     {
-		trap_Cvar_Set( "pmove_msec", "33" );
+		engine->trap_Cvar_Set( "pmove_msec", "33" );
 	}
 
 	if ( pmove_fixed.integer || client->pers.pmoveFixed ) {
@@ -946,7 +946,7 @@ void ClientThink_real( gentity_t *ent ) {
 			( g_gametype.integer == GT_SINGLE_PLAYER ) &&
 			!( ent->r.svFlags & SVF_CASTAI ) ) {
 
-		trap_Cvar_Update( &g_missionStats );
+		engine->trap_Cvar_Update( &g_missionStats );
 
 		if ( strlen( g_missionStats.string ) > 1 ) {
 
@@ -1025,8 +1025,8 @@ void ClientThink_real( gentity_t *ent ) {
 		pm.tracemask = ent->clipmask;
 	}
 	// MrE: always use capsule for AI and player
-	pm.trace = trap_TraceCapsule; //trap_Trace;
-	pm.pointcontents = trap_PointContents;
+	pm.trace = engine->trap_TraceCapsule; //engine->trap_Trace;
+	pm.pointcontents = engine->trap_PointContents;
 	pm.debugLevel = g_debugMove.integer;
 	pm.noFootsteps = ( g_dmflags.integer & DF_NO_FOOTSTEPS ) > 0;
 
@@ -1053,7 +1053,7 @@ void ClientThink_real( gentity_t *ent ) {
 			pm.cmd.rightmove = 0;
 			pm.cmd.upmove = 0;
 			if ( level.time - level.intermissionQueued >= 2000 && level.time - level.intermissionQueued <= 2500 ) {
-				trap_SendConsoleCommand( EXEC_APPEND, "centerview\n" );
+				engine->trap_SendConsoleCommand( EXEC_APPEND, "centerview\n" );
 			}
 			ent->client->ps.pm_type = PM_SPINTERMISSION;
 		}
@@ -1113,12 +1113,12 @@ void ClientThink_real( gentity_t *ent ) {
 					vec3_t start, end;
 					qboolean slide = qtrue;
 
-					if ( trap_GetTag( ent->s.number, "tag_head", &or ) ) {
+					if ( engine->trap_GetTag( ent->s.number, "tag_head", &or ) ) {
 						VectorCopy( or.origin, start );
 						VectorCopy( start, end );
 						end[2] += 1.0;
 
-						trap_Trace( &tr, start, NULL, NULL, end, ent->s.number, ( CONTENTS_SOLID | CONTENTS_BODY | CONTENTS_CORPSE | CONTENTS_TRIGGER ) );
+						engine->trap_Trace( &tr, start, NULL, NULL, end, ent->s.number, ( CONTENTS_SOLID | CONTENTS_BODY | CONTENTS_CORPSE | CONTENTS_TRIGGER ) );
 
 						if ( tr.contents & CONTENTS_SOLID ) {
 							//VectorClear (pm.ps->velocity);
@@ -1155,9 +1155,9 @@ void ClientThink_real( gentity_t *ent ) {
 		vec3_t src, vel;
 		trace_t tr;
 
-		if ( VectorLength( pm.ps->velocity ) < 100 && trap_InPVS( pm.ps->origin, g_entities[0].s.pos.trBase ) ) {
+		if ( VectorLength( pm.ps->velocity ) < 100 && engine->trap_InPVS( pm.ps->origin, g_entities[0].s.pos.trBase ) ) {
 			// find the head position
-			if ( trap_GetTag( ent->s.number, "tag_head", &or ) ) {
+			if ( engine->trap_GetTag( ent->s.number, "tag_head", &or ) ) {
 				// move up a tad
 				or.origin[2] += 3;
 				// move to tip of head
@@ -1169,7 +1169,7 @@ void ClientThink_real( gentity_t *ent ) {
 				if ( or.origin[2] < src[2] ) {
 					or.origin[2] = src[2];  // dont let the head sink into the ground (even if it is visually)
 				}
-				trap_Trace( &tr, src, vec3_origin, vec3_origin, or.origin, ent->s.number, MASK_SOLID );
+				engine->trap_Trace( &tr, src, vec3_origin, vec3_origin, or.origin, ent->s.number, MASK_SOLID );
 
 				// if we hit something, move away from it
 				if ( !tr.startsolid && !tr.allsolid && tr.fraction < 1.0 ) {
@@ -1316,7 +1316,7 @@ void ClientThink_real( gentity_t *ent ) {
 	ClientEvents( ent, oldEventSequence );
 
 	// link entity now, after any personal teleporters have been used
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 	if ( !ent->client->noclip ) {
 		G_TouchTriggers( ent );
 	}
@@ -1417,7 +1417,7 @@ void ClientThink( int clientNum ) {
 
 	ent = g_entities + clientNum;
 	ent->client->pers.oldcmd = ent->client->pers.cmd;
-	trap_GetUsercmd( clientNum, &ent->client->pers.cmd );
+	engine->trap_GetUsercmd( clientNum, &ent->client->pers.cmd );
 
 	// mark the time we got info, so we can display the
 	// phone jack if they don't get any for a while

@@ -129,11 +129,11 @@ gentity_t   *G_TestEntityPosition( gentity_t *ent ) {
 		mask = MASK_SOLID;
 	}
 	if ( ent->client ) {
-		trap_TraceCapsule( &tr, ent->client->ps.origin, ent->r.mins, ent->r.maxs, ent->client->ps.origin, ent->s.number, mask );
+		engine->trap_TraceCapsule( &tr, ent->client->ps.origin, ent->r.mins, ent->r.maxs, ent->client->ps.origin, ent->s.number, mask );
 	} else if ( ent->s.eType == ET_MISSILE ) {
-		trap_Trace( &tr, ent->s.pos.trBase, ent->r.mins, ent->r.maxs, ent->s.pos.trBase, ent->r.ownerNum, mask );
+		engine->trap_Trace( &tr, ent->s.pos.trBase, ent->r.mins, ent->r.maxs, ent->s.pos.trBase, ent->r.ownerNum, mask );
 	} else {
-		trap_Trace( &tr, ent->s.pos.trBase, ent->r.mins, ent->r.maxs, ent->s.pos.trBase, ent->s.number, mask );
+		engine->trap_Trace( &tr, ent->s.pos.trBase, ent->r.mins, ent->r.maxs, ent->s.pos.trBase, ent->s.number, mask );
 	}
 
 	if ( tr.startsolid ) {
@@ -167,9 +167,9 @@ void G_TestEntityDropToFloor( gentity_t *ent, float maxdrop ) {
 
 	endpos[2] -= maxdrop;
 	if ( ent->client ) {
-		trap_TraceCapsule( &tr, ent->client->ps.origin, ent->r.mins, ent->r.maxs, endpos, ent->s.number, mask );
+		engine->trap_TraceCapsule( &tr, ent->client->ps.origin, ent->r.mins, ent->r.maxs, endpos, ent->s.number, mask );
 	} else {
-		trap_Trace( &tr, ent->s.pos.trBase, ent->r.mins, ent->r.maxs, endpos, ent->s.number, mask );
+		engine->trap_Trace( &tr, ent->s.pos.trBase, ent->r.mins, ent->r.maxs, endpos, ent->s.number, mask );
 	}
 
 	VectorCopy( tr.endpos, ent->s.pos.trBase );
@@ -194,9 +194,9 @@ void G_TestEntityMoveTowardsPos( gentity_t *ent, vec3_t pos ) {
 		mask = MASK_SOLID;
 	}
 	if ( ent->client ) {
-		trap_TraceCapsule( &tr, ent->client->ps.origin, ent->r.mins, ent->r.maxs, pos, ent->s.number, mask );
+		engine->trap_TraceCapsule( &tr, ent->client->ps.origin, ent->r.mins, ent->r.maxs, pos, ent->s.number, mask );
 	} else {
-		trap_Trace( &tr, ent->s.pos.trBase, ent->r.mins, ent->r.maxs, pos, ent->s.number, mask );
+		engine->trap_Trace( &tr, ent->s.pos.trBase, ent->r.mins, ent->r.maxs, pos, ent->s.number, mask );
 	}
 
 	VectorCopy( tr.endpos, ent->s.pos.trBase );
@@ -444,14 +444,14 @@ qboolean G_MoverPush( gentity_t *pusher, vec3_t move, vec3_t amove, gentity_t **
 	}
 
 	// unlink the pusher so we don't get it in the entityList
-	trap_UnlinkEntity( pusher );
+	engine->trap_UnlinkEntity( pusher );
 
-	listedEntities = trap_EntitiesInBox( totalMins, totalMaxs, entityList, MAX_GENTITIES );
+	listedEntities = engine->trap_EntitiesInBox( totalMins, totalMaxs, entityList, MAX_GENTITIES );
 
 	// move the pusher to it's final position
 	VectorAdd( pusher->r.currentOrigin, move, pusher->r.currentOrigin );
 	VectorAdd( pusher->r.currentAngles, amove, pusher->r.currentAngles );
-	trap_LinkEntity( pusher );
+	engine->trap_LinkEntity( pusher );
 
 	moveEntities = 0;
 	// see if any solid entities are inside the final position
@@ -504,7 +504,7 @@ qboolean G_MoverPush( gentity_t *pusher, vec3_t move, vec3_t amove, gentity_t **
 	for ( e = 0; e < moveEntities; e++ ) {
 		check = &g_entities[ moveList[e] ];
 
-		trap_UnlinkEntity( check );
+		engine->trap_UnlinkEntity( check );
 	}
 
 	for ( e = 0; e < moveEntities; e++ ) {
@@ -513,7 +513,7 @@ qboolean G_MoverPush( gentity_t *pusher, vec3_t move, vec3_t amove, gentity_t **
 		// the entity needs to be pushed
 		if ( G_TryPushingEntity( check, pusher, move, amove ) ) {
 			// link it in now so nothing else tries to clip into us
-			trap_LinkEntity( check );
+			engine->trap_LinkEntity( check );
 			continue;
 		}
 
@@ -544,7 +544,7 @@ qboolean G_MoverPush( gentity_t *pusher, vec3_t move, vec3_t amove, gentity_t **
 		for ( e = 0; e < moveEntities; e++ ) {
 			check = &g_entities[ moveList[e] ];
 
-			trap_LinkEntity( check );
+			engine->trap_LinkEntity( check );
 		}
 		// movement failed
 		return qfalse;
@@ -553,7 +553,7 @@ qboolean G_MoverPush( gentity_t *pusher, vec3_t move, vec3_t amove, gentity_t **
 	for ( e = 0; e < moveEntities; e++ ) {
 		check = &g_entities[ moveList[e] ];
 
-		trap_LinkEntity( check );
+		engine->trap_LinkEntity( check );
 	}
 	// movement was successfull
 	return qtrue;
@@ -600,7 +600,7 @@ void G_MoverTeam( gentity_t *ent ) {
 			part->s.apos.trTime += level.time - level.previousTime;
 			BG_EvaluateTrajectory( &part->s.pos, level.time, part->r.currentOrigin );
 			BG_EvaluateTrajectory( &part->s.apos, level.time, part->r.currentAngles );
-			trap_LinkEntity( part );
+			engine->trap_LinkEntity( part );
 		}
 
 		// if the pusher has a "blocked" function, call it
@@ -648,11 +648,11 @@ void G_RunMover( gentity_t *ent ) {
 		// hack to fix problem of tram car slaves being linked
 		// after being unlinked in G_FindTeams
 		if ( ent->r.linked && !Q_stricmp( ent->classname, "func_tramcar" ) ) {
-			trap_UnlinkEntity( ent );
+			engine->trap_UnlinkEntity( ent );
 		}
 		// Sigh... need to figure out why re links in
 		else if ( ent->r.linked && !Q_stricmp( ent->classname, "func_rotating" ) ) {
-			trap_UnlinkEntity( ent );
+			engine->trap_UnlinkEntity( ent );
 		}
 		return;
 	}
@@ -798,7 +798,7 @@ void SetMoverState( gentity_t *ent, moverState_t moverState, int time ) {
 	}
 	BG_EvaluateTrajectory( &ent->s.pos, level.time, ent->r.currentOrigin );
 	if ( !( ent->r.svFlags & SVF_NOCLIENT ) || ( ent->r.contents ) ) {    // RF, added this for bats, but this is safe for all movers, since if they aren't solid, and aren't visible to the client, they don't need to be linked
-		trap_LinkEntity( ent );
+		engine->trap_LinkEntity( ent );
 		// if this entity is blocking AAS, then update it
 		if ( ent->AASblocking && ent->s.pos.trType == TR_STATIONARY ) {
 			// reset old blocking areas
@@ -924,7 +924,7 @@ void ReturnToPos1Rotate( gentity_t *ent ) {
 	player = AICast_FindEntityForName( "player" );
 
 	if ( player ) {
-		inPVS = trap_InPVS( player->r.currentOrigin, ent->r.currentOrigin );
+		inPVS = engine->trap_InPVS( player->r.currentOrigin, ent->r.currentOrigin );
 	}
 
 	// play starting sound
@@ -1006,7 +1006,7 @@ void Reached_BinaryMover( gentity_t *ent ) {
 
 		// close areaportals
 		if ( ent->teammaster == ent || !ent->teammaster ) {
-			trap_AdjustAreaPortalState( ent, qfalse );
+			engine->trap_AdjustAreaPortalState( ent, qfalse );
 		}
 	} else if ( ent->moverState == MOVER_1TO2ROTATE )   {
 		// reached pos2
@@ -1052,7 +1052,7 @@ void Reached_BinaryMover( gentity_t *ent ) {
 			player = AICast_FindEntityForName( "player" );
 
 			if ( player ) {
-				inPVS = trap_InPVS( player->r.currentOrigin, ent->r.currentOrigin );
+				inPVS = engine->trap_InPVS( player->r.currentOrigin, ent->r.currentOrigin );
 			}
 
 			// play sound
@@ -1070,7 +1070,7 @@ void Reached_BinaryMover( gentity_t *ent ) {
 
 		// close areaportals
 		if ( ent->teammaster == ent || !ent->teammaster ) {
-			trap_AdjustAreaPortalState( ent, qfalse );
+			engine->trap_AdjustAreaPortalState( ent, qfalse );
 		}
 	} else {
 		G_Error( "Reached_BinaryMover: bad moverState" );
@@ -1178,7 +1178,7 @@ void Reached_TrinaryMover( gentity_t *ent ) {
 
 		// close areaportals
 		if ( ent->teammaster == ent || !ent->teammaster ) {
-			trap_AdjustAreaPortalState( ent, qfalse );
+			engine->trap_AdjustAreaPortalState( ent, qfalse );
 		}
 	} else if ( ent->moverState == MOVER_2TO3 )   {
 		// reached pos3
@@ -1238,7 +1238,7 @@ void Use_TrinaryMover( gentity_t *ent, gentity_t *other, gentity_t *activator ) 
 
 		// open areaportal
 		if ( ent->teammaster == ent || !ent->teammaster ) {
-			trap_AdjustAreaPortalState( ent, qtrue );
+			engine->trap_AdjustAreaPortalState( ent, qtrue );
 		}
 		return;
 	}
@@ -1265,7 +1265,7 @@ void Use_TrinaryMover( gentity_t *ent, gentity_t *other, gentity_t *activator ) 
 
 		// open areaportal
 		if ( ent->teammaster == ent || !ent->teammaster ) {
-			trap_AdjustAreaPortalState( ent, qtrue );
+			engine->trap_AdjustAreaPortalState( ent, qtrue );
 		}
 		return;
 	}
@@ -1435,7 +1435,7 @@ void Use_BinaryMover( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 
 		// open areaportal
 		if ( ent->teammaster == ent || !ent->teammaster ) {
-			trap_AdjustAreaPortalState( ent, qtrue );
+			engine->trap_AdjustAreaPortalState( ent, qtrue );
 		}
 		return;
 	}
@@ -1468,7 +1468,7 @@ void Use_BinaryMover( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 
 		// open areaportal
 		if ( ent->teammaster == ent || !ent->teammaster ) {
-			trap_AdjustAreaPortalState( ent, qtrue );
+			engine->trap_AdjustAreaPortalState( ent, qtrue );
 		}
 		return;
 	}
@@ -1504,7 +1504,7 @@ void Use_BinaryMover( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 
 		// open areaportal
 		if ( ent->teammaster == ent || !ent->teammaster ) {
-			trap_AdjustAreaPortalState( ent, qtrue );
+			engine->trap_AdjustAreaPortalState( ent, qtrue );
 		}
 		return;
 	}
@@ -1652,7 +1652,7 @@ void InitMover( gentity_t *ent ) {
 	ent->s.eType = ET_MOVER;
 
 	VectorCopy( ent->pos1, ent->r.currentOrigin );
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 	ent->s.pos.trType = TR_STATIONARY;
 	VectorCopy( ent->pos1, ent->s.pos.trBase );
@@ -1743,7 +1743,7 @@ void InitMoverRotate( gentity_t *ent ) {
 	ent->s.eType = ET_MOVER;
 	VectorCopy( ent->s.origin, ent->s.pos.trBase );
 	VectorCopy( ent->pos1, ent->r.currentOrigin );
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 	ent->s.pos.trType = TR_STATIONARY;
 	VectorCopy( ent->pos1, ent->s.pos.trBase );
@@ -1828,7 +1828,7 @@ void Blocked_Door( gentity_t *ent, gentity_t *other ) {
 		} else {
 			SetMoverState( slave, MOVER_1TO2, time );
 		}
-		trap_LinkEntity( slave );
+		engine->trap_LinkEntity( slave );
 	}
 
 }
@@ -1910,7 +1910,7 @@ void Blocked_DoorRotate( gentity_t *ent, gentity_t *other ) {
 		{
 			SetMoverState( slave, MOVER_1TO2ROTATE, time );
 		}
-		trap_LinkEntity( slave );
+		engine->trap_LinkEntity( slave );
 	}
 
 
@@ -1978,7 +1978,7 @@ void Think_SpawnNewDoorTrigger( gentity_t *ent ) {
 	other->parent = ent;
 	other->r.contents = CONTENTS_TRIGGER;
 	other->touch = Touch_DoorTrigger;
-	trap_LinkEntity( other );
+	engine->trap_LinkEntity( other );
 
 	MatchTeam( ent, ent->moverState, level.time );
 }
@@ -2327,7 +2327,7 @@ void SP_func_door( gentity_t *ent ) {
 	VectorCopy( ent->s.origin, ent->pos1 );
 
 	// calculate second position
-	trap_SetBrushModel( ent, ent->model );
+	engine->trap_SetBrushModel( ent, ent->model );
 	G_SetMovedir( ent->s.angles, ent->movedir );
 	abs_movedir[0] = fabs( ent->movedir[0] );
 	abs_movedir[1] = fabs( ent->movedir[1] );
@@ -2449,7 +2449,7 @@ void SP_func_secret( gentity_t *ent ) {
 	}
 
 	// calculate second position
-	trap_SetBrushModel( ent, ent->model );
+	engine->trap_SetBrushModel( ent, ent->model );
 	G_SetMovedir( ent->s.angles, ent->movedir );
 	abs_movedir[0] = fabs( ent->movedir[0] );
 	abs_movedir[1] = fabs( ent->movedir[1] );
@@ -2576,7 +2576,7 @@ void SpawnPlatTrigger( gentity_t *ent ) {
 	VectorCopy( tmin, trigger->r.mins );
 	VectorCopy( tmax, trigger->r.maxs );
 
-	trap_LinkEntity( trigger );
+	engine->trap_LinkEntity( trigger );
 }
 
 
@@ -2607,7 +2607,7 @@ void SP_func_plat( gentity_t *ent ) {
 	ent->wait = 1000;
 
 	// create second position
-	trap_SetBrushModel( ent, ent->model );
+	engine->trap_SetBrushModel( ent, ent->model );
 
 	if ( !G_SpawnFloat( "height", "0", &height ) ) {
 		height = ( ent->r.maxs[2] - ent->r.mins[2] ) - lip;
@@ -2694,7 +2694,7 @@ void SP_func_button( gentity_t *ent ) {
 	VectorCopy( ent->s.origin, ent->pos1 );
 
 	// calculate second position
-	trap_SetBrushModel( ent, ent->model );
+	engine->trap_SetBrushModel( ent, ent->model );
 
 	G_SpawnFloat( "lip", "4", &lip );
 
@@ -2897,26 +2897,26 @@ void Think_SetupTrainTargets( gentity_t *ent ) {
 	if ( !Q_stricmp( ent->classname, "func_train" ) && ent->spawnflags & 2 ) { // TOGGLE
 		VectorCopy( ent->nextTrain->s.origin, ent->s.pos.trBase );
 		VectorCopy( ent->nextTrain->s.origin, ent->r.currentOrigin );
-		trap_LinkEntity( ent );
+		engine->trap_LinkEntity( ent );
 	} else if ( !Q_stricmp( ent->classname, "func_train_particles" ) && ent->spawnflags & 2 )       { // TOGGLE
 		VectorCopy( ent->nextTrain->s.origin, ent->s.pos.trBase );
 		VectorCopy( ent->nextTrain->s.origin, ent->r.currentOrigin );
-		trap_LinkEntity( ent );
+		engine->trap_LinkEntity( ent );
 	} else if ( !Q_stricmp( ent->classname, "func_tramcar" ) && ent->spawnflags & 2 )       { // TOGGLE
 		VectorCopy( ent->nextTrain->s.origin, ent->s.pos.trBase );
 		VectorCopy( ent->nextTrain->s.origin, ent->r.currentOrigin );
-		trap_LinkEntity( ent );
+		engine->trap_LinkEntity( ent );
 	} else if ( !Q_stricmp( ent->classname, "func_bat" ) )       {
 		//VectorCopy (ent->nextTrain->s.origin, ent->s.pos.trBase);
 		//VectorCopy (ent->nextTrain->s.origin, ent->r.currentOrigin);
-		//trap_LinkEntity (ent);
+		//engine->trap_LinkEntity (ent);
 		if ( ent->spawnflags & 1 ) {  // start on
 			ent->use( ent, ent, ent );
 		}
 	} else if ( !Q_stricmp( ent->classname, "truck_cam" ) && ent->spawnflags & 2 )     { // TOGGLE
 		VectorCopy( ent->nextTrain->s.origin, ent->s.pos.trBase );
 		VectorCopy( ent->nextTrain->s.origin, ent->r.currentOrigin );
-		trap_LinkEntity( ent );
+		engine->trap_LinkEntity( ent );
 	} else
 	{
 		if ( !Q_stricmp( ent->classname, "func_tramcar" ) ) {
@@ -2990,7 +2990,7 @@ void SP_func_train( gentity_t *self ) {
 		return;
 	}
 
-	trap_SetBrushModel( self, self->model );
+	engine->trap_SetBrushModel( self, self->model );
 	InitMover( self );
 
 	self->reached = Reached_Train;
@@ -3041,7 +3041,7 @@ void Func_train_particles_reached( gentity_t *self ) {
 	}
 
 	tent->s.frame = self->s.number;
-	trap_LinkEntity( self );
+	engine->trap_LinkEntity( self );
 
 }
 
@@ -3123,11 +3123,11 @@ void BatMoveThink( gentity_t *bat ) {
 		if ( dist * speed > 20 ) {
 			vectoangles( vec, bat->s.angles );
 		}
-		trap_LinkEntity( bat );
+		engine->trap_LinkEntity( bat );
 /*
 		// check for hurting someone
 		if (bat->damage < level.time) {
-			trap_Trace( &tr, bat->r.currentOrigin, NULL, NULL, bat->r.currentOrigin, bat->s.number, CONTENTS_BODY );
+			engine->trap_Trace( &tr, bat->r.currentOrigin, NULL, NULL, bat->r.currentOrigin, bat->s.number, CONTENTS_BODY );
 			if (tr.startsolid && tr.entityNum < MAX_CLIENTS && !g_entities[tr.entityNum].aiCharacter) {
 				G_Damage( &g_entities[tr.entityNum], bat, bat, vec3_origin, bat->r.currentOrigin, 1+rand()%3, DAMAGE_NO_KNOCKBACK, MOD_BAT );
 
@@ -3189,7 +3189,7 @@ void FuncBatsActivate( gentity_t *self, gentity_t * other, gentity_t * activator
 			bat->think = BatMoveThink;
 			bat->nextthink = level.time + 50;
 
-			trap_LinkEntity( bat );
+			engine->trap_LinkEntity( bat );
 		}
 
 		InitMover( self );  // start moving
@@ -3302,7 +3302,7 @@ void SP_func_bats( gentity_t *self ) {
 		self->nextthink = level.time + ( self->wait * 1000 );
 		//
 		self->r.contents = 0;
-		trap_LinkEntity( self );
+		engine->trap_LinkEntity( self );
 	}
 }
 
@@ -3528,7 +3528,7 @@ void SP_func_train_rotating( gentity_t *self ) {
 		return;
 	}
 
-	trap_SetBrushModel( self, self->model );
+	engine->trap_SetBrushModel( self, self->model );
 	InitMover( self );
 
 	self->reached = Reached_Train_rotating;
@@ -3556,13 +3556,13 @@ Use_Static
 */
 void Use_Static( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 	if ( ent->r.linked ) {
-		trap_UnlinkEntity( ent );
+		engine->trap_UnlinkEntity( ent );
 		// DISABLED since func_static will carve up AAS anyway, so blocking makes no sense
 		// RF, AAS areas are now free
 		//if (ent->model)
 		//	G_SetAASBlockingEntity( ent, qfalse );
 	} else {
-		trap_LinkEntity( ent );
+		engine->trap_LinkEntity( ent );
 		// DISABLED since func_static will carve up AAS anyway, so blocking makes no sense
 		// RF, AAS areas are now occupied
 		//if (ent->model)
@@ -3631,7 +3631,7 @@ void SP_func_leaky( gentity_t *ent ) {
 	if ( ent->model2 ) {
 		ent->s.modelindex2 = G_ModelIndex( ent->model2 );
 	}
-	trap_SetBrushModel( ent, ent->model );
+	engine->trap_SetBrushModel( ent, ent->model );
 	ent->s.pos.trType = TR_STATIONARY;
 	VectorCopy( ent->s.origin, ent->s.pos.trBase );
 	VectorCopy( ent->s.origin, ent->r.currentOrigin );
@@ -3659,7 +3659,7 @@ void SP_func_leaky( gentity_t *ent ) {
 	ent->emitTime *= 1000;  // make ms
 	G_SpawnInt( "leakcount", "10", &ent->emitNum );
 	ent->s.eType = ET_LEAKY;
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 }
 
 
@@ -3699,14 +3699,14 @@ void SP_func_static( gentity_t *ent ) {
 	if ( ent->model2 ) {
 		ent->s.modelindex2 = G_ModelIndex( ent->model2 );
 	}
-	trap_SetBrushModel( ent, ent->model );
+	engine->trap_SetBrushModel( ent, ent->model );
 	InitMover( ent );
 	VectorCopy( ent->s.origin, ent->s.pos.trBase );
 	VectorCopy( ent->s.origin, ent->r.currentOrigin );
 	ent->use = Use_Static;
 
 	if ( ent->spawnflags & 1 ) {
-		trap_UnlinkEntity( ent );
+		engine->trap_UnlinkEntity( ent );
 	}
 
 	if ( !( ent->flags & FL_TEAMSLAVE ) ) {
@@ -3785,7 +3785,7 @@ void Use_Func_Rotate( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 		ent->flags &= ~FL_TEAMSLAVE;
 	}
 
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 }
 
 void SP_func_rotating( gentity_t *ent ) {
@@ -3810,7 +3810,7 @@ void SP_func_rotating( gentity_t *ent ) {
 		ent->damage = 2;
 	}
 
-	trap_SetBrushModel( ent, ent->model );
+	engine->trap_SetBrushModel( ent, ent->model );
 	InitMover( ent );
 
 	VectorCopy( ent->s.origin, ent->s.pos.trBase );
@@ -3819,9 +3819,9 @@ void SP_func_rotating( gentity_t *ent ) {
 
 	if ( ent->spawnflags & 2 ) {
 		ent->flags |= FL_TEAMSLAVE;
-		trap_UnlinkEntity( ent );
+		engine->trap_UnlinkEntity( ent );
 	} else {
-		trap_LinkEntity( ent );
+		engine->trap_LinkEntity( ent );
 	}
 
 }
@@ -3855,7 +3855,7 @@ void SP_func_bobbing( gentity_t *ent ) {
 	G_SpawnInt( "dmg", "2", &ent->damage );
 	G_SpawnFloat( "phase", "0", &phase );
 
-	trap_SetBrushModel( ent, ent->model );
+	engine->trap_SetBrushModel( ent, ent->model );
 	InitMover( ent );
 
 	VectorCopy( ent->s.origin, ent->s.pos.trBase );
@@ -3905,7 +3905,7 @@ void SP_func_pendulum( gentity_t *ent ) {
 	G_SpawnInt( "dmg", "2", &ent->damage );
 	G_SpawnFloat( "phase", "0", &phase );
 
-	trap_SetBrushModel( ent, ent->model );
+	engine->trap_SetBrushModel( ent, ent->model );
 
 	// find pendulum length
 	length = fabs( ent->r.mins[2] );
@@ -4031,7 +4031,7 @@ void SP_func_door_rotating( gentity_t *ent ) {
 	//	ent->damage = 2;
 	//}
 
-	trap_SetBrushModel( ent, ent->model );
+	engine->trap_SetBrushModel( ent, ent->model );
 
 	InitMoverRotate( ent );
 
@@ -4053,7 +4053,7 @@ void SP_func_door_rotating( gentity_t *ent ) {
 
 	ent->blocked = Blocked_DoorRotate;
 
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 }
 
 
@@ -4086,7 +4086,7 @@ void use_target_effect( gentity_t *self, gentity_t *other, gentity_t *activator 
 		tent->s.dl_intensity = 0;
 	}
 
-	trap_SetConfigstring( CS_TARGETEFFECT, self->dl_shader );   //----(SA)	allow shader to be set from entity
+	engine->trap_SetConfigstring( CS_TARGETEFFECT, self->dl_shader );   //----(SA)	allow shader to be set from entity
 
 	// (SA) this should match the values from func_explosive
 	tent->s.frame = self->key;      // pass the type to the client ("glass", "wood", "metal", "gibs", "brick", "stone", "fabric", 0, 1, 2, 3, 4, 5, 6)
@@ -4325,7 +4325,7 @@ func_explosive_spawn
 ==============
 */
 void func_explosive_spawn( gentity_t *self, gentity_t *other, gentity_t *activator ) {
-	trap_LinkEntity( self );
+	engine->trap_LinkEntity( self );
 	self->use = func_explosive_use;
 	// turn the brush to visible
 
@@ -4374,7 +4374,7 @@ void InitExplosive( gentity_t *ent ) {
 	}
 
 	ent->s.eType = ET_EXPLOSIVE;
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 	if ( !( ent->spawnflags & 16 ) ) {
 		ent->think = G_BlockThink;
@@ -4432,12 +4432,12 @@ void SP_func_explosive( gentity_t *ent ) {
 	char    *type;
 	char    *cursorhint;
 
-	trap_SetBrushModel( ent, ent->model );
+	engine->trap_SetBrushModel( ent, ent->model );
 	InitExplosive( ent );
 
 	if ( ent->spawnflags & 1 ) {  // start invis
 		ent->use = func_explosive_spawn;
-		trap_UnlinkEntity( ent );
+		engine->trap_UnlinkEntity( ent );
 	} else if ( ent->targetname )     {
 		ent->use = func_explosive_use;
 		ent->AIScript_AlertEntity = func_explosive_alert;
@@ -4658,11 +4658,11 @@ void func_invisible_user( gentity_t *ent ) {
 	char    *cursorhint;
 
 	VectorCopy( ent->s.origin, ent->pos1 );
-	trap_SetBrushModel( ent, ent->model );
+	engine->trap_SetBrushModel( ent, ent->model );
 
 	// InitMover (ent);
 	VectorCopy( ent->pos1, ent->r.currentOrigin );
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 	ent->s.pos.trType = TR_STATIONARY;
 	VectorCopy( ent->pos1, ent->s.pos.trBase );

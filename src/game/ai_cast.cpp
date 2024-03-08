@@ -173,14 +173,14 @@ int AICast_SetupClient( int client ) {
 	cs->bs = bs;
 
 	//allocate a goal state
-	bs->gs = trap_BotAllocGoalState( client );
+	bs->gs = engine->trap_BotAllocGoalState( client );
 
 	bs->inuse = qtrue;
 	bs->client = client;
 	bs->entitynum = client;
 	bs->setupcount = qtrue;
-	bs->entergame_time = trap_AAS_Time();
-	bs->ms = trap_BotAllocMoveState();
+	bs->entergame_time = engine->trap_AAS_Time();
+	bs->ms = engine->trap_BotAllocMoveState();
 
 	return qtrue;
 }
@@ -213,9 +213,9 @@ int AICast_ShutdownClient( int client ) {
 //	botai_import.DebugLineDelete(bs->debugline);
 #endif //DEBUG
 
-	trap_BotFreeMoveState( bs->ms );
+	engine->trap_BotFreeMoveState( bs->ms );
 	//free the goal state
-	trap_BotFreeGoalState( bs->gs );
+	engine->trap_BotFreeGoalState( bs->gs );
 	//
 	//clear the bot state
 	memset( bs, 0, sizeof( bot_state_t ) );
@@ -249,7 +249,7 @@ gentity_t *AICast_AddCastToGame( gentity_t *ent, char *castname, char *model, ch
 	Info_SetValueForKey( userinfo, "color", color );
 
 	// have the server allocate a client slot
-	clientNum = trap_BotAllocateClient();
+	clientNum = engine->trap_BotAllocateClient();
 	if ( clientNum == -1 ) {
 		G_Printf( S_COLOR_RED "BotAllocateClient failed\n" );
 		return NULL;
@@ -259,7 +259,7 @@ gentity_t *AICast_AddCastToGame( gentity_t *ent, char *castname, char *model, ch
 	bot->r.svFlags |= SVF_CASTAI;       // flag it for special Cast AI behaviour
 
 	// register the userinfo
-	trap_SetUserinfo( bot->s.number, userinfo );
+	engine->trap_SetUserinfo( bot->s.number, userinfo );
 
 	// have it connect to the game as a normal client
 //----(SA) ClientConnect requires a third 'isbot' parameter.  setting to qfalse and noting
@@ -352,7 +352,7 @@ gentity_t *AICast_CreateCharacter( gentity_t *ent, float *attributes, cast_weapo
 		return NULL;
 	}
 	// are bots enabled?
-	if ( !trap_Cvar_VariableIntegerValue( "bot_enable" ) ) {
+	if ( !engine->trap_Cvar_VariableIntegerValue( "bot_enable" ) ) {
 		G_Printf( S_COLOR_RED "ERROR: Unable to spawn %s, 'bot_enable' is not set\n", ent->classname );
 		return NULL;
 	}
@@ -477,9 +477,9 @@ void AICast_Init( void ) {
 	numSpawningCast = 0;
 	saveGamePending = qtrue;
 
-	trap_Cvar_Register( &aicast_debug, "aicast_debug", "0", 0 );
-	trap_Cvar_Register( &aicast_debugname, "aicast_debugname", "", 0 );
-	trap_Cvar_Register( &aicast_scripts, "aicast_scripts", "1", 0 );
+	engine->trap_Cvar_Register( &aicast_debug, "aicast_debug", "0", 0 );
+	engine->trap_Cvar_Register( &aicast_debugname, "aicast_debugname", "", 0 );
+	engine->trap_Cvar_Register( &aicast_scripts, "aicast_scripts", "1", 0 );
 
 	// (aicast_thinktime / sv_fps) * aicast_maxthink = number of cast's to think between each aicast frame
 	// so..
@@ -487,15 +487,15 @@ void AICast_Init( void ) {
 	//
 	// so if the level has more than 30 AI cast's, they could start to bunch up, resulting in slower thinks
 
-	trap_Cvar_Register( &cvar, "aicast_thinktime", "50", 0 );
-	aicast_thinktime = trap_Cvar_VariableIntegerValue( "aicast_thinktime" );
+	engine->trap_Cvar_Register( &cvar, "aicast_thinktime", "50", 0 );
+	aicast_thinktime = engine->trap_Cvar_VariableIntegerValue( "aicast_thinktime" );
 
-	trap_Cvar_Register( &cvar, "aicast_maxthink", "4", 0 );
-	aicast_maxthink = trap_Cvar_VariableIntegerValue( "aicast_maxthink" );
+	engine->trap_Cvar_Register( &cvar, "aicast_maxthink", "4", 0 );
+	aicast_maxthink = engine->trap_Cvar_VariableIntegerValue( "aicast_maxthink" );
 
-	aicast_maxclients = trap_Cvar_VariableIntegerValue( "sv_maxclients" );
+	aicast_maxclients = engine->trap_Cvar_VariableIntegerValue( "sv_maxclients" );
 
-	aicast_skillscale = (float)trap_Cvar_VariableIntegerValue( "g_gameSkill" ) / (float)GSKILL_MAX;
+	aicast_skillscale = (float)engine->trap_Cvar_VariableIntegerValue( "g_gameSkill" ) / (float)GSKILL_MAX;
 
 	caststates = (cast_state_t *)G_Alloc( aicast_maxclients * sizeof( cast_state_t ) );
 	memset( caststates, 0, sizeof( caststates ) );
@@ -506,9 +506,9 @@ void AICast_Init( void ) {
 /* RF, this is useless, since the AAS hasnt been loaded yet
 	// try and load in the AAS now, so we can interact with it during spawning of entities
 	i = 0;
-	trap_AAS_SetCurrentWorld(0);
-	while (!trap_AAS_Initialized() && (i++ < 10)) {
-		trap_BotLibStartFrame((float) level.time / 1000);
+	engine->trap_AAS_SetCurrentWorld(0);
+	while (!engine->trap_AAS_Initialized() && (i++ < 10)) {
+		engine->trap_BotLibStartFrame((float) level.time / 1000);
 	}
 */
 }
@@ -593,9 +593,9 @@ void AIChar_AIScript_AlertEntity( gentity_t *ent ) {
 	// if the current bounding box is invalid, then wait
 	VectorAdd( ent->r.currentOrigin, ent->r.mins, mins );
 	VectorAdd( ent->r.currentOrigin, ent->r.maxs, maxs );
-	trap_UnlinkEntity( ent );
+	engine->trap_UnlinkEntity( ent );
 
-	numTouch = trap_EntitiesInBox( mins, maxs, touch, 10 );
+	numTouch = engine->trap_EntitiesInBox( mins, maxs, touch, 10 );
 
 	// check that another client isn't inside us
 	if ( numTouch ) {
@@ -621,7 +621,7 @@ void AIChar_AIScript_AlertEntity( gentity_t *ent ) {
 	//ent->AIScript_AlertEntity = NULL;
 	cs->aiFlags &= ~AIFL_WAITINGTOSPAWN;
 	ent->aiInactive = qfalse;
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 	// trigger a spawn script event
 	AICast_ScriptEvent( AICast_GetCastState( ent->s.number ), "spawn", "" );
@@ -629,7 +629,7 @@ void AIChar_AIScript_AlertEntity( gentity_t *ent ) {
 	AICast_Think( ent->s.number, (float)FRAMETIME / 1000 );
 	cs->lastThink = level.time;
 	AICast_UpdateInput( cs, FRAMETIME );
-	trap_BotUserCommand( cs->bs->client, &( cs->lastucmd ) );
+	engine->trap_BotUserCommand( cs->bs->client, &( cs->lastucmd ) );
 }
 
 
@@ -710,8 +710,8 @@ AICast_EnableRenderingThink
 ==================
 */
 void AICast_EnableRenderingThink( gentity_t *ent ) {
-	trap_Cvar_Set( "cg_norender", "0" );
-//		trap_S_FadeAllSound(1.0f, 1000);	// fade sound up
+	engine->trap_Cvar_Set( "cg_norender", "0" );
+//		engine->trap_S_FadeAllSound(1.0f, 1000);	// fade sound up
 	G_FreeEntity( ent );
 }
 
@@ -736,22 +736,22 @@ void AICast_CheckLoadGame( void ) {
 	}
 
 	// tell the cgame NOT to render the scene while we are waiting for things to settle
-	trap_Cvar_Set( "cg_norender", "1" );
+	engine->trap_Cvar_Set( "cg_norender", "1" );
 
-	trap_Cvar_VariableStringBuffer( "savegame_loading", loading, sizeof( loading ) );
+	engine->trap_Cvar_VariableStringBuffer( "savegame_loading", loading, sizeof( loading ) );
 
 //	reloading = qtrue;
-	trap_Cvar_Set( "g_reloading", "1" );
+	engine->trap_Cvar_Set( "g_reloading", "1" );
 
 	if ( strlen( loading ) > 0 && atoi( loading ) != 0 ) {
 		// screen should be black if we are at this stage
-		trap_SetConfigstring( CS_SCREENFADE, va( "1 %i 1", level.time - 10 ) );
+		engine->trap_SetConfigstring( CS_SCREENFADE, va( "1 %i 1", level.time - 10 ) );
 
 //		if (!reloading && atoi(loading) == 2) {
 		if ( !( g_reloading.integer ) && atoi( loading ) == 2 ) {
 			// (SA) hmm, this seems redundant when it sets it above...
 //			reloading = qtrue;	// this gets reset at the Map_Restart() since the server unloads the game dll
-			trap_Cvar_Set( "g_reloading", "1" );
+			engine->trap_Cvar_Set( "g_reloading", "1" );
 		}
 
 		ready = qtrue;
@@ -764,23 +764,23 @@ void AICast_CheckLoadGame( void ) {
 		}
 
 		if ( ready ) {
-			trap_Cvar_Set( "savegame_loading", "0" ); // in-case it aborts
+			engine->trap_Cvar_Set( "savegame_loading", "0" ); // in-case it aborts
 			saveGamePending = qfalse;
 			G_LoadGame( NULL );     // always load the "current" savegame
 
 			// RF, spawn a thinker that will enable rendering after the client has had time to process the entities and setup the display
-			//trap_Cvar_Set( "cg_norender", "0" );
+			//engine->trap_Cvar_Set( "cg_norender", "0" );
 			ent = G_Spawn();
 			ent->nextthink = level.time + 200;
 			ent->think = AICast_EnableRenderingThink;
 
 			// wait for the clients to return from faded screen
-			//trap_SetConfigstring( CS_SCREENFADE, va("0 %i 1500", level.time + 500) );
-			trap_SetConfigstring( CS_SCREENFADE, va( "0 %i 750", level.time + 500 ) );
+			//engine->trap_SetConfigstring( CS_SCREENFADE, va("0 %i 1500", level.time + 500) );
+			engine->trap_SetConfigstring( CS_SCREENFADE, va( "0 %i 750", level.time + 500 ) );
 			level.reloadPauseTime = level.time + 1100;
 
 			// make sure sound fades up
-			trap_SendServerCommand( -1, va( "snd_fade 1 %d", 2000 ) );  //----(SA)	added
+			engine->trap_SendServerCommand( -1, va( "snd_fade 1 %d", 2000 ) );  //----(SA)	added
 
 			AICast_CastScriptThink();
 		}
@@ -799,8 +799,8 @@ void AICast_CheckLoadGame( void ) {
 		if ( ready ) {
 			G_LoadPersistant();     // make sure we save the game after we have brought across the items
 
-			trap_Cvar_Set( "g_totalPlayTime", "0" );  // reset play time
-			trap_Cvar_Set( "g_attempts", "0" );
+			engine->trap_Cvar_Set( "g_totalPlayTime", "0" );  // reset play time
+			engine->trap_Cvar_Set( "g_attempts", "0" );
 			pcs = AICast_GetCastState( ent->s.number );
 			pcs->totalPlayTime = 0;
 			pcs->lastLoadTime = 0;
@@ -809,7 +809,7 @@ void AICast_CheckLoadGame( void ) {
 			// RF, disabled, since the pregame menu turns this off after the button is pressed, this isn't
 			// required here
 			// RF, spawn a thinker that will enable rendering after the client has had time to process the entities and setup the display
-			//trap_Cvar_Set( "cg_norender", "0" );
+			//engine->trap_Cvar_Set( "cg_norender", "0" );
 			//ent = G_Spawn();
 			//ent->nextthink = level.time + 200;
 			//ent->think = AICast_EnableRenderingThink;
@@ -817,12 +817,12 @@ void AICast_CheckLoadGame( void ) {
 			saveGamePending = qfalse;
 
 			// wait for the clients to return from faded screen
-//			trap_SetConfigstring( CS_SCREENFADE, va("0 %i 1500", level.time + 500) );
-//			trap_SetConfigstring( CS_SCREENFADE, va("0 %i 750", level.time + 500) );
+//			engine->trap_SetConfigstring( CS_SCREENFADE, va("0 %i 1500", level.time + 500) );
+//			engine->trap_SetConfigstring( CS_SCREENFADE, va("0 %i 750", level.time + 500) );
 			// (SA) send a command that will be interpreted for both the screenfade and any other effects (music cues, pregame menu, etc)
 
 // briefing menu will handle transition, just set a cvar for it to check for drawing the 'continue' button
-			trap_SendServerCommand( -1, "rockandroll\n" );
+			engine->trap_SendServerCommand( -1, "rockandroll\n" );
 
 			level.reloadPauseTime = level.time + 1100;
 
@@ -843,7 +843,7 @@ qboolean AICast_SolidsInBBox( vec3_t pos, vec3_t mins, vec3_t maxs, int entnum, 
 		return qfalse;
 	}
 
-	trap_Trace( &tr, pos, mins, maxs, pos, entnum, mask );
+	engine->trap_Trace( &tr, pos, mins, maxs, pos, entnum, mask );
 	if ( tr.startsolid || tr.allsolid ) {
 		return qtrue;
 	} else {
@@ -923,7 +923,7 @@ G_SetAASBlockingEntity
 */
 void G_SetAASBlockingEntity( gentity_t *ent, qboolean blocking ) {
 	ent->AASblocking = blocking;
-	trap_AAS_SetAASBlockingEntity( ent->r.absmin, ent->r.absmax, blocking );
+	engine->trap_AAS_SetAASBlockingEntity( ent->r.absmin, ent->r.absmax, blocking );
 }
 
 /*
@@ -956,7 +956,7 @@ void AICast_AgePlayTime( int entnum ) {
 	if ( ( level.time - cs->lastLoadTime ) > 1000 ) {
 		if ( /*(level.time - cs->lastLoadTime) < 2000 &&*/ ( level.time - cs->lastLoadTime ) > 0 ) {
 			cs->totalPlayTime += level.time - cs->lastLoadTime;
-			trap_Cvar_Set( "g_totalPlayTime", va( "%i", cs->totalPlayTime ) );
+			engine->trap_Cvar_Set( "g_totalPlayTime", va( "%i", cs->totalPlayTime ) );
 		}
 		//
 		cs->lastLoadTime = level.time;

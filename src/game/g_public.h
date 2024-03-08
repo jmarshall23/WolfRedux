@@ -107,336 +107,216 @@ typedef struct {
 	entityShared_t r;               // shared by both the server system and game
 } sharedEntity_t;
 
-
+typedef struct gentity_s gentity_t;
+typedef struct gclient_s gclient_t;
 
 //===============================================================
+// Definition of gameImports_t struct
+typedef struct  {
+	// System Calls
+	void (*trap_Printf)(const char* fmt);
+	void (*trap_Error)(const char* fmt);
+	void (*trap_Endgame)(void);
+	int (*trap_Milliseconds)(void);
+	int (*trap_Argc)(void);
+	void (*trap_Argv)(int n, char* buffer, int bufferLength);
 
-//
-// system traps provided by the main engine
-//
-typedef enum {
-	//============== general Quake services ==================
+	// File System Operations
+	int (*trap_FS_FOpenFile)(const char* qpath, fileHandle_t* f, fsMode_t mode);
+	void (*trap_FS_Read)(void* buffer, int len, fileHandle_t f);
+	int (*trap_FS_Write)(const void* buffer, int len, fileHandle_t f);
+	int (*trap_FS_Rename)(const char* from, const char* to);
+	void (*trap_FS_FCloseFile)(fileHandle_t f);
+	void (*trap_FS_CopyFile)(char* from, char* to);
+	int (*trap_FS_GetFileList)(const char* path, const char* extension, char* listbuf, int bufsize);
 
-	G_PRINT,        // ( const char *string );
-	// print message on the local console
+	// Console Commands
+	void (*trap_SendConsoleCommand)(int exec_when, const char* text);
 
-	G_ERROR,        // ( const char *string );
-	// abort the game
+	// Cvar Operations
+	void (*trap_Cvar_Register)(vmCvar_t* cvar, const char* var_name, const char* value, int flags);
+	void (*trap_Cvar_Update)(vmCvar_t* cvar);
+	void (*trap_Cvar_Set)(const char* var_name, const char* value);
+	int (*trap_Cvar_VariableIntegerValue)(const char* var_name);
+	void (*trap_Cvar_VariableStringBuffer)(const char* var_name, char* buffer, int bufsize);
 
-	G_ENDGAME,      // ( void );	//----(SA)	added
-	// exit to main menu and start "endgame" menu
+	// Game Data
+	void (*trap_LocateGameData)(gentity_t* gEnts, int numGEntities, int sizeofGEntity_t, playerState_t* clients, int sizeofGClient);
+	void (*trap_DropClient)(int clientNum, const char* reason);
+	void (*trap_SendServerCommand)(int clientNum, const char* text);
 
-	G_MILLISECONDS, // ( void );
-	// get current time for profiling reasons
-	// this should NOT be used for any game related tasks,
-	// because it is not journaled
+	// Config Strings
+	void (*trap_SetConfigstring)(int num, const char* string);
+	void (*trap_GetConfigstring)(int num, char* buffer, int bufferSize);
 
-	// console variable interaction
-	G_CVAR_REGISTER,    // ( vmCvar_t *vmCvar, const char *varName, const char *defaultValue, int flags );
-	G_CVAR_UPDATE,  // ( vmCvar_t *vmCvar );
-	G_CVAR_SET,     // ( const char *var_name, const char *value );
-	G_CVAR_VARIABLE_INTEGER_VALUE,  // ( const char *var_name );
+	// User Info
+	void (*trap_GetUserinfo)(int num, char* buffer, int bufferSize);
+	void (*trap_SetUserinfo)(int num, const char* buffer);
+	void (*trap_GetServerinfo)(char* buffer, int bufferSize);
 
-	G_CVAR_VARIABLE_STRING_BUFFER,  // ( const char *var_name, char *buffer, int bufsize );
+	// Entities and Models
+	void (*trap_SetBrushModel)(gentity_t* ent, const char* name);
+	void (*trap_LinkEntity)(gentity_t* ent);
+	void (*trap_UnlinkEntity)(gentity_t* ent);
 
-	G_ARGC,         // ( void );
-	// ClientCommand and ServerCommand parameter access
+	// Collision and Tracing
+	void (*trap_Trace)(trace_t* results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask);
+	void (*trap_TraceCapsule)(trace_t* results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask);
+	int (*trap_PointContents)(const vec3_t point, int passEntityNum);
 
-	G_ARGV,         // ( int n, char *buffer, int bufferLength );
+	// Visibility and Area Portal
+	qboolean(*trap_InPVS)(const vec3_t p1, const vec3_t p2);
+	qboolean(*trap_InPVSIgnorePortals)(const vec3_t p1, const vec3_t p2);
+	void (*trap_AdjustAreaPortalState)(gentity_t* ent, qboolean open);
+	qboolean(*trap_AreasConnected)(int area1, int area2);
 
-	G_FS_FOPEN_FILE,    // ( const char *qpath, fileHandle_t *file, fsMode_t mode );
-	G_FS_READ,      // ( void *buffer, int len, fileHandle_t f );
-	G_FS_READFILE,
-	G_FS_FREEFILE,
-	G_FS_WRITE,     // ( const void *buffer, int len, fileHandle_t f );
-	G_FS_RENAME,
-	G_FS_FCLOSE_FILE,       // ( fileHandle_t f );
+	// More entity interactions
+	int (*trap_EntitiesInBox)(const vec3_t mins, const vec3_t maxs, int* list, int maxcount);
+	qboolean(*trap_EntityContact)(const vec3_t mins, const vec3_t maxs, const gentity_t* ent);
+	qboolean(*trap_EntityContactCapsule)(const vec3_t mins, const vec3_t maxs, const gentity_t* ent);
+	// Bot AI and Movement
+	int (*trap_BotAllocateClient)(void);
+	void (*trap_BotFreeClient)(int clientNum);
+	void (*trap_GetUsercmd)(int clientNum, usercmd_t* cmd);
+	qboolean(*trap_GetEntityToken)(char* buffer, int bufferSize);
 
-	G_SEND_CONSOLE_COMMAND, // ( const char *text );
-	// add commands to the console as if they were typed in
-	// for map changing, etc
+	// Debugging and Development
+	int (*trap_DebugPolygonCreate)(int color, int numPoints, vec3_t* points);
+	void (*trap_DebugPolygonDelete)(int id);
+	int (*trap_RealTime)(qtime_t* qtime);
+	void (*trap_SnapVector)(float* v);
+	qboolean(*trap_GetTag)(int clientNum, char* tagName, orientation_t* or );
 
+	// BotLib API
+	int (*trap_BotLibSetup)(void);
+	int (*trap_BotLibShutdown)(void);
+	int (*trap_BotLibVarSet)(char* var_name, char* value);
+	int (*trap_BotLibVarGet)(char* var_name, char* value, int size);
+	int (*trap_BotLibDefine)(char* string);
+	int (*trap_BotLibStartFrame)(float time);
+	int (*trap_BotLibLoadMap)(const char* mapname);
+	int (*trap_BotLibUpdateEntity)(int ent, void* bue);
+	int (*trap_BotLibTest)(int parm0, char* parm1, vec3_t parm2, vec3_t parm3);
 
-	//=========== server specific functionality =============
+	// Snapshot and Server Command
+	int (*trap_BotGetSnapshotEntity)(int clientNum, int sequence);
+	int (*trap_BotGetServerCommand)(int clientNum, char* message, int size);
 
-	G_LOCATE_GAME_DATA,     // ( gentity_t *gEnts, int numGEntities, int sizeofGEntity_t,
-	//							playerState_t *clients, int sizeofGameClient );
-	// the game needs to let the server system know where and how big the gentities
-	// are, so it can look at them directly without going through an interface
+	// User Commands
+	void (*trap_BotUserCommand)(int clientNum, usercmd_t* ucmd);
 
-	G_DROP_CLIENT,      // ( int clientNum, const char *reason );
-	// kick a client off the server with a message
+	// AAS Interface
+	void (*trap_AAS_EntityInfo)(int entnum, void* info);
+	int (*trap_AAS_Initialized)(void);
+	void (*trap_AAS_PresenceTypeBoundingBox)(int presencetype, vec3_t mins, vec3_t maxs);
+	float (*trap_AAS_Time)(void);
 
-	G_SEND_SERVER_COMMAND,  // ( int clientNum, const char *fmt, ... );
-	// reliably sends a command string to be interpreted by the given
-	// client.  If clientNum is -1, it will be sent to all clients
+	// AAS World Indexing
+	void (*trap_AAS_SetCurrentWorld)(int index);
+	int (*trap_AAS_PointAreaNum)(vec3_t point);
+	int (*trap_AAS_TraceAreas)(vec3_t start, vec3_t end, int* areas, vec3_t* points, int maxareas);
+	int (*trap_AAS_PointContents)(vec3_t point);
+	int (*trap_AAS_NextBSPEntity)(int ent);
+	int (*trap_AAS_ValueForBSPEpairKey)(int ent, char* key, char* value, int size);
+	int (*trap_AAS_VectorForBSPEpairKey)(int ent, char* key, vec3_t v);
+	int (*trap_AAS_FloatForBSPEpairKey)(int ent, char* key, float* value);
+	int (*trap_AAS_IntForBSPEpairKey)(int ent, char* key, int* value);
 
-	G_SET_CONFIGSTRING, // ( int num, const char *string );
-	// config strings hold all the index strings, and various other information
-	// that is reliably communicated to all clients
-	// All of the current configstrings are sent to clients when
-	// they connect, and changes are sent to all connected clients.
-	// All confgstrings are cleared at each level start.
+	// AAS Routing
+	int (*trap_AAS_AreaReachability)(int areanum);
+	int (*trap_AAS_AreaTravelTimeToGoalArea)(int areanum, vec3_t origin, int goalareanum, int travelflags);
+	int (*trap_AAS_Swimming)(vec3_t origin);
+	int (*trap_AAS_PredictClientMovement)(void* move, int entnum, vec3_t origin, int presencetype, int onground, vec3_t velocity, vec3_t cmdmove, int cmdframes, int maxframes, float frametime, int stopevent, int stopareanum, int visualize);
 
-	G_GET_CONFIGSTRING, // ( int num, char *buffer, int bufferSize );
+	// EA Functions
+	void (*trap_EA_Say)(int client, char* str);
+	void (*trap_EA_SayTeam)(int client, char* str);
+	void (*trap_EA_Command)(int client, char* command);
 
-	G_GET_USERINFO,     // ( int num, char *buffer, int bufferSize );
-	// userinfo strings are maintained by the server system, so they
-	// are persistant across level loads, while all other game visible
-	// data is completely reset
+	// More EA Functions
+	void (*trap_EA_Action)(int client, int action);
 
-	G_SET_USERINFO,     // ( int num, const char *buffer );
+	// Goal Management
+	void (*trap_BotGoalName)(int number, char* name, int size);
+	int (*trap_BotGetTopGoal)(int goalstate, void* goal);
+	int (*trap_BotGetSecondGoal)(int goalstate, void* goal);
 
-	G_GET_SERVERINFO,   // ( char *buffer, int bufferSize );
-	// the serverinfo info string has all the cvars visible to server browsers
+	// Movement
+	void (*trap_BotResetMoveState)(int movestate);
+	void (*trap_BotMoveToGoal)(void* result, int movestate, void* goal, int travelflags);
+	int (*trap_BotMoveInDirection)(int movestate, vec3_t dir, float speed, int type);
 
-	G_SET_BRUSH_MODEL,  // ( gentity_t *ent, const char *name );
-	// sets mins and maxs based on the brushmodel name
+	// Item and Weapon Management
+	int (*trap_BotLoadItemWeights)(int goalstate, char* filename);
+	void (*trap_BotFreeItemWeights)(int goalstate);
+	void (*trap_BotInterbreedGoalFuzzyLogic)(int parent1, int parent2, int child);
+	void (*trap_BotSaveGoalFuzzyLogic)(int goalstate, char* filename);
+	void (*trap_BotMutateGoalFuzzyLogic)(int goalstate, float range);
+	int (*trap_BotAllocGoalState)(int state);
+	void (*trap_BotFreeGoalState)(int handle);
 
-	G_TRACE,    // ( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask );
-	// collision detection against all linked entities
+	// Movement State Management	
+	void (*trap_BotResetLastAvoidReach)(int movestate);
+	int (*trap_BotMovementViewTarget)(int movestate, void* goal, int travelflags, float lookahead, vec3_t target);
+	int (*trap_BotPredictVisiblePosition)(vec3_t origin, int areanum, void* goal, int travelflags, vec3_t target);
+	int (*trap_BotAllocMoveState)(void);
+	void (*trap_BotFreeMoveState)(int handle);
+	void (*trap_BotInitMoveState)(int handle, void* initmove);
+	void (*trap_BotInitAvoidReach)(int handle);
 
-	G_POINT_CONTENTS,   // ( const vec3_t point, int passEntityNum );
-	// point contents against all linked entities
+	// Genetic Parents And Child Selection
+	int (*trap_GeneticParentsAndChildSelection)(int numranks, float* ranks, int* parent1, int* parent2, int* child);
 
-	G_IN_PVS,           // ( const vec3_t p1, const vec3_t p2 );
+	// Reading and Freeing Memory from Files
+	int (*trap_FS_ReadFile)(const char* qpath, void** buffer);
+	void (*trap_FS_FreeFile)(void* buffer);
 
-	G_IN_PVS_IGNORE_PORTALS,    // ( const vec3_t p1, const vec3_t p2 );
+	void (*trap_EA_View)(int client, vec3_t viewangles);
+	void (*trap_EA_GetInput)(int client, float thinktime, void* input);
+	void (*trap_EA_ResetInput)(int client, void* init);
+	void (*trap_EA_Crouch)(int client);
+	void (*trap_EA_SelectWeapon)(int client, int weapon);
+	void (*trap_EA_Jump)(int client);
+	void (*trap_EA_Move)(int client, vec3_t dir, float speed);
+	void (*trap_EA_Reload)(int client);
+	void (*trap_EA_Attack)(int client);
+	void (*trap_BotUpdateEntityItems)(void);
+	void (*trap_BotResetGoalState)(int goalstate);
+	void (*trap_BotResetAvoidGoals)(int goalstate);
+	void (*trap_BotResetAvoidReach)(int movestate);
+	void (*trap_AAS_RT_ShowRoute)(vec3_t srcpos, int srcnum, int destnum);
+	qboolean(*trap_AAS_GetRouteFirstVisPos)(vec3_t srcpos, vec3_t destpos, int travelflags, vec3_t retpos);
+	int (*trap_AAS_FindAttackSpotWithinRange)(int srcnum, int rangenum, int enemynum, float rangedist, int travelflags, float* outpos);
+	void (*trap_EA_MoveRight)(int client);
+	void (*trap_EA_MoveLeft)(int client);
+	void (*trap_EA_Gesture)(int client);
+	void (*trap_AAS_SetAASBlockingEntity)(vec3_t absmin, vec3_t absmax, qboolean blocking);
 
-	G_ADJUST_AREA_PORTAL_STATE, // ( gentity_t *ent, qboolean open );
-
-	G_AREAS_CONNECTED,  // ( int area1, int area2 );
-
-	G_LINKENTITY,       // ( gentity_t *ent );
-	// an entity will never be sent to a client or used for collision
-	// if it is not passed to linkentity.  If the size, position, or
-	// solidity changes, it must be relinked.
-
-	G_UNLINKENTITY,     // ( gentity_t *ent );
-	// call before removing an interactive entity
-
-	G_ENTITIES_IN_BOX,  // ( const vec3_t mins, const vec3_t maxs, gentity_t **list, int maxcount );
-	// EntitiesInBox will return brush models based on their bounding box,
-	// so exact determination must still be done with EntityContact
-
-	G_ENTITY_CONTACT,   // ( const vec3_t mins, const vec3_t maxs, const gentity_t *ent );
-	// perform an exact check against inline brush models of non-square shape
-
-	// access for bots to get and free a server client (FIXME?)
-	G_BOT_ALLOCATE_CLIENT,  // ( void );
-
-	G_BOT_FREE_CLIENT,  // ( int clientNum );
-
-	G_GET_USERCMD,  // ( int clientNum, usercmd_t *cmd )
-
-	G_GET_ENTITY_TOKEN, // qboolean ( char *buffer, int bufferSize )
-	// Retrieves the next string token from the entity spawn text, returning
-	// false when all tokens have been parsed.
-	// This should only be done at GAME_INIT time.
-
-	G_FS_GETFILELIST,
-	G_DEBUG_POLYGON_CREATE,
-	G_DEBUG_POLYGON_DELETE,
-	G_REAL_TIME,
-	G_SNAPVECTOR,
-// MrE:
-
-	G_TRACECAPSULE, // ( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask );
-	// collision detection using capsule against all linked entities
-
-	G_ENTITY_CONTACTCAPSULE,    // ( const vec3_t mins, const vec3_t maxs, const gentity_t *ent );
-	// perform an exact check against inline brush models of non-square shape
-// done.
-
-	G_GETTAG,
-
-	BOTLIB_SETUP = 200,             // ( void );
-	BOTLIB_SHUTDOWN,                // ( void );
-	BOTLIB_LIBVAR_SET,
-	BOTLIB_LIBVAR_GET,
-	BOTLIB_PC_ADD_GLOBAL_DEFINE,
-	BOTLIB_START_FRAME,
-	BOTLIB_LOAD_MAP,
-	BOTLIB_UPDATENTITY,
-	BOTLIB_TEST,
-
-	BOTLIB_GET_SNAPSHOT_ENTITY,     // ( int client, int ent );
-	BOTLIB_GET_CONSOLE_MESSAGE,     // ( int client, char *message, int size );
-	BOTLIB_USER_COMMAND,            // ( int client, usercmd_t *ucmd );
-
-	BOTLIB_AAS_ENTITY_VISIBLE = 300,    //FIXME: remove
-	BOTLIB_AAS_IN_FIELD_OF_VISION,      //FIXME: remove
-	BOTLIB_AAS_VISIBLE_CLIENTS,         //FIXME: remove
-	BOTLIB_AAS_ENTITY_INFO,
-
-	BOTLIB_AAS_INITIALIZED,
-	BOTLIB_AAS_PRESENCE_TYPE_BOUNDING_BOX,
-	BOTLIB_AAS_TIME,
-
-	// Ridah
-	BOTLIB_AAS_SETCURRENTWORLD,
-	// done.
-
-	BOTLIB_AAS_POINT_AREA_NUM,
-	BOTLIB_AAS_TRACE_AREAS,
-
-	BOTLIB_AAS_POINT_CONTENTS,
-	BOTLIB_AAS_NEXT_BSP_ENTITY,
-	BOTLIB_AAS_VALUE_FOR_BSP_EPAIR_KEY,
-	BOTLIB_AAS_VECTOR_FOR_BSP_EPAIR_KEY,
-	BOTLIB_AAS_FLOAT_FOR_BSP_EPAIR_KEY,
-	BOTLIB_AAS_INT_FOR_BSP_EPAIR_KEY,
-
-	BOTLIB_AAS_AREA_REACHABILITY,
-
-	BOTLIB_AAS_AREA_TRAVEL_TIME_TO_GOAL_AREA,
-
-	BOTLIB_AAS_SWIMMING,
-	BOTLIB_AAS_PREDICT_CLIENT_MOVEMENT,
-
-	// Ridah, route-tables
-	BOTLIB_AAS_RT_SHOWROUTE,
-	BOTLIB_AAS_RT_GETHIDEPOS,
-	BOTLIB_AAS_FINDATTACKSPOTWITHINRANGE,
-	BOTLIB_AAS_GETROUTEFIRSTVISPOS,
-	BOTLIB_AAS_SETAASBLOCKINGENTITY,
-	// done.
-
-	BOTLIB_EA_SAY = 400,
-	BOTLIB_EA_SAY_TEAM,
-	BOTLIB_EA_USE_ITEM,
-	BOTLIB_EA_DROP_ITEM,
-	BOTLIB_EA_USE_INV,
-	BOTLIB_EA_DROP_INV,
-	BOTLIB_EA_GESTURE,
-	BOTLIB_EA_COMMAND,
-
-	BOTLIB_EA_SELECT_WEAPON,
-	BOTLIB_EA_TALK,
-	BOTLIB_EA_ATTACK,
-	BOTLIB_EA_RELOAD,
-	BOTLIB_EA_USE,
-	BOTLIB_EA_RESPAWN,
-	BOTLIB_EA_JUMP,
-	BOTLIB_EA_DELAYED_JUMP,
-	BOTLIB_EA_CROUCH,
-	BOTLIB_EA_MOVE_UP,
-	BOTLIB_EA_MOVE_DOWN,
-	BOTLIB_EA_MOVE_FORWARD,
-	BOTLIB_EA_MOVE_BACK,
-	BOTLIB_EA_MOVE_LEFT,
-	BOTLIB_EA_MOVE_RIGHT,
-	BOTLIB_EA_MOVE,
-	BOTLIB_EA_VIEW,
-
-	BOTLIB_EA_END_REGULAR,
-	BOTLIB_EA_GET_INPUT,
-	BOTLIB_EA_RESET_INPUT,
-
-	BOTLIB_AI_RESET_GOAL_STATE,
-	BOTLIB_AI_RESET_AVOID_GOALS,
-	BOTLIB_AI_PUSH_GOAL,
-	BOTLIB_AI_POP_GOAL,
-	BOTLIB_AI_EMPTY_GOAL_STACK,
-	BOTLIB_AI_DUMP_AVOID_GOALS,
-	BOTLIB_AI_DUMP_GOAL_STACK,
-	BOTLIB_AI_GOAL_NAME,
-	BOTLIB_AI_GET_TOP_GOAL,
-	BOTLIB_AI_GET_SECOND_GOAL,
-	BOTLIB_AI_CHOOSE_LTG_ITEM,
-	BOTLIB_AI_CHOOSE_NBG_ITEM,
-	BOTLIB_AI_TOUCHING_GOAL,
-	BOTLIB_AI_ITEM_GOAL_IN_VIS_BUT_NOT_VISIBLE,
-	BOTLIB_AI_GET_LEVEL_ITEM_GOAL,
-	BOTLIB_AI_AVOID_GOAL_TIME,
-	BOTLIB_AI_INIT_LEVEL_ITEMS,
-	BOTLIB_AI_UPDATE_ENTITY_ITEMS,
-	BOTLIB_AI_LOAD_ITEM_WEIGHTS,
-	BOTLIB_AI_FREE_ITEM_WEIGHTS,
-	BOTLIB_AI_SAVE_GOAL_FUZZY_LOGIC,
-	BOTLIB_AI_ALLOC_GOAL_STATE,
-	BOTLIB_AI_FREE_GOAL_STATE,
-
-	BOTLIB_AI_RESET_MOVE_STATE,
-	BOTLIB_AI_MOVE_TO_GOAL,
-	BOTLIB_AI_MOVE_IN_DIRECTION,
-	BOTLIB_AI_RESET_AVOID_REACH,
-	BOTLIB_AI_RESET_LAST_AVOID_REACH,
-	BOTLIB_AI_REACHABILITY_AREA,
-	BOTLIB_AI_MOVEMENT_VIEW_TARGET,
-	BOTLIB_AI_ALLOC_MOVE_STATE,
-	BOTLIB_AI_FREE_MOVE_STATE,
-	BOTLIB_AI_INIT_MOVE_STATE,
-	// Ridah
-	BOTLIB_AI_INIT_AVOID_REACH,
-	// done.
-
-	BOTLIB_AI_GENETIC_PARENTS_AND_CHILD_SELECTION,
-	BOTLIB_AI_INTERBREED_GOAL_FUZZY_LOGIC,
-	BOTLIB_AI_MUTATE_GOAL_FUZZY_LOGIC,
-	BOTLIB_AI_GET_NEXT_CAMP_SPOT_GOAL,
-	BOTLIB_AI_GET_MAP_LOCATION_GOAL,
-	BOTLIB_AI_NUM_INITIAL_CHATS,
-	BOTLIB_AI_REMOVE_FROM_AVOID_GOALS,
-	BOTLIB_AI_PREDICT_VISIBLE_POSITION,
-
-	BOTLIB_AI_SET_AVOID_GOAL_TIME,
-	BOTLIB_AI_ADD_AVOID_SPOT,
-	BOTLIB_AAS_ALTERNATIVE_ROUTE_GOAL,
-	BOTLIB_AAS_PREDICT_ROUTE,
-	BOTLIB_AAS_POINT_REACHABILITY_AREA_INDEX,
-
-	BOTLIB_PC_LOAD_SOURCE,
-	BOTLIB_PC_FREE_SOURCE,
-	BOTLIB_PC_READ_TOKEN,
-	BOTLIB_PC_SOURCE_FILE_AND_LINE,
-
-	G_FS_COPY_FILE  //DAJ
-} gameImport_t;
+	void (*trap_EA_MoveForward)(int client);
+	qboolean(*trap_AAS_RT_GetHidePos)(vec3_t srcpos, int srcnum, int srcarea, vec3_t destpos, int destnum, int destarea, vec3_t returnPos);
+} gameImports_t;
 
 
 //
 // functions exported by the game subsystem
 //
-typedef enum {
-	GAME_INIT,  // ( int levelTime, int randomSeed, int restart );
-	// init and shutdown will be called every single level
-	// The game should call G_GET_ENTITY_TOKEN to parse through all the
-	// entity configuration text and spawn gentities.
+typedef struct {
+	int version;
 
-	GAME_SHUTDOWN,  // (void);
-
-	GAME_CLIENT_CONNECT,    // ( int clientNum, qboolean firstTime, qboolean isBot );
-	// return NULL if the client is allowed to connect, otherwise return
-	// a text string with the reason for denial
-
-	GAME_CLIENT_BEGIN,              // ( int clientNum );
-
-	GAME_CLIENT_USERINFO_CHANGED,   // ( int clientNum );
-
-	GAME_CLIENT_DISCONNECT,         // ( int clientNum );
-
-	GAME_CLIENT_COMMAND,            // ( int clientNum );
-
-	GAME_CLIENT_THINK,              // ( int clientNum );
-
-	GAME_RUN_FRAME,                 // ( int levelTime );
-
-	GAME_CONSOLE_COMMAND,           // ( void );
-	// ConsoleCommand will be called when a command has been issued
-	// that is not recognized as a builtin function.
-	// The game can issue trap_argc() / trap_argv() commands to get the command
-	// and parameters.  Return qfalse if the game doesn't recognize it as a command.
-
-	BOTAI_START_FRAME,              // ( int time );
-
-	// Ridah, Cast AI
-	AICAST_VISIBLEFROMPOS,
-	AICAST_CHECKATTACKATPOS,
-	// done.
-
-	GAME_RETRIEVE_MOVESPEEDS_FROM_CLIENT,
-	GAME_GETMODELINFO
-
+	void (*G_InitGame)(int levelTime, int randomSeed, int restart);
+	void (*G_ShutdownGame)(int restart);
+	char *(*ClientConnect)(int clientNum, qboolean firstTime, qboolean isBot);
+	void (*ClientThink)(int clientNum);
+	void (*ClientUserinfoChanged)(int clientNum);
+	void (*ClientDisconnect)(int clientNum);
+	void (*ClientBegin)(int clientNum);
+	void (*ClientCommand)(int clientNum);
+	void (*G_RunFrame)(int levelTime);
+	qboolean(*ConsoleCommand)(void);
+	int (*BotAIStartFrame)(int time);
+	qboolean(*AICast_VisibleFromPos)(vec3_t srcpos, int srcnum, vec3_t destpos, int destnum, qboolean updateVisPos);
+	qboolean(*AICast_CheckAttackAtPos)(int entnum, int enemy, vec3_t pos, qboolean ducking, qboolean allowHitWorld);
+	void (*G_RetrieveMoveSpeedsFromClient)(int clientNum, char* moveSpeeds);
+	qboolean (*G_GetModelInfo)(int clientNum, char* modelName, animModelInfo_t** modelInfo);
 } gameExport_t;
 

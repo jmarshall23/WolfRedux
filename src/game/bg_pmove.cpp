@@ -44,7 +44,9 @@ int bg_pmove_gameskill_integer;
 extern vmCvar_t cg_gameType;
 #endif
 #ifdef GAMEDLL
+#include "g_public.h"
 extern vmCvar_t g_gametype;
+extern gameImports_t* engine;
 #endif
 
 // JPW NERVE -- stuck this here so it can be seen client & server side
@@ -4040,7 +4042,6 @@ PmoveSingle
 
 ================
 */
-void trap_SnapVector( float *v );
 
 void PmoveSingle( pmove_t *pmove ) {
 	// Ridah
@@ -4288,7 +4289,7 @@ void PmoveSingle( pmove_t *pmove ) {
 		PM_WaterEvents();
 
 		// snap some parts of playerstate to save network bandwidth
-		trap_SnapVector( pm->ps->velocity );
+		engine->trap_SnapVector( pm->ps->velocity );
 //		SnapVector( pm->ps->velocity );
 
 		// Ridah

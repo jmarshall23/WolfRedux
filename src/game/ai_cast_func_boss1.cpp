@@ -215,7 +215,7 @@ char *AIFunc_Helga_Melee( cast_state_t *cs ) {
 			enemyDist -= g_entities[cs->enemyNum].r.maxs[0];
 			enemyDist -= ent->r.maxs[0];
 			if ( enemyDist < 10 + AICast_WeaponRange( cs, cs->weaponNum ) ) {
-				trap_Trace( &tr, ent->r.currentOrigin, NULL, NULL, enemy->r.currentOrigin, ent->s.number, MASK_SHOT );
+				engine->trap_Trace( &tr, ent->r.currentOrigin, NULL, NULL, enemy->r.currentOrigin, ent->s.number, MASK_SHOT );
 				if ( tr.entityNum == cs->enemyNum ) {
 					G_Damage( &g_entities[tr.entityNum], ent, ent, vec3_origin, tr.endpos,
 							  helgaHitDamage[anim], 0, MOD_GAUNTLET );
@@ -237,7 +237,7 @@ char *AIFunc_Helga_Melee( cast_state_t *cs ) {
 	if ( enemyDist > 8 ) {    // we can get closer
 		//if (!ent->client->ps.legsTimer) {
 		//	cs->castScriptStatus.scriptNoMoveTime = 0;
-		trap_EA_MoveForward( cs->entityNum );
+		engine->trap_EA_MoveForward( cs->entityNum );
 		//}
 		//ent->client->ps.legsTimer = 0;		// allow legs us to move
 	}
@@ -413,7 +413,7 @@ char *AIFunc_Heinrich_SwordLunge( cast_state_t *cs ) {
 
 	if ( ent->client->ps.torsoTimer < 500 ) {
 		if ( !ent->client->ps.legsTimer ) {
-			trap_EA_MoveForward( cs->entityNum );
+			engine->trap_EA_MoveForward( cs->entityNum );
 		}
 		ent->client->ps.legsTimer = 0;
 		ent->client->ps.torsoTimer = 0;
@@ -432,7 +432,7 @@ char *AIFunc_Heinrich_SwordLunge( cast_state_t *cs ) {
 		if (!(tr && (tr->entityNum == cs->enemyNum))) {
 			ent->client->ps.legsTimer = 0;
 			cs->castScriptStatus.scriptNoMoveTime = 0;
-			trap_EA_MoveForward( cs->entityNum );
+			engine->trap_EA_MoveForward( cs->entityNum );
 		}
 */                                                                                                                                                                                                           // ready for damage?
 		if ( cs->thinkFuncChangeTime < level.time - HEINRICH_LUNGE_DELAY ) {
@@ -459,7 +459,7 @@ char *AIFunc_Heinrich_SwordLunge( cast_state_t *cs ) {
 			ent->client->ps.legsTimer = 0;      // allow legs to move us
 		}
 		if ( cs->castScriptStatus.scriptNoMoveTime < level.time ) {
-			trap_EA_MoveForward( cs->entityNum );
+			engine->trap_EA_MoveForward( cs->entityNum );
 		}
 	}
 
@@ -510,7 +510,7 @@ char *AIFunc_Heinrich_SwordKnockback( cast_state_t *cs ) {
 
 	if ( ent->client->ps.torsoTimer < 500 ) {
 		if ( !ent->client->ps.legsTimer ) {
-			trap_EA_MoveForward( cs->entityNum );
+			engine->trap_EA_MoveForward( cs->entityNum );
 		}
 		ent->client->ps.legsTimer = 0;
 		ent->client->ps.torsoTimer = 0;
@@ -529,7 +529,7 @@ char *AIFunc_Heinrich_SwordKnockback( cast_state_t *cs ) {
 		if (!(tr && (tr->entityNum == cs->enemyNum))) {
 			ent->client->ps.legsTimer = 0;
 			cs->castScriptStatus.scriptNoMoveTime = 0;
-			trap_EA_MoveForward( cs->entityNum );
+			engine->trap_EA_MoveForward( cs->entityNum );
 		}
 */                                                                                                                                                                                                           // ready for damage?
 		if ( cs->thinkFuncChangeTime < level.time - HEINRICH_KNOCKBACK_DELAY ) {
@@ -568,7 +568,7 @@ char *AIFunc_Heinrich_SwordKnockback( cast_state_t *cs ) {
 			ent->client->ps.legsTimer = 0;		// allow legs to move us
 		}
 		if (cs->castScriptStatus.scriptNoMoveTime < level.time) {
-			trap_EA_MoveForward(cs->entityNum);
+			engine->trap_EA_MoveForward(cs->entityNum);
 		}
 	}
 */
@@ -625,7 +625,7 @@ char *AIFunc_Heinrich_SwordSideSlash( cast_state_t *cs ) {
 
 	if ( ent->client->ps.torsoTimer < 500 ) {
 		if ( !ent->client->ps.legsTimer ) {
-			trap_EA_MoveForward( cs->entityNum );
+			engine->trap_EA_MoveForward( cs->entityNum );
 		}
 		ent->client->ps.legsTimer = 0;
 		ent->client->ps.torsoTimer = 0;
@@ -670,7 +670,7 @@ char *AIFunc_Heinrich_SwordSideSlash( cast_state_t *cs ) {
 			ent->client->ps.legsTimer = 0;      // allow legs to move us
 		}
 		if ( cs->castScriptStatus.scriptNoMoveTime < level.time ) {
-			trap_EA_MoveForward( cs->entityNum );
+			engine->trap_EA_MoveForward( cs->entityNum );
 		}
 	}
 

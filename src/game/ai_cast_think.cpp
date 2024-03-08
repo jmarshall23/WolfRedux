@@ -76,7 +76,7 @@ void AICast_ProcessAIFunctions( cast_state_t *cs, float thinktime ) {
 		if ( !( funcname = cs->aifunc( cs ) ) ) {
 			break;
 		} else {
-			trap_BotResetAvoidReach( cs->bs->ms );    // reset avoidreach
+			engine->trap_BotResetAvoidReach( cs->bs->ms );    // reset avoidreach
 			cs->thinkFuncChangeTime = level.time;
 			AICast_DBG_AddAIFunc( cs, funcname );
 		}
@@ -154,7 +154,7 @@ void AICast_ChangeViewAngles( cast_state_t *cs, float thinktime ) {
 		cs->viewangles[PITCH] -= 360;
 	}
 	//elementary action: view
-	trap_EA_View( bs->client, cs->viewangles );
+	engine->trap_EA_View( bs->client, cs->viewangles );
 }
 
 
@@ -352,8 +352,8 @@ void AICast_UpdateInput( cast_state_t *cs, int time ) {
 	AICast_ChangeViewAngles( cs, (float) time / 1000 );
 	//
 	if ( cs->pauseTime > level.time ) {
-		trap_EA_View( bs->client, cs->viewangles );
-		trap_EA_GetInput( bs->client, (float) time / 1000, &bi );
+		engine->trap_EA_View( bs->client, cs->viewangles );
+		engine->trap_EA_GetInput( bs->client, (float) time / 1000, &bi );
 		AICast_InputToUserCommand( cs, &bi, &cs->lastucmd, bs->cur_ps.delta_angles );
 		g_entities[cs->bs->entitynum].client->ps.pm_flags &= ~PMF_RESPAWNED;
 		//
@@ -365,7 +365,7 @@ void AICast_UpdateInput( cast_state_t *cs, int time ) {
 		return;
 	}
 	//
-	trap_EA_GetInput( bs->client, (float) time / 1000, &bi );
+	engine->trap_EA_GetInput( bs->client, (float) time / 1000, &bi );
 	//
 	// restrict the speed according to the character and their current speedScale
 	// HACK, don't slow down while crouching
@@ -450,15 +450,15 @@ void AICast_Think( int client, float thinktime ) {
 	ent = &g_entities[client];
 	//
 	// make sure we are using the right AAS data for this entity (one's that don't get set will default to the player's AAS data)
-	trap_AAS_SetCurrentWorld( cs->aasWorldIndex );
+	engine->trap_AAS_SetCurrentWorld( cs->aasWorldIndex );
 	//
 	// make sure we have a valid navigation system
 	//
-	if ( !trap_AAS_Initialized() ) {
+	if ( !engine->trap_AAS_Initialized() ) {
 		return;
 	}
 	//
-	trap_EA_ResetInput( client, NULL );
+	engine->trap_EA_ResetInput( client, NULL );
 	cs->aiFlags &= ~AIFL_VIEWLOCKED;
 	cs->aiFlags &= ~AIFL_SPECIAL_FUNC;
 	//cs->weaponNum = ent->client->ps.weapon;
@@ -513,9 +513,9 @@ void AICast_Think( int client, float thinktime ) {
 
 			VectorAdd( ent->r.currentOrigin, ent->r.mins, mins );
 			VectorAdd( ent->r.currentOrigin, ent->r.maxs, maxs );
-			trap_UnlinkEntity( ent );
+			engine->trap_UnlinkEntity( ent );
 
-			numTouch = trap_EntitiesInBox( mins, maxs, touch, 10 );
+			numTouch = engine->trap_EntitiesInBox( mins, maxs, touch, 10 );
 
 			if ( numTouch ) {
 				for ( i = 0; i < numTouch; i++ ) {
@@ -562,7 +562,7 @@ void AICast_Think( int client, float thinktime ) {
 				ent->r.maxs[2] = oldmaxZ;
 				ent->client->ps.maxs[2] = ent->r.maxs[2];
 			}
-			trap_LinkEntity( ent );
+			engine->trap_LinkEntity( ent );
 		}
 		// ZOMBIE should set effect flag if really dead
 		if ( cs->aiCharacter == AICHAR_ZOMBIE && !ent->r.contents ) {
@@ -579,7 +579,7 @@ void AICast_Think( int client, float thinktime ) {
 				ent->s.effect3Time = cs->deadSinkStartTime;
 				// if they are gone
 				if ( cs->deadSinkStartTime + DEAD_SINK_DURATION < level.time ) {
-					trap_DropClient( cs->entityNum, "" );
+					engine->trap_DropClient( cs->entityNum, "" );
 					return;
 				}
 			}
@@ -670,13 +670,13 @@ void AICast_Think( int client, float thinktime ) {
 	{
 		trace_t tr;
 		vec3_t org;
-		trap_Trace( &tr, cs->bs->cur_ps.origin, cs->bs->cur_ps.mins, cs->bs->cur_ps.maxs, cs->bs->cur_ps.origin, cs->entityNum, CONTENTS_SOLID );
+		engine->trap_Trace( &tr, cs->bs->cur_ps.origin, cs->bs->cur_ps.mins, cs->bs->cur_ps.maxs, cs->bs->cur_ps.origin, cs->entityNum, CONTENTS_SOLID );
 		while ( tr.startsolid ) {
 			VectorCopy( cs->bs->cur_ps.origin, org );
 			org[0] += 96 * crandom();
 			org[1] += 96 * crandom();
 			org[2] += 16 * crandom();
-			trap_Trace( &tr, org, cs->bs->cur_ps.mins, cs->bs->cur_ps.maxs, org, cs->entityNum, CONTENTS_SOLID );
+			engine->trap_Trace( &tr, org, cs->bs->cur_ps.mins, cs->bs->cur_ps.maxs, org, cs->entityNum, CONTENTS_SOLID );
 			G_SetOrigin( &g_entities[cs->entityNum], org );
 			VectorCopy( org, g_entities[cs->entityNum].client->ps.origin );
 		}
@@ -710,7 +710,7 @@ void AICast_Think( int client, float thinktime ) {
 		// if we are not moving, and we are firing, always stand, unless we are allowed to crouch + fire
 		if ( ( cs->lastucmd.forwardmove || cs->lastucmd.rightmove ) || ( cs->lastWeaponFired < level.time - 2000 ) || ( cs->aiFlags & AIFL_ATTACK_CROUCH ) ) {
 			cs->lastAttackCrouch = level.time;
-			trap_EA_Crouch( cs->bs->client );
+			engine->trap_EA_Crouch( cs->bs->client );
 		}
 	}
 	//
@@ -737,7 +737,7 @@ void AICast_Think( int client, float thinktime ) {
 		AICast_ProcessAIFunctions( cs, thinktime );
 		//
 		// make sure the correct weapon is selected
-		trap_EA_SelectWeapon( cs->bs->client, cs->weaponNum );
+		engine->trap_EA_SelectWeapon( cs->bs->client, cs->weaponNum );
 		//
 		// process current script if it exists
 		cs->castScriptStatusCurrent = cs->castScriptStatus;
@@ -761,7 +761,7 @@ void AICast_Think( int client, float thinktime ) {
 			cs->actionFlags |= CASTACTION_WALK;
 			break;
 		case MS_CROUCH:
-			trap_EA_Crouch( cs->entityNum );
+			engine->trap_EA_Crouch( cs->entityNum );
 			break;
 		default:
 			break;
@@ -800,7 +800,7 @@ void AICast_StartFrame( int time ) {
 	static vmCvar_t aicast_disable;
 	gentity_t *ent;
 
-	if ( trap_Cvar_VariableIntegerValue( "savegame_loading" ) ) {
+	if ( engine->trap_Cvar_VariableIntegerValue( "savegame_loading" ) ) {
 		return;
 	}
 
@@ -814,18 +814,18 @@ void AICast_StartFrame( int time ) {
 	}
 
 	if ( !aicast_disable.handle ) {
-		trap_Cvar_Register( &aicast_disable, "aicast_disable", "0", CVAR_CHEAT );
+		engine->trap_Cvar_Register( &aicast_disable, "aicast_disable", "0", CVAR_CHEAT );
 	} else
 	{
-		trap_Cvar_Update( &aicast_disable );
+		engine->trap_Cvar_Update( &aicast_disable );
 		if ( aicast_disable.integer ) {
 			return;
 		}
 	}
 
-	trap_Cvar_Update( &aicast_debug );
-	trap_Cvar_Update( &aicast_debugname );
-	trap_Cvar_Update( &aicast_scripts );
+	engine->trap_Cvar_Update( &aicast_debug );
+	engine->trap_Cvar_Update( &aicast_debugname );
+	engine->trap_Cvar_Update( &aicast_scripts );
 
 	// no need to think during the intermission
 	if ( level.intermissiontime ) {
@@ -833,7 +833,7 @@ void AICast_StartFrame( int time ) {
 	}
 	//
 	// make sure the AAS gets updated
-	trap_BotLibStartFrame( (float) time / 1000 );
+	engine->trap_BotLibStartFrame( (float) time / 1000 );
 	//
 	//
 	elapsed = time - lasttime;
@@ -855,7 +855,7 @@ void AICast_StartFrame( int time ) {
 	//
 	// update the player's area, only update if it's valid
 	for ( i = 0; i < 2; i++ ) {
-		trap_AAS_SetCurrentWorld( i );
+		engine->trap_AAS_SetCurrentWorld( i );
 		castcount = BotPointAreaNum( g_entities[0].s.pos.trBase );
 		if ( castcount ) {
 			caststates[0].lastValidAreaNum[i] = castcount;
@@ -953,7 +953,7 @@ void AICast_StartServerFrame( int time ) {
 	qboolean highPriority;
 	int oldLegsTimer;
 
-	if ( trap_Cvar_VariableIntegerValue( "savegame_loading" ) ) {
+	if ( engine->trap_Cvar_VariableIntegerValue( "savegame_loading" ) ) {
 		return;
 	}
 
@@ -971,16 +971,16 @@ void AICast_StartServerFrame( int time ) {
 	}
 
 	if ( !aicast_disable.handle ) {
-		trap_Cvar_Register( &aicast_disable, "aicast_disable", "0", CVAR_CHEAT );
+		engine->trap_Cvar_Register( &aicast_disable, "aicast_disable", "0", CVAR_CHEAT );
 	} else
 	{
-		trap_Cvar_Update( &aicast_disable );
+		engine->trap_Cvar_Update( &aicast_disable );
 		if ( aicast_disable.integer ) {
 			return;
 		}
 	}
 
-	trap_Cvar_Update( &aicast_debug );
+	engine->trap_Cvar_Update( &aicast_debug );
 
 	// no need to think during the intermission
 	if ( level.intermissiontime ) {
@@ -988,7 +988,7 @@ void AICast_StartServerFrame( int time ) {
 	}
 	//
 	// make sure the AAS gets updated
-	trap_BotLibStartFrame( (float) time / 1000 );
+	engine->trap_BotLibStartFrame( (float) time / 1000 );
 	//
 	//
 	elapsed = time - lasttime;
@@ -1053,14 +1053,14 @@ void AICast_StartServerFrame( int time ) {
 							||  ( VectorLength( ent->client->ps.velocity ) > 0 )
 							||  ( highPriority && ( cs->lastucmd.forwardmove || cs->lastucmd.rightmove || cs->lastucmd.upmove > 0 || cs->lastucmd.buttons || cs->lastucmd.wbuttons ) )
 							// !!NOTE: always allow thinking if in PVS, otherwise bosses won't gib, and dead guys might not push away from clipped walls
-							||  ( trap_InPVS( cs->bs->origin, g_entities[0].s.pos.trBase ) ) ) { // do pvs check last, since it's the most expensive to call
+							||  ( engine->trap_InPVS( cs->bs->origin, g_entities[0].s.pos.trBase ) ) ) { // do pvs check last, since it's the most expensive to call
 						oldLegsTimer = ent->client->ps.legsTimer;
 						//
 						// send it's movement commands
 						//
 						serverTime = time;
 						AICast_UpdateInput( cs, elapsed );
-						trap_BotUserCommand( cs->bs->client, &( cs->lastucmd ) );
+						engine->trap_BotUserCommand( cs->bs->client, &( cs->lastucmd ) );
 						cs->lastMoveThink = level.time;
 						//
 						// check for anim changes that may require us to stay still
@@ -1074,7 +1074,7 @@ void AICast_StartServerFrame( int time ) {
 					}
 				}
 			} else {
-				trap_UnlinkEntity( ent );
+				engine->trap_UnlinkEntity( ent );
 			}
 			//
 			// see if we've checked all cast AI's
@@ -1113,7 +1113,7 @@ void AICast_PredictMovement( cast_state_t *cs, int numframes, float frametime, a
 
 	if ( cs->bs ) {
 		ps = cs->bs->cur_ps;
-		trap_EA_GetInput( cs->entityNum, (float) level.time / 1000, &bi );
+		engine->trap_EA_GetInput( cs->entityNum, (float) level.time / 1000, &bi );
 	} else {
 		ps = g_entities[cs->entityNum].client->ps;
 	}
@@ -1146,8 +1146,8 @@ void AICast_PredictMovement( cast_state_t *cs, int numframes, float frametime, a
 		pm.cmd.serverTime = (int)( 1000.0 * frametime );
 		pm.tracemask = g_entities[cs->entityNum].clipmask; //MASK_PLAYERSOLID;
 
-		pm.trace = trap_TraceCapsule; //trap_Trace;
-		pm.pointcontents = trap_PointContents;
+		pm.trace = engine->trap_TraceCapsule; //engine->trap_Trace;
+		pm.pointcontents = engine->trap_PointContents;
 		pm.debugLevel = qfalse;
 		pm.noFootsteps = qtrue;
 		// RF, not needed for prediction
@@ -1213,7 +1213,7 @@ done:
 	if ( move->groundEntityNum == ENTITYNUM_NONE ) {
 		VectorCopy( move->endpos, end );
 		end[2] -= 32;
-		trap_Trace( &tr, move->endpos, pm.mins, pm.maxs, end, pm.ps->clientNum, pm.tracemask );
+		engine->trap_Trace( &tr, move->endpos, pm.mins, pm.maxs, end, pm.ps->clientNum, pm.tracemask );
 		if ( !tr.startsolid && !tr.allsolid && tr.fraction < 1 ) {
 			VectorCopy( tr.endpos, pm.ps->origin );
 			pm.ps->groundEntityNum = tr.entityNum;
@@ -1275,7 +1275,7 @@ qboolean AICast_GetAvoid( cast_state_t *cs, bot_goal_t *goal, vec3_t outpos, qbo
 	bestyaw = 360;
 	besttraveltime = 9999999;
 	if ( goal ) {
-		starttraveltime = trap_AAS_AreaTravelTimeToGoalArea( cs->bs->areanum, cs->bs->origin, goal->areanum, cs->travelflags );
+		starttraveltime = engine->trap_AAS_AreaTravelTimeToGoalArea( cs->bs->areanum, cs->bs->origin, goal->areanum, cs->travelflags );
 	}
 	memcpy( &ucmd, &cs->lastucmd, sizeof( usercmd_t ) );
 	ucmd.forwardmove = 127;
@@ -1323,7 +1323,7 @@ qboolean AICast_GetAvoid( cast_state_t *cs, bot_goal_t *goal, vec3_t outpos, qbo
 		if ( cs->dangerEntity >= 0 && cs->dangerEntityValidTime >= level.time ) {
 			distmoved = Distance( castmove.endpos, cs->dangerEntityPos );
 		} else if ( goal ) {
-			//distmoved = 99999 - trap_AAS_AreaTravelTimeToGoalArea( BotPointAreaNum(castmove.endpos), castmove.endpos, goal->areanum, cs->travelflags );
+			//distmoved = 99999 - engine->trap_AAS_AreaTravelTimeToGoalArea( BotPointAreaNum(castmove.endpos), castmove.endpos, goal->areanum, cs->travelflags );
 			distmoved = 99999 - Distance( castmove.endpos, goal->origin );
 		} else {
 			distmoved = Distance( castmove.endpos, cs->bs->cur_ps.origin );
@@ -1333,7 +1333,7 @@ qboolean AICast_GetAvoid( cast_state_t *cs, bot_goal_t *goal, vec3_t outpos, qbo
 				&&  ( castmove.groundEntityNum != ENTITYNUM_NONE ) ) {
 			// they all passed, check any other stuff
 			if ( !enemyVisible || AICast_CheckAttackAtPos( cs->entityNum, cs->enemyNum, castmove.endpos, qfalse, qfalse ) ) {
-				if ( !goal || ( traveltime = trap_AAS_AreaTravelTimeToGoalArea( BotPointAreaNum( castmove.endpos ), castmove.endpos, goal->areanum, cs->travelflags ) ) < ( starttraveltime + 200 ) ) {
+				if ( !goal || ( traveltime = engine->trap_AAS_AreaTravelTimeToGoalArea( BotPointAreaNum( castmove.endpos ), castmove.endpos, goal->areanum, cs->travelflags ) ) < ( starttraveltime + 200 ) ) {
 					bestyaw = yaw;
 					bestmoved = distmoved;
 					besttraveltime = traveltime;
@@ -1377,7 +1377,7 @@ void AICast_Blocked( cast_state_t *cs, bot_moveresult_t *moveresult, int activat
 				return;
 			}
 			// are we going to hit someone soon?
-			trap_EA_GetInput( cs->entityNum, (float) level.time / 1000, &bi );
+			engine->trap_EA_GetInput( cs->entityNum, (float) level.time / 1000, &bi );
 			AICast_InputToUserCommand( cs, &bi, &ucmd, cs->bs->cur_ps.delta_angles );
 			AICast_PredictMovement( cs, 1, 0.6, &move, &ucmd, ( goal && goal->entitynum > -1 ) ? goal->entitynum : cs->entityNum );
 
@@ -1516,10 +1516,10 @@ void AICast_Blocked( cast_state_t *cs, bot_moveresult_t *moveresult, int activat
 	AngleVectors( pos, dir, NULL, NULL );
 
 	if ( moveresult->flags & MOVERESULT_ONTOPOFOBSTACLE ) {
-		trap_EA_Jump( cs->bs->entitynum );
+		engine->trap_EA_Jump( cs->bs->entitynum );
 	}
 
-	trap_EA_Move( cs->bs->entitynum, dir, 200 ); //400);
+	engine->trap_EA_Move( cs->bs->entitynum, dir, 200 ); //400);
 
 	vectoangles( dir, cs->ideal_viewangles );
 	cs->ideal_viewangles[2] *= 0.5;
@@ -1540,7 +1540,7 @@ void AICast_EvaluatePmove( int clientnum, pmove_t *pm ) {
 	//vec3_t pos, dir;
 	cs = AICast_GetCastState( clientnum );
 	// make sure we are using the right AAS data for this entity (one's that don't get set will default to the player's AAS data)
-	trap_AAS_SetCurrentWorld( cs->aasWorldIndex );
+	engine->trap_AAS_SetCurrentWorld( cs->aasWorldIndex );
 
 	// NOTE: this is only enabled for real clients, so their followers get out of their way
 	//if (cs->bs)
@@ -1717,14 +1717,14 @@ void AICast_DeadClipWalls( cast_state_t *cs ) {
 	//anim = BG_GetAnimationForIndex( cs->entityNum, (cs->bs->cur_ps.torsoAnim & ~ANIM_TOGGLEBIT) );
 
 	// find the head position
-	trap_GetTag( cs->entityNum, "tag_head", &or );
+	engine->trap_GetTag( cs->entityNum, "tag_head", &or );
 	// move up a tad
 	or.origin[2] += 3;
 
 	// trace from the base of our bounding box, to the head
 	VectorCopy( cs->bs->origin, src );
 	src[2] -= cs->bs->cur_ps.mins[2] + 3;
-	trap_Trace( &tr, src, vec3_origin, vec3_origin, or.origin, cs->entityNum, MASK_SOLID );
+	engine->trap_Trace( &tr, src, vec3_origin, vec3_origin, or.origin, cs->entityNum, MASK_SOLID );
 
 	// if we hit something, move away from it
 	if (!tr.startsolid && !tr.allsolid && tr.fraction < 1.0) {
@@ -1751,5 +1751,5 @@ void AICast_IdleReload( cast_state_t *cs ) {
 		return;
 	}
 	//
-	trap_EA_Reload( cs->entityNum );
+	engine->trap_EA_Reload( cs->entityNum );
 }

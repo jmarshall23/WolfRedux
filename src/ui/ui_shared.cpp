@@ -178,7 +178,7 @@ void *UI_Alloc( int size ) {
 		if ( DC->Print ) {
 			DC->Print( "UI_Alloc: Failure. Out of memory!\n" );
 		}
-		//DC->trap_Print(S_COLOR_YELLOW"WARNING: UI Out of Memory!\n");
+		//DC->engine->trap_Print(S_COLOR_YELLOW"WARNING: UI Out of Memory!\n");
 		return NULL;
 	}
 
@@ -345,7 +345,7 @@ void PC_SourceWarning( int handle, char *format, ... ) {
 
 	filename[0] = '\0';
 	line = 0;
-	trap_PC_SourceFileAndLine( handle, filename, &line );
+	engine->trap_PC_SourceFileAndLine( handle, filename, &line );
 
 	Com_Printf( S_COLOR_YELLOW "WARNING: %s, line %d: %s\n", filename, line, string );
 }
@@ -367,7 +367,7 @@ void PC_SourceError( int handle, char *format, ... ) {
 
 	filename[0] = '\0';
 	line = 0;
-	trap_PC_SourceFileAndLine( handle, filename, &line );
+	engine->trap_PC_SourceFileAndLine( handle, filename, &line );
 
 	Com_Printf( S_COLOR_RED "ERROR: %s, line %d: %s\n", filename, line, string );
 }
@@ -416,11 +416,11 @@ qboolean PC_Float_Parse( int handle, float *f ) {
 	pc_token_t token;
 	int negative = qfalse;
 
-	if ( !trap_PC_ReadToken( handle, &token ) ) {
+	if ( !engine->trap_PC_ReadToken( handle, &token ) ) {
 		return qfalse;
 	}
 	if ( token.string[0] == '-' ) {
-		if ( !trap_PC_ReadToken( handle, &token ) ) {
+		if ( !engine->trap_PC_ReadToken( handle, &token ) ) {
 			return qfalse;
 		}
 		negative = qtrue;
@@ -499,11 +499,11 @@ qboolean PC_Int_Parse( int handle, int *i ) {
 	pc_token_t token;
 	int negative = qfalse;
 
-	if ( !trap_PC_ReadToken( handle, &token ) ) {
+	if ( !engine->trap_PC_ReadToken( handle, &token ) ) {
 		return qfalse;
 	}
 	if ( token.string[0] == '-' ) {
-		if ( !trap_PC_ReadToken( handle, &token ) ) {
+		if ( !engine->trap_PC_ReadToken( handle, &token ) ) {
 			return qfalse;
 		}
 		negative = qtrue;
@@ -579,7 +579,7 @@ PC_String_Parse
 qboolean PC_String_Parse( int handle, const char **out ) {
 	pc_token_t token;
 
-	if ( !trap_PC_ReadToken( handle, &token ) ) {
+	if ( !engine->trap_PC_ReadToken( handle, &token ) ) {
 		return qfalse;
 	}
 
@@ -596,7 +596,7 @@ PC_Char_Parse
 qboolean PC_Char_Parse( int handle, char *out ) {
 	pc_token_t token;
 
-	if ( !trap_PC_ReadToken( handle, &token ) ) {
+	if ( !engine->trap_PC_ReadToken( handle, &token ) ) {
 		return qfalse;
 	}
 
@@ -618,7 +618,7 @@ qboolean PC_Script_Parse( int handle, const char **out ) {
 	// scripts start with { and have ; separated command lists.. commands are command, arg..
 	// basically we want everything between the { } as it will be interpreted at run time
 
-	if ( !trap_PC_ReadToken( handle, &token ) ) {
+	if ( !engine->trap_PC_ReadToken( handle, &token ) ) {
 		return qfalse;
 	}
 	if ( Q_stricmp( token.string, "{" ) != 0 ) {
@@ -626,7 +626,7 @@ qboolean PC_Script_Parse( int handle, const char **out ) {
 	}
 
 	while ( 1 ) {
-		if ( !trap_PC_ReadToken( handle, &token ) ) {
+		if ( !engine->trap_PC_ReadToken( handle, &token ) ) {
 			return qfalse;
 		}
 
@@ -2383,13 +2383,13 @@ qboolean Item_TextField_HandleKey( itemDef_t *item, int key ) {
 				return qtrue;
 			}
 
-			if ( key == K_HOME || key == K_KP_HOME ) { // || ( tolower(key) == 'a' && trap_Key_IsDown( K_CTRL ) ) ) {
+			if ( key == K_HOME || key == K_KP_HOME ) { // || ( tolower(key) == 'a' && engine->trap_Key_IsDown( K_CTRL ) ) ) {
 				item->cursorPos = 0;
 				editPtr->paintOffset = 0;
 				return qtrue;
 			}
 
-			if ( key == K_END || key == K_KP_END ) { // ( tolower(key) == 'e' && trap_Key_IsDown( K_CTRL ) ) ) {
+			if ( key == K_END || key == K_KP_END ) { // ( tolower(key) == 'e' && engine->trap_Key_IsDown( K_CTRL ) ) ) {
 				item->cursorPos = len;
 				if ( item->cursorPos > editPtr->maxPaintChars ) {
 					editPtr->paintOffset = len - editPtr->maxPaintChars;
@@ -3325,8 +3325,8 @@ void Item_Text_Paint( itemDef_t *item ) {
 
 
 
-//float			trap_Cvar_VariableValue( const char *var_name );
-//void			trap_Cvar_VariableStringBuffer( const char *var_name, char *buffer, int bufsize );
+//float			engine->trap_Cvar_VariableValue( const char *var_name );
+//void			engine->trap_Cvar_VariableStringBuffer( const char *var_name, char *buffer, int bufsize );
 
 void Item_TextField_Paint( itemDef_t *item ) {
 	char buff[1024];
@@ -4781,7 +4781,7 @@ qboolean ItemParse_textfile( itemDef_t *item, int handle ) {
 	const char  *newtext;
 	pc_token_t token;
 
-	if ( !trap_PC_ReadToken( handle, &token ) ) {
+	if ( !engine->trap_PC_ReadToken( handle, &token ) ) {
 		return qfalse;
 	}
 
@@ -5397,7 +5397,7 @@ qboolean ItemParse_cvarStrList( itemDef_t *item, int handle ) {
 	multiPtr->count = 0;
 	multiPtr->strDef = qtrue;
 
-	if ( !trap_PC_ReadToken( handle, &token ) ) {
+	if ( !engine->trap_PC_ReadToken( handle, &token ) ) {
 		return qfalse;
 	}
 	if ( *token.string != '{' ) {
@@ -5406,7 +5406,7 @@ qboolean ItemParse_cvarStrList( itemDef_t *item, int handle ) {
 
 	pass = 0;
 	while ( 1 ) {
-		if ( !trap_PC_ReadToken( handle, &token ) ) {
+		if ( !engine->trap_PC_ReadToken( handle, &token ) ) {
 			PC_SourceError( handle, "end of file inside menu item\n" );
 			return qfalse;
 		}
@@ -5448,7 +5448,7 @@ qboolean ItemParse_cvarFloatList( itemDef_t *item, int handle ) {
 	multiPtr->count = 0;
 	multiPtr->strDef = qfalse;
 
-	if ( !trap_PC_ReadToken( handle, &token ) ) {
+	if ( !engine->trap_PC_ReadToken( handle, &token ) ) {
 		return qfalse;
 	}
 	if ( *token.string != '{' ) {
@@ -5456,7 +5456,7 @@ qboolean ItemParse_cvarFloatList( itemDef_t *item, int handle ) {
 	}
 
 	while ( 1 ) {
-		if ( !trap_PC_ReadToken( handle, &token ) ) {
+		if ( !engine->trap_PC_ReadToken( handle, &token ) ) {
 			PC_SourceError( handle, "end of file inside menu item\n" );
 			return qfalse;
 		}
@@ -5657,14 +5657,14 @@ qboolean Item_Parse( int handle, itemDef_t *item ) {
 	keywordHash_t *key;
 
 
-	if ( !trap_PC_ReadToken( handle, &token ) ) {
+	if ( !engine->trap_PC_ReadToken( handle, &token ) ) {
 		return qfalse;
 	}
 	if ( *token.string != '{' ) {
 		return qfalse;
 	}
 	while ( 1 ) {
-		if ( !trap_PC_ReadToken( handle, &token ) ) {
+		if ( !engine->trap_PC_ReadToken( handle, &token ) ) {
 			PC_SourceError( handle, "end of file inside menu item\n" );
 			return qfalse;
 		}
@@ -6103,7 +6103,7 @@ qboolean Menu_Parse( int handle, menuDef_t *menu ) {
 	pc_token_t token;
 	keywordHash_t *key;
 
-	if ( !trap_PC_ReadToken( handle, &token ) ) {
+	if ( !engine->trap_PC_ReadToken( handle, &token ) ) {
 		return qfalse;
 	}
 	if ( *token.string != '{' ) {
@@ -6113,7 +6113,7 @@ qboolean Menu_Parse( int handle, menuDef_t *menu ) {
 	while ( 1 ) {
 
 		memset( &token, 0, sizeof( pc_token_t ) );
-		if ( !trap_PC_ReadToken( handle, &token ) ) {
+		if ( !engine->trap_PC_ReadToken( handle, &token ) ) {
 			PC_SourceError( handle, "end of file inside menu\n" );
 			return qfalse;
 		}

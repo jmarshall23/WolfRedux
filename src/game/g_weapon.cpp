@@ -80,7 +80,7 @@ void Weapon_Knife( gentity_t *ent ) {
 	AngleVectors( ent->client->ps.viewangles, forward, right, up );
 	CalcMuzzlePoint( ent, ent->s.weapon, forward, right, up, muzzleTrace );
 	VectorMA( muzzleTrace, KNIFE_DIST, forward, end );
-	trap_Trace( &tr, muzzleTrace, NULL, NULL, end, ent->s.number, MASK_SHOT );
+	engine->trap_Trace( &tr, muzzleTrace, NULL, NULL, end, ent->s.number, MASK_SHOT );
 
 	if ( tr.surfaceFlags & SURF_NOIMPACT ) {
 		return;
@@ -171,7 +171,7 @@ void Weapon_Medic( gentity_t *ent ) {
 	AngleVectors( ent->client->ps.viewangles, forward, right, up );
 	CalcMuzzlePointForActivate( ent, forward, right, up, muzzleTrace );
 	VectorMA( muzzleTrace, 30, forward, end );           // CH_ACTIVATE_DIST
-	trap_Trace( &tr, muzzleTrace, NULL, NULL, end, ent->s.number, MASK_SHOT );
+	engine->trap_Trace( &tr, muzzleTrace, NULL, NULL, end, ent->s.number, MASK_SHOT );
 
 	if ( tr.fraction < 1.0 ) {
 		traceEnt = &g_entities[ tr.entityNum ];
@@ -252,7 +252,7 @@ void Weapon_Engineer( gentity_t *ent ) {
 	AngleVectors( ent->client->ps.viewangles, forward, right, up );
 	CalcMuzzlePointForActivate( ent, forward, right, up, muzzleTrace );
 	VectorMA( muzzleTrace, 96, forward, end );           // CH_ACTIVATE_DIST
-	trap_Trace( &tr, muzzleTrace, NULL, NULL, end, ent->s.number, MASK_SHOT | CONTENTS_TRIGGER );
+	engine->trap_Trace( &tr, muzzleTrace, NULL, NULL, end, ent->s.number, MASK_SHOT | CONTENTS_TRIGGER );
 
 	if ( tr.surfaceFlags & SURF_NOIMPACT ) {
 		return;
@@ -281,9 +281,9 @@ void Weapon_Engineer( gentity_t *ent ) {
 			traceEnt->nextthink = level.time + FRAMETIME;
 // JPW NERVE
 			if ( ent->client->sess.sessionTeam == TEAM_RED ) {
-				trap_SendServerCommand( -1, "cp \"Axis engineer disarmed a det charge!\n\"" );
+				engine->trap_SendServerCommand( -1, "cp \"Axis engineer disarmed a det charge!\n\"" );
 			} else {
-				trap_SendServerCommand( -1, "cp \"Allied engineer disarmed a det charge!\n\"" );
+				engine->trap_SendServerCommand( -1, "cp \"Allied engineer disarmed a det charge!\n\"" );
 			}
 // jpw
 		}
@@ -312,7 +312,7 @@ void Weapon_Engineer( gentity_t *ent ) {
 
 			traceEnt->takedamage = qtrue;
 
-			trap_SendServerCommand( ent - g_entities, "cp \"You have repaired the MG42!\n\"" );
+			engine->trap_SendServerCommand( ent - g_entities, "cp \"You have repaired the MG42!\n\"" );
 		} else {
 			traceEnt->health += 3;
 		}
@@ -340,7 +340,7 @@ void weapon_callAirStrike( gentity_t *ent ) {
 	ent->think = G_ExplodeMissile;
 	ent->nextthink = level.time + 1000 + NUMBOMBS * 100 + crandom() * 50; // 3000 offset is for aircraft flyby
 
-	trap_Trace( &tr, ent->s.pos.trBase, NULL, NULL, bomboffset, ent->s.number, MASK_SHOT );
+	engine->trap_Trace( &tr, ent->s.pos.trBase, NULL, NULL, bomboffset, ent->s.number, MASK_SHOT );
 	if ( ( tr.fraction < 1.0 ) && ( !( tr.surfaceFlags & SURF_SKY ) ) ) {
 		G_SayTo( ent->parent, ent->parent, 2, COLOR_YELLOW, "Pilot: ", "Can't see target, aborting bomb run" );
 		return;
@@ -417,7 +417,7 @@ void weapon_callAirStrike( gentity_t *ent ) {
 		VectorCopy( bomboffset, fallaxis );
 		fallaxis[2] = bottomtraceheight;
 
-		trap_Trace( &tr, bomboffset, NULL, NULL, fallaxis, ent->s.number, MASK_SHOT );
+		engine->trap_Trace( &tr, bomboffset, NULL, NULL, fallaxis, ent->s.number, MASK_SHOT );
 		if ( tr.fraction != 1.0 ) {
 			VectorCopy( tr.endpos,bomb->s.pos.trBase );
 		}
@@ -491,7 +491,7 @@ trace_t *CheckMeleeAttack( gentity_t *ent, float dist, qboolean isTest ) {
 
 	VectorMA( muzzleTrace, dist, forward, end );
 
-	trap_Trace( &tr, muzzleTrace, NULL, NULL, end, ent->s.number, MASK_SHOT );
+	engine->trap_Trace( &tr, muzzleTrace, NULL, NULL, end, ent->s.number, MASK_SHOT );
 	if ( tr.surfaceFlags & SURF_NOIMPACT ) {
 		return NULL;
 	}
@@ -822,7 +822,7 @@ void RubbleFlagCheck( gentity_t *ent, trace_t tr ) {
 
 			sfx->s.frame = 3 + ( rand() % 3 ) ;
 
-			trap_LinkEntity( sfx );
+			engine->trap_LinkEntity( sfx );
 
 		}
 	}
@@ -949,8 +949,8 @@ void Bullet_Fire_Extended( gentity_t *source, gentity_t *attacker, vec3_t start,
 
 	// (SA) changed so player could shoot his own dynamite.
 	// (SA) whoops, but that broke bullets going through explosives...
-	trap_Trace( &tr, start, NULL, NULL, end, source->s.number, MASK_SHOT );
-//	trap_Trace (&tr, start, NULL, NULL, end, ENTITYNUM_NONE, MASK_SHOT);
+	engine->trap_Trace( &tr, start, NULL, NULL, end, source->s.number, MASK_SHOT );
+//	engine->trap_Trace (&tr, start, NULL, NULL, end, ENTITYNUM_NONE, MASK_SHOT);
 
 	// DHM - Nerve :: only in single player
 	if ( g_gametype.integer == GT_SINGLE_PLAYER ) {
@@ -1206,7 +1206,7 @@ gentity_t *weapon_grenadelauncher_fire( gentity_t *ent, int grenType ) {
 			VectorCopy( ent->s.pos.trBase, viewpos );
 			viewpos[2] += ent->client->ps.viewheight;
 
-			trap_Trace( &tr, viewpos, NULL, NULL, tosspos, ent->s.number, MASK_SHOT );
+			engine->trap_Trace( &tr, viewpos, NULL, NULL, tosspos, ent->s.number, MASK_SHOT );
 			if ( tr.fraction < 1 ) {   // oops, bad launch spot
 				VectorCopy( tr.endpos, tosspos );
 			}
@@ -1309,7 +1309,7 @@ qboolean VenomPellet( vec3_t start, vec3_t end, gentity_t *ent ) {
 	int damage;
 	gentity_t       *traceEnt;
 
-	trap_Trace( &tr, start, NULL, NULL, end, ent->s.number, MASK_SHOT );
+	engine->trap_Trace( &tr, start, NULL, NULL, end, ent->s.number, MASK_SHOT );
 	traceEnt = &g_entities[ tr.entityNum ];
 
 	// send bullet impact
@@ -1427,7 +1427,7 @@ void Weapon_RocketLauncher_Fire( gentity_t *ent, float aimSpreadScale ) {
 		// (doesn't ever happen)
 //		VectorCopy( ent->s.pos.trBase, viewpos );
 //		viewpos[2] += ent->client->ps.viewheight;
-//		trap_Trace (&tr, viewpos, NULL, NULL, muzzleEffect, ent->s.number, MASK_SHOT);
+//		engine->trap_Trace (&tr, viewpos, NULL, NULL, muzzleEffect, ent->s.number, MASK_SHOT);
 //		if(tr.fraction < 1) {	// oops, bad launch spot
 ///			VectorCopy(tr.endpos, launchpos);
 //			VectorSubtract(tr.endpos, viewpos, wallDir);
@@ -1472,7 +1472,7 @@ void Weapon_LightningFire( gentity_t *ent ) {
 
 	VectorMA( muzzleTrace, LIGHTNING_RANGE, forward, end );
 
-	trap_Trace( &tr, muzzleTrace, NULL, NULL, end, ent->s.number, MASK_SHOT );
+	engine->trap_Trace( &tr, muzzleTrace, NULL, NULL, end, ent->s.number, MASK_SHOT );
 
 	if ( tr.entityNum == ENTITYNUM_NONE ) {
 		return;

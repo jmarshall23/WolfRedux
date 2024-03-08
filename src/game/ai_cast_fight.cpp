@@ -717,13 +717,13 @@ qboolean AICast_CheckAttack_real( cast_state_t *cs, int enemy, qboolean allowHit
 			VectorMA( end, halfHeight * 0.9 * ( ( (float)( ( i - 1 ) - ( ( i - 1 ) % 2 ) ) / 2 - 1.0 ) ), up, end );
 		}
 
-		if ( /*allowHitWorld &&*/ !trap_InPVS( start, end ) ) {
+		if ( /*allowHitWorld &&*/ !engine->trap_InPVS( start, end ) ) {
 			// not possibly attackable
 			//continue;
 			return qfalse;
 		}
 
-		trap_Trace( &trace, start, mins, maxs, end, passEnt, traceMask );
+		engine->trap_Trace( &trace, start, mins, maxs, end, passEnt, traceMask );
 		if ( trace.fraction == 1.0 ) {
 			if ( !trace.startsolid ) {
 				return qtrue;   // not sure why, but this fixes blackguards in chateau shooting through glass ceiling
@@ -1053,7 +1053,7 @@ qboolean AICast_WeaponUsable( cast_state_t *cs, int weaponNum ) {
 					vec3_t mins;
 					VectorCopy( cs->bs->cur_ps.mins, mins );
 					mins[0] = 0;
-					trap_Trace( &trace, g_entities[cs->entityNum].client->ps.origin, mins, cs->bs->cur_ps.maxs, g_entities[cs->enemyNum].client->ps.origin, cs->entityNum, g_entities[cs->entityNum].clipmask );
+					engine->trap_Trace( &trace, g_entities[cs->entityNum].client->ps.origin, mins, cs->bs->cur_ps.maxs, g_entities[cs->enemyNum].client->ps.origin, cs->entityNum, g_entities[cs->entityNum].clipmask );
 					if ( trace.entityNum != cs->enemyNum && trace.fraction < 1.0 ) {
 						return qfalse;
 					}
@@ -1431,7 +1431,7 @@ bot_moveresult_t AICast_CombatMove( cast_state_t *cs, int tfl ) {
 					&&  ( cs->combatSpotDelayTime < level.time ) ) ) {
 
 			if (    ( cs->attributes[TACTICAL] > 0.3 + random() * 0.5 )
-					&&  trap_AAS_RT_GetHidePos( cs->bs->origin, cs->bs->entitynum, cs->bs->areanum, cs->vislist[cs->enemyNum].visible_pos, cs->enemyNum, BotPointAreaNum( cs->vislist[cs->enemyNum].visible_pos ), cs->combatGoalOrigin ) ) {
+					&&  engine->trap_AAS_RT_GetHidePos( cs->bs->origin, cs->bs->entitynum, cs->bs->areanum, cs->vislist[cs->enemyNum].visible_pos, cs->enemyNum, BotPointAreaNum( cs->vislist[cs->enemyNum].visible_pos ), cs->combatGoalOrigin ) ) {
 				cs->combatGoalTime = level.time + 10000;                // give us plenty of time to get there
 				//cs->combatSpotAttackCount = cs->startAttackCount + 3;	// don't keep moving around to different positions on our own
 				cs->combatSpotDelayTime = level.time + 3000 + rand() % 3000;
@@ -1669,7 +1669,7 @@ void AICast_ProcessAttack( cast_state_t *cs ) {
 			AICast_AimAtEnemy( cs );    // keep looking at them regardless
 		}
 		// if we're trying to move somewhere, don't let us shoot, until we've arrived
-		trap_EA_GetInput( bs->client, (float) level.time / 1000, &bi );
+		engine->trap_EA_GetInput( bs->client, (float) level.time / 1000, &bi );
 		if (    ( cs->castScriptStatus.scriptNoMoveTime < level.time ) &&
 				(   ( bi.actionflags & ACTION_MOVEFORWARD ) ||
 					( bi.actionflags & ACTION_MOVEBACK ) ||
@@ -1720,7 +1720,7 @@ void AICast_ProcessAttack( cast_state_t *cs ) {
 	}
 	//
 	// FIXME: handle fire-on-release weapons?
-	trap_EA_Attack( bs->client );
+	engine->trap_EA_Attack( bs->client );
 	//
 	cs->bFlags |= BFL_ATTACKED;
 
@@ -1768,7 +1768,7 @@ qboolean AICast_GetTakeCoverPos( cast_state_t *cs, int enemyNum, vec3_t enemyPos
 	}
 	// if we are in a void, then we can't hide
 	// look for a hiding spot
-	if ( cs->bs->areanum && trap_AAS_RT_GetHidePos( cs->bs->origin, cs->bs->entitynum, cs->bs->areanum, enemyPos, enemyNum, BotPointAreaNum( enemyPos ), returnPos ) ) {
+	if ( cs->bs->areanum && engine->trap_AAS_RT_GetHidePos( cs->bs->origin, cs->bs->entitynum, cs->bs->areanum, enemyPos, enemyNum, BotPointAreaNum( enemyPos ), returnPos ) ) {
 		return qtrue;
 	}
 	// if we are hiding from a dangerous entity, try and avoid it
@@ -2266,7 +2266,7 @@ void AICast_ProcessBullet( gentity_t *attacker, vec3_t start, vec3_t end ) {
 		if ( dist <= cs->attributes[INNER_DETECTION_RADIUS] ) {
 			// close enough to hear/see the impact?
 			// first check pvs
-			if ( !trap_InPVS( tent->client->ps.origin, end ) ) {
+			if ( !engine->trap_InPVS( tent->client->ps.origin, end ) ) {
 				continue;
 			}
 			// heard it
@@ -2352,7 +2352,7 @@ void AICast_AudibleEvent( int srcnum, vec3_t pos, float range ) {
 		if ( localDist > adjustedRange * adjustedRange ) {  // fast out if already outside range
 			continue;
 		}
-		if ( !trap_InPVS( pos, ent->s.pos.trBase ) ) {
+		if ( !engine->trap_InPVS( pos, ent->s.pos.trBase ) ) {
 			adjustedRange *= cs->attributes[HEARING_SCALE_NOT_PVS];
 		}
 		if ( localDist > adjustedRange * adjustedRange ) {

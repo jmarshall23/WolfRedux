@@ -169,7 +169,7 @@ qboolean AICast_ScriptAction_GotoMarker( cast_state_t *cs, char *params ) {
 									// dont reload prematurely
 									cs->noReloadTime = level.time + 1000;
 									// force fire
-									trap_EA_Attack( cs->bs->client );
+									engine->trap_EA_Attack( cs->bs->client );
 									//
 									cs->bFlags |= BFL_ATTACKED;
 									// dont reload prematurely
@@ -354,7 +354,7 @@ qboolean AICast_ScriptAction_GotoCast( cast_state_t *cs, char *params ) {
 									// dont reload prematurely
 									cs->noReloadTime = level.time + 1000;
 									// force fire
-									trap_EA_Attack( cs->bs->client );
+									engine->trap_EA_Attack( cs->bs->client );
 									//
 									cs->bFlags |= BFL_ATTACKED;
 									// dont reload prematurely
@@ -460,7 +460,7 @@ AICast_ScriptAction_AbortIfLoadgame
 qboolean AICast_ScriptAction_AbortIfLoadgame( cast_state_t *cs, char *params ) {
 	char loading[4];
 
-	trap_Cvar_VariableStringBuffer( "savegame_loading", loading, sizeof( loading ) );
+	engine->trap_Cvar_VariableStringBuffer( "savegame_loading", loading, sizeof( loading ) );
 
 	if ( strlen( loading ) > 0 && atoi( loading ) != 0 ) {
 		// abort the current script
@@ -623,7 +623,7 @@ qboolean AICast_ScriptAction_Trigger( cast_state_t *cs, char *params ) {
 	if ( !ent ) {
 		ent = G_Find( &g_entities[MAX_CLIENTS], FOFS( scriptName ), token );
 		if ( !ent ) {
-			if ( trap_Cvar_VariableIntegerValue( "developer" ) ) {
+			if ( engine->trap_Cvar_VariableIntegerValue( "developer" ) ) {
 				G_Printf( "AI Scripting: can't find AI cast with \"ainame\" = \"%s\"\n", params );
 			}
 			return qtrue;
@@ -1219,8 +1219,8 @@ qboolean AICast_ScriptAction_SelectWeapon( cast_state_t *cs, char *params ) {
 			//
 			g_entities[cs->entityNum].client->ps.weaponTime = 750;  // (SA) HACK: FIXME: TODO: delay to catch initial weapon reload
 			// tell it which weapon to use after spawning in
-			//trap_Cvar_Register( &cvar, "cg_loadWeaponSelect", "0", CVAR_ROM );
-			//trap_Cvar_Set( "cg_loadWeaponSelect", va("%i", g_entities[cs->entityNum].client->ps.weapon ) );
+			//engine->trap_Cvar_Register( &cvar, "cg_loadWeaponSelect", "0", CVAR_ROM );
+			//engine->trap_Cvar_Set( "cg_loadWeaponSelect", va("%i", g_entities[cs->entityNum].client->ps.weapon ) );
 		}
 
 	} else {
@@ -1668,7 +1668,7 @@ qboolean AICast_ScriptAction_FireAtTarget( cast_state_t *cs, char *params ) {
 	}
 
 	// force fire
-	trap_EA_Attack( cs->bs->client );
+	engine->trap_EA_Attack( cs->bs->client );
 	//
 	cs->bFlags |= BFL_ATTACKED;
 	//
@@ -1920,22 +1920,22 @@ qboolean AICast_ScriptAction_MissionFailed( cast_state_t *cs, char *params ) {
 	}
 
 	// play mission fail music
-	trap_SendServerCommand( -1, "mu_play sound/music/l_failed_1.wav 0\n" );
+	engine->trap_SendServerCommand( -1, "mu_play sound/music/l_failed_1.wav 0\n" );
 	// clear queue so it'll be quiet after failed stinger
-	trap_SetConfigstring( CS_MUSIC_QUEUE, "" );
+	engine->trap_SetConfigstring( CS_MUSIC_QUEUE, "" );
 
 	// fade all sound out
-	trap_SendServerCommand( -1, va( "snd_fade 0 %d", time * 1000 ) );
+	engine->trap_SendServerCommand( -1, va( "snd_fade 0 %d", time * 1000 ) );
 
 	if ( mof < 0 ) {
 		mof = 0;
 	}
-	trap_SendServerCommand( -1, va( "cp missionfail%d", mof ) );
+	engine->trap_SendServerCommand( -1, va( "cp missionfail%d", mof ) );
 
 	// reload the current savegame, after a delay
-	trap_SetConfigstring( CS_SCREENFADE, va( "1 %i %i", level.time + 250, time * 1000 ) );
+	engine->trap_SetConfigstring( CS_SCREENFADE, va( "1 %i %i", level.time + 250, time * 1000 ) );
 //	reloading = RELOAD_FAILED;
-	trap_Cvar_Set( "g_reloading", va( "%d", RELOAD_FAILED ) );
+	engine->trap_Cvar_Set( "g_reloading", va( "%d", RELOAD_FAILED ) );
 
 	level.reloadDelayTime = level.time + 1000 + time * 1000;
 
@@ -2002,9 +2002,9 @@ qboolean AICast_ScriptAction_ObjectiveMet( cast_state_t *cs, char *params ) {
 	player->missionObjectives |= ( 1 << ( lvl - 1 ) );  // make this bitwise
 
 	//set g_objective<n> cvar
-	trap_Cvar_Register( &cvar, va( "g_objective%i", lvl ), "1", CVAR_ROM );
+	engine->trap_Cvar_Register( &cvar, va( "g_objective%i", lvl ), "1", CVAR_ROM );
 	// set it to make sure
-	trap_Cvar_Set( va( "g_objective%i", lvl ), "1" );
+	engine->trap_Cvar_Set( va( "g_objective%i", lvl ), "1" );
 
 	token = COM_ParseExt( &pString, qfalse );
 	if ( token[0] ) {
@@ -2012,7 +2012,7 @@ qboolean AICast_ScriptAction_ObjectiveMet( cast_state_t *cs, char *params ) {
 			G_Error( "AI Scripting: missionsuccess with unknown parameter: %s\n", token );
 		}
 	} else {    // show on-screen information
-		trap_Cvar_Set( "cg_youGotMail", "2" ); // set flag to draw icon
+		engine->trap_Cvar_Set( "cg_youGotMail", "2" ); // set flag to draw icon
 	}
 
 	return qtrue;
@@ -2155,7 +2155,7 @@ qboolean AICast_ScriptAction_Mount( cast_state_t *cs, char *params ) {
 
 	if ( dist > 40 ) {
 		// walk towards it
-		trap_EA_Move( cs->entityNum, vec, 80 );
+		engine->trap_EA_Move( cs->entityNum, vec, 80 );
 		return qfalse;
 	}
 
@@ -2340,7 +2340,7 @@ qboolean AICast_ScriptAction_ChangeLevel( cast_state_t *cs, char *params ) {
 		// check for missing objectives
 		for ( i = 0; i < level.numObjectives; i++ ) {
 			if ( !( player->missionObjectives & ( 1 << i ) ) ) {
-				trap_SendServerCommand( -1, "cp objectivesnotcomplete" );
+				engine->trap_SendServerCommand( -1, "cp objectivesnotcomplete" );
 				return qtrue;
 			}
 		}
@@ -2353,29 +2353,29 @@ qboolean AICast_ScriptAction_ChangeLevel( cast_state_t *cs, char *params ) {
 
 
 	if ( !silent && !endgame ) {
-		trap_SendServerCommand( -1, "mu_play sound/music/l_complete_1.wav 0\n" );   // play mission success music
+		engine->trap_SendServerCommand( -1, "mu_play sound/music/l_complete_1.wav 0\n" );   // play mission success music
 	}
-	trap_SetConfigstring( CS_MUSIC_QUEUE, "" );  // don't try to start anything.  no level load music
+	engine->trap_SetConfigstring( CS_MUSIC_QUEUE, "" );  // don't try to start anything.  no level load music
 
-	trap_SetConfigstring( CS_SCREENFADE, va( "1 %i %i", level.time + 250, 750 + exitTime ) ); // fade out screen
+	engine->trap_SetConfigstring( CS_SCREENFADE, va( "1 %i %i", level.time + 250, 750 + exitTime ) ); // fade out screen
 
-	trap_SendServerCommand( -1, va( "snd_fade 0 %d", 1000 + exitTime ) ); //----(SA)	added
+	engine->trap_SendServerCommand( -1, va( "snd_fade 0 %d", 1000 + exitTime ) ); //----(SA)	added
 
 	// load the next map, after a delay
 	level.reloadDelayTime = level.time + 1000 + exitTime;
-	trap_Cvar_Set( "g_reloading", va( "%d", RELOAD_NEXTMAP_WAITING ) );
+	engine->trap_Cvar_Set( "g_reloading", va( "%d", RELOAD_NEXTMAP_WAITING ) );
 
 	if ( endgame ) {
-		trap_Cvar_Set( "g_reloading", va( "%d", RELOAD_ENDGAME ) );
+		engine->trap_Cvar_Set( "g_reloading", va( "%d", RELOAD_ENDGAME ) );
 		return qtrue;
 	}
 
 	Q_strncpyz( level.nextMap, newstr, sizeof( level.nextMap ) );
 
 	//if (g_cheats.integer)
-	//	trap_SendConsoleCommand( EXEC_APPEND, va("spdevmap %s\n", newstr) );
+	//	engine->trap_SendConsoleCommand( EXEC_APPEND, va("spdevmap %s\n", newstr) );
 	//else
-	//	trap_SendConsoleCommand( EXEC_APPEND, va("spmap %s\n", newstr ) );
+	//	engine->trap_SendConsoleCommand( EXEC_APPEND, va("spmap %s\n", newstr ) );
 
 	return qtrue;
 }
@@ -2389,7 +2389,7 @@ qboolean AICast_ScriptAction_FoundSecret( cast_state_t *cs, char *params ) {
 	gentity_t *player = AICast_FindEntityForName( "player" );
 //	level.numSecretsFound++;
 	player->numSecretsFound++;
-	trap_SendServerCommand( -1, "cp secretarea" );
+	engine->trap_SendServerCommand( -1, "cp secretarea" );
 	G_SendMissionStats();
 	return qtrue;
 }
@@ -2673,7 +2673,7 @@ qboolean ScriptStartCam( cast_state_t *cs, char *params, qboolean black ) {
 	ent->r.svFlags &= ~SVF_NOCLIENT;
 
 	// issue a start camera command to the client
-	trap_SendServerCommand( cs->entityNum, va( "startCam %s %d", token, (int)black ) );
+	engine->trap_SendServerCommand( cs->entityNum, va( "startCam %s %d", token, (int)black ) );
 
 	return qtrue;
 }
@@ -2688,12 +2688,12 @@ qboolean AICast_ScriptAction_StartCamBlack( cast_state_t *cs, char *params ) {
 
 //----(SA)	added
 qboolean AICast_ScriptAction_StopCamBlack( cast_state_t *cs, char *params ) {
-	trap_SendServerCommand( cs->entityNum, "stopCamblack" );
+	engine->trap_SendServerCommand( cs->entityNum, "stopCamblack" );
 	return qtrue;
 }
 
 qboolean AICast_ScriptAction_StopCam( cast_state_t *cs, char *params ) {
-	trap_SendServerCommand( cs->entityNum, "stopCam" );
+	engine->trap_SendServerCommand( cs->entityNum, "stopCam" );
 	return qtrue;
 }
 //----(SA)	end
@@ -2765,7 +2765,7 @@ AICast_ScriptAction_EntityScriptName
 =================
 */
 qboolean AICast_ScriptAction_EntityScriptName( cast_state_t *cs, char *params ) {
-	trap_Cvar_Set( "g_scriptName", params );
+	engine->trap_Cvar_Set( "g_scriptName", params );
 	return qtrue;
 }
 
@@ -2776,7 +2776,7 @@ AICast_ScriptAction_AIScriptName
 =================
 */
 qboolean AICast_ScriptAction_AIScriptName( cast_state_t *cs, char *params ) {
-	trap_Cvar_Set( "ai_scriptName", params );
+	engine->trap_Cvar_Set( "ai_scriptName", params );
 	return qtrue;
 }
 
@@ -2846,9 +2846,9 @@ qboolean AICast_ScriptAction_Cvar( cast_state_t *cs, char *params ) {
 		return qtrue;
 	}
 
-	trap_Cvar_Register( &cvar, cvarName, token, CVAR_ROM );
+	engine->trap_Cvar_Register( &cvar, cvarName, token, CVAR_ROM );
 	// set it to make sure
-	trap_Cvar_Set( cvarName, token );
+	engine->trap_Cvar_Set( cvarName, token );
 	return qtrue;
 }
 
@@ -2879,7 +2879,7 @@ qboolean AICast_ScriptAction_MusicStart( cast_state_t *cs, char *params ) {
 		fadeupTime = atoi( token );
 	}
 
-	trap_SendServerCommand( cs->entityNum, va( "mu_start %s %d", cvarName, fadeupTime ) );
+	engine->trap_SendServerCommand( cs->entityNum, va( "mu_start %s %d", cvarName, fadeupTime ) );
 
 	return qtrue;
 }
@@ -2902,7 +2902,7 @@ qboolean AICast_ScriptAction_MusicPlay( cast_state_t *cs, char *params ) {
 	}
 	Q_strncpyz( cvarName, token, sizeof( cvarName ) );
 
-	trap_SendServerCommand( cs->entityNum, va( "mu_play %s %d", cvarName, fadeupTime ) );
+	engine->trap_SendServerCommand( cs->entityNum, va( "mu_play %s %d", cvarName, fadeupTime ) );
 
 	return qtrue;
 }
@@ -2923,7 +2923,7 @@ qboolean AICast_ScriptAction_MusicStop( cast_state_t *cs, char *params ) {
 		fadeoutTime = atoi( token );
 	}
 
-	trap_SendServerCommand( cs->entityNum, va( "mu_stop %i", fadeoutTime ) );
+	engine->trap_SendServerCommand( cs->entityNum, va( "mu_stop %i", fadeoutTime ) );
 
 	return qtrue;
 }
@@ -2952,7 +2952,7 @@ qboolean AICast_ScriptAction_MusicFade( cast_state_t *cs, char *params ) {
 	}
 	fadetime = atoi( token );
 
-	trap_SendServerCommand( cs->entityNum, va( "mu_fade %f %i", targetvol, fadetime ) );
+	engine->trap_SendServerCommand( cs->entityNum, va( "mu_fade %f %i", targetvol, fadetime ) );
 
 	return qtrue;
 }
@@ -2974,7 +2974,7 @@ qboolean AICast_ScriptAction_MusicQueue( cast_state_t *cs, char *params ) {
 	}
 	Q_strncpyz( cvarName, token, sizeof( cvarName ) );
 
-	trap_SetConfigstring( CS_MUSIC_QUEUE, cvarName );
+	engine->trap_SetConfigstring( CS_MUSIC_QUEUE, cvarName );
 
 	return qtrue;
 }

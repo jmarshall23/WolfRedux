@@ -130,7 +130,7 @@ void TeleportPlayer( gentity_t *player, vec3_t origin, vec3_t angles ) {
 	}
 
 	// unlink to make sure it can't possibly interfere with G_KillBox
-	trap_UnlinkEntity( player );
+	engine->trap_UnlinkEntity( player );
 
 	VectorCopy( origin, player->client->ps.origin );
 	player->client->ps.origin[2] += 1;
@@ -159,7 +159,7 @@ void TeleportPlayer( gentity_t *player, vec3_t origin, vec3_t angles ) {
 	VectorCopy( player->client->ps.origin, player->r.currentOrigin );
 
 	if ( player->client->sess.sessionTeam != TEAM_SPECTATOR ) {
-		trap_LinkEntity( player );
+		engine->trap_LinkEntity( player );
 	}
 }
 
@@ -231,14 +231,14 @@ void grabber_die( gentity_t *ent, gentity_t *inflictor, gentity_t *attacker, int
 
 	GibEntity( ent, 0 );    // use temporarily to show 'death' of entity
 
-//	trap_UnlinkEntity(ent->enemy);
+//	engine->trap_UnlinkEntity(ent->enemy);
 	ent->enemy->think = G_FreeEntity;
 	ent->enemy->nextthink = level.time + FRAMETIME;
 //	G_FreeEntity(ent->enemy);
 
 	G_UseTargets( ent, attacker );
 
-//	trap_UnlinkEntity(ent);
+//	engine->trap_UnlinkEntity(ent);
 	ent->think = G_FreeEntity;
 	ent->nextthink = level.time + FRAMETIME;
 //	G_FreeEntity(ent);
@@ -318,7 +318,7 @@ void grabber_wake( gentity_t *ent ) {
 		parent->active      = qtrue;
 		parent->die         = grabber_die;
 		parent->pain        = grabber_pain;
-		trap_LinkEntity( parent );
+		engine->trap_LinkEntity( parent );
 
 		ent->s.frame        = 5;    // starting position
 
@@ -451,7 +451,7 @@ void SP_misc_grabber_trap( gentity_t *ent ) {
 	trig->r.contents    = CONTENTS_TRIGGER;
 	trig->r.svFlags     = SVF_NOCLIENT;
 	trig->touch         = grabber_wake_touch;
-	trap_LinkEntity( trig );
+	engine->trap_LinkEntity( trig );
 
 }
 
@@ -459,14 +459,14 @@ void use_spotlight( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 	gentity_t   *tent;
 
 	if ( ent->r.linked ) {
-		trap_UnlinkEntity( ent );
+		engine->trap_UnlinkEntity( ent );
 	} else
 	{
 		tent = G_PickTarget( ent->target );
 		VectorCopy( tent->s.origin, ent->s.origin2 );
 
 		ent->active = 0;
-		trap_LinkEntity( ent );
+		engine->trap_LinkEntity( ent );
 	}
 }
 
@@ -485,7 +485,7 @@ void spotlight_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, 
 void spotlight_finish_spawning( gentity_t *ent ) {
 	if ( ent->spawnflags & 1 ) {   // START_ON
 //		ent->active = 0;
-		trap_LinkEntity( ent );
+		engine->trap_LinkEntity( ent );
 	}
 
 	ent->use        = use_spotlight;
@@ -611,7 +611,7 @@ void SP_misc_gamemodel( gentity_t *ent ) {
 
 
 	}
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 }
 
@@ -642,7 +642,7 @@ void SP_misc_vis_dummy( gentity_t *ent ) {
 
 	ent->r.svFlags |= SVF_VISDUMMY;
 	G_SetOrigin( ent, ent->s.origin );
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 	ent->think = locateMaster;
 	ent->nextthink = level.time + 1000;
@@ -665,7 +665,7 @@ void SP_misc_vis_dummy_multiple( gentity_t *ent ) {
 
 	ent->r.svFlags |= SVF_VISDUMMY_MULTIPLE;
 	G_SetOrigin( ent, ent->s.origin );
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 }
 
@@ -729,7 +729,7 @@ This must be within 64 world units of the surface!
 void SP_misc_portal_surface( gentity_t *ent ) {
 	VectorClear( ent->r.mins );
 	VectorClear( ent->r.maxs );
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 	ent->r.svFlags = SVF_PORTAL;
 	ent->s.eType = ET_PORTAL;
@@ -751,7 +751,7 @@ void SP_misc_portal_camera( gentity_t *ent ) {
 
 	VectorClear( ent->r.mins );
 	VectorClear( ent->r.maxs );
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 	G_SpawnFloat( "roll", "0", &roll );
 
@@ -861,7 +861,7 @@ void InitShooter( gentity_t *ent, int weapon ) {
 		ent->think = InitShooter_Finish;
 		ent->nextthink = level.time + 500;
 	}
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 }
 
 /*QUAKED shooter_mortar (1 0 0) (-16 -16 -16) (16 16 16) SMOKE_FX FLASH_FX
@@ -906,14 +906,14 @@ void use_shooter_tesla( gentity_t *ent, gentity_t *other, gentity_t *activator )
 	gentity_t   *tent;
 
 	if ( ent->r.linked ) {
-		trap_UnlinkEntity( ent );
+		engine->trap_UnlinkEntity( ent );
 	} else
 	{
 		tent = G_PickTarget( ent->target );
 		VectorCopy( tent->s.origin, ent->s.origin2 );
 
 		ent->active = 0;
-		trap_LinkEntity( ent );
+		engine->trap_LinkEntity( ent );
 	}
 }
 
@@ -946,7 +946,7 @@ void shooter_tesla_finish_spawning( gentity_t *ent ) {
 
 	if ( ent->spawnflags & 1 ) {   // START_ON
 		ent->active = 0;
-		trap_LinkEntity( ent );
+		engine->trap_LinkEntity( ent );
 	}
 }
 
@@ -1157,7 +1157,7 @@ void SP_sniper_brush( gentity_t *ent ) {
 	sniper_sound = G_SoundIndex( "sound/weapons/machinegun/machgf1b.wav" );
 
 	InitTrigger( ent );
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 }
 
 
@@ -1175,11 +1175,11 @@ use_corona
 */
 void use_corona( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 	if ( ent->r.linked ) {
-		trap_UnlinkEntity( ent );
+		engine->trap_UnlinkEntity( ent );
 	} else
 	{
 		ent->active = 0;
-		trap_LinkEntity( ent );
+		engine->trap_LinkEntity( ent );
 	}
 }
 
@@ -1212,7 +1212,7 @@ void SP_corona( gentity_t *ent ) {
 	ent->use = use_corona;
 
 	if ( !( ent->spawnflags & 1 ) ) {
-		trap_LinkEntity( ent );
+		engine->trap_LinkEntity( ent );
 	}
 }
 
@@ -1303,7 +1303,7 @@ void shutoff_dlight( gentity_t *ent ) {
 		return;
 	}
 
-	trap_UnlinkEntity( ent );
+	engine->trap_UnlinkEntity( ent );
 	ent->think = 0;
 	ent->nextthink = 0;
 }
@@ -1316,11 +1316,11 @@ use_dlight
 */
 void use_dlight( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 	if ( ent->r.linked ) {
-		trap_UnlinkEntity( ent );
+		engine->trap_UnlinkEntity( ent );
 	} else
 	{
 		ent->active = 0;
-		trap_LinkEntity( ent );
+		engine->trap_LinkEntity( ent );
 
 		if ( ent->spawnflags & 4 ) {   // ONETIME
 			ent->think = shutoff_dlight;
@@ -1396,7 +1396,7 @@ void SP_dlight( gentity_t *ent ) {
 	ent->use = use_dlight;
 
 	if ( !( ent->spawnflags & 2 ) ) {
-		trap_LinkEntity( ent );
+		engine->trap_LinkEntity( ent );
 	}
 
 }
@@ -1445,7 +1445,7 @@ void snowInPVS( gentity_t *ent ) {
 	player = AICast_FindEntityForName( "player" );
 
 	if ( player ) {
-		inPVS = trap_InPVS( player->r.currentOrigin, ent->r.currentOrigin );
+		inPVS = engine->trap_InPVS( player->r.currentOrigin, ent->r.currentOrigin );
 
 		if ( inPVS ) {
 			ent->active = qtrue;
@@ -1471,7 +1471,7 @@ void snowInPVS( gentity_t *ent ) {
 	}
 
 	tent->s.frame = ent->s.number;
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 }
 
 void snow_think( gentity_t *ent ) {
@@ -1487,7 +1487,7 @@ void snow_think( gentity_t *ent ) {
 		dest[2] -= 8192;
 	}
 
-	trap_Trace( &tr, ent->s.origin, NULL, NULL, dest, ent->s.number, MASK_SHOT );
+	engine->trap_Trace( &tr, ent->s.origin, NULL, NULL, dest, ent->s.number, MASK_SHOT );
 
 	if ( ent->spawnflags & 1 ) {
 		turb = 1;
@@ -1527,7 +1527,7 @@ void SP_Snow( gentity_t *ent ) {
 	ent->r.svFlags = SVF_USE_CURRENT_ORIGIN;
 	ent->s.eType = ET_GENERAL;
 
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 	if ( !ent->health ) {
 		ent->health = 32;
@@ -1547,7 +1547,7 @@ void SP_Bubbles( gentity_t *ent ) {
 	ent->r.svFlags = SVF_USE_CURRENT_ORIGIN;
 	ent->s.eType = ET_GENERAL;
 
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 	if ( !ent->health ) {
 		ent->health = 32;
@@ -1616,7 +1616,7 @@ void mg42_muzzleflash( gentity_t *ent, vec3_t muzzlepos ) {  // cheezy, but lets
 		flash->think = G_FreeEntity;
 		flash->nextthink = level.time + 50;
 
-		trap_LinkEntity( flash );
+		engine->trap_LinkEntity( flash );
 	}
 
 }
@@ -1651,7 +1651,7 @@ void Fire_Lead( gentity_t *ent, gentity_t *activator, float spread, int damage )
 	VectorMA( end, r, right, end );
 	VectorMA( end, u, up, end );
 
-	trap_Trace( &tr, lead_muzzle, NULL, NULL, end, ent->s.number, MASK_SHOT );
+	engine->trap_Trace( &tr, lead_muzzle, NULL, NULL, end, ent->s.number, MASK_SHOT );
 
 	if ( g_gametype.integer == GT_SINGLE_PLAYER ) {
 		AICast_ProcessBullet( activator, lead_muzzle, tr.endpos );
@@ -1872,7 +1872,7 @@ void clamp_playerbehindgun( gentity_t *self, gentity_t *other, vec3_t dang ) {
 	VectorMA( self->r.currentOrigin, -36, forward, point );
 
 	point[2] = other->r.currentOrigin[2];
-	trap_UnlinkEntity( other );
+	engine->trap_UnlinkEntity( other );
 	VectorCopy( point, other->client->ps.origin );
 
 	// save results of pmove
@@ -1881,7 +1881,7 @@ void clamp_playerbehindgun( gentity_t *self, gentity_t *other, vec3_t dang ) {
 	// use the precise origin for linking
 	VectorCopy( other->client->ps.origin, other->r.currentOrigin );
 
-	trap_LinkEntity( other );
+	engine->trap_LinkEntity( other );
 }
 
 #define MG42_SPREAD 200
@@ -2251,7 +2251,7 @@ void mg42_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int d
 	}
 
 
-	trap_LinkEntity( self );
+	engine->trap_LinkEntity( self );
 }
 
 void mg42_use( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
@@ -2269,7 +2269,7 @@ void mg42_use( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 
 	// G_Printf ("mg42 called use function\n");
 
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 }
 
 /*
@@ -2315,7 +2315,7 @@ void mg42_spawn( gentity_t *ent ) {
 		base->die = mg42_die;
 		base->soundPos3 = ent->soundPos3;   //----(SA)
 		base->activateArc = ent->activateArc;           //----(SA)	added
-		trap_LinkEntity( base );
+		engine->trap_LinkEntity( base );
 	}
 
 	gun = G_Spawn();
@@ -2368,7 +2368,7 @@ void mg42_spawn( gentity_t *ent ) {
 
 	gun->spawnflags = ent->spawnflags;
 
-	trap_LinkEntity( gun );
+	engine->trap_LinkEntity( gun );
 
 	if ( !( ent->spawnflags & 2 ) ) { // no tripod
 		base->chain = gun;
@@ -2472,7 +2472,7 @@ void flak_spawn( gentity_t *ent ) {
 	gun->targetname = ent->targetname;      // need this for scripting
 	gun->mg42BaseEnt = ent->s.number;
 
-	trap_LinkEntity( gun );
+	engine->trap_LinkEntity( gun );
 
 }
 
@@ -2538,7 +2538,7 @@ void misc_spawner_use( gentity_t *ent, gentity_t *other, gentity_t *activator ) 
 
 //	VectorCopy (other->r.currentAngles, ent->r.currentAngles);
 
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 }
 
 void SP_misc_spawner( gentity_t *ent ) {
@@ -2550,7 +2550,7 @@ void SP_misc_spawner( gentity_t *ent ) {
 
 	ent->use = misc_spawner_use;
 
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 }
 
@@ -2567,7 +2567,7 @@ void firetrail_use( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 		ent->s.eType = ET_RAMJET;
 	}
 
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 }
 
@@ -2588,7 +2588,7 @@ void tagemitter_use( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 		ent->s.eType = ET_EFFECT3;
 	}
 
-	trap_LinkEntity( ent );
+	engine->trap_LinkEntity( ent );
 
 }
 
@@ -2611,7 +2611,7 @@ void misc_tagemitter_finishspawning( gentity_t *ent ) {
 	emitter->AIScript_AlertEntity = tagemitter_die;
 	emitter->targetname = ent->targetname;
 	G_ProcessTagConnect( emitter, qtrue );
-//	trap_LinkEntity( emitter );
+//	engine->trap_LinkEntity( emitter );
 
 	ent->target_ent = NULL;
 }
@@ -2665,7 +2665,7 @@ void misc_firetrails_finishspawning( gentity_t *ent ) {
 	left->AIScript_AlertEntity = firetrail_die;
 	left->targetname = ent->targetname;
 	G_ProcessTagConnect( left, qtrue );
-	trap_LinkEntity( left );
+	engine->trap_LinkEntity( left );
 
 	// right fire trail
 	right = G_Spawn();
@@ -2679,7 +2679,7 @@ void misc_firetrails_finishspawning( gentity_t *ent ) {
 	right->AIScript_AlertEntity = firetrail_die;
 	right->targetname = ent->targetname;
 	G_ProcessTagConnect( right, qtrue );
-	trap_LinkEntity( right );
+	engine->trap_LinkEntity( right );
 
 }
 

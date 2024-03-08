@@ -113,7 +113,7 @@ BotAI_Trace
 void BotAI_Trace(bsp_trace_t* bsptrace, vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, int passent, int contentmask) {
 	trace_t trace;
 
-	trap_Trace(&trace, start, mins, maxs, end, passent, contentmask);
+	engine->trap_Trace(&trace, start, mins, maxs, end, passent, contentmask);
 	//copy the trace information
 	bsptrace->allsolid = trace.allsolid;
 	bsptrace->startsolid = trace.startsolid;
@@ -181,7 +181,7 @@ BotAI_GetSnapshotEntity
 int BotAI_GetSnapshotEntity(int clientNum, int sequence, entityState_t* state) {
 	int entNum;
 
-	entNum = trap_BotGetSnapshotEntity(clientNum, sequence);
+	entNum = engine->trap_BotGetSnapshotEntity(clientNum, sequence);
 	if (entNum == -1) {
 		memset(state, 0, sizeof(entityState_t));
 		return -1;
@@ -221,7 +221,7 @@ void QDECL BotAI_BotInitialChat(bot_state_t* bs, char* type, ...) {
 	//}
 	//else { mcontext |= CONTEXT_CTFBLUETEAM; }
 
-	//trap_BotInitialChat(bs->cs, type, mcontext, vars[0], vars[1], vars[2], vars[3], vars[4], vars[5], vars[6], vars[7]);
+	//engine->trap_BotInitialChat(bs->cs, type, mcontext, vars[0], vars[1], vars[2], vars[3], vars[4], vars[5], vars[6], vars[7]);
 }
 
 /*
@@ -244,9 +244,9 @@ void BotInterbreeding(void) {
 		}
 	}
 
-	if (trap_GeneticParentsAndChildSelection(MAX_CLIENTS, ranks, &parent1, &parent2, &child)) {
-		trap_BotInterbreedGoalFuzzyLogic(botstates[parent1]->gs, botstates[parent2]->gs, botstates[child]->gs);
-		trap_BotMutateGoalFuzzyLogic(botstates[child]->gs, 1);
+	if (engine->trap_GeneticParentsAndChildSelection(MAX_CLIENTS, ranks, &parent1, &parent2, &child)) {
+		engine->trap_BotInterbreedGoalFuzzyLogic(botstates[parent1]->gs, botstates[parent2]->gs, botstates[child]->gs);
+		engine->trap_BotMutateGoalFuzzyLogic(botstates[child]->gs, 1);
 	}
 	// reset the kills and deaths
 	for (i = 0; i < MAX_CLIENTS; i++) {
@@ -263,7 +263,7 @@ BotEntityInfo
 ==============
 */
 void BotEntityInfo(int entnum, aas_entityinfo_t* info) {
-	trap_AAS_EntityInfo(entnum, info);
+	engine->trap_AAS_EntityInfo(entnum, info);
 }
 
 /*
@@ -351,8 +351,8 @@ void BotChangeViewAngles(bot_state_t* bs, float thinktime) {
 	maxchange = 300;
 
 	//if (bs->enemy >= 0) {
-	//	factor = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_VIEW_FACTOR, 0.01, 1);
-	//	maxchange = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_VIEW_MAXCHANGE, 1, 1800);
+	//	factor = engine->trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_VIEW_FACTOR, 0.01, 1);
+	//	maxchange = engine->trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_VIEW_MAXCHANGE, 1, 1800);
 	//}
 	//else {
 	//	factor = 0.25;
@@ -375,7 +375,7 @@ void BotChangeViewAngles(bot_state_t* bs, float thinktime) {
 		bs->viewangles[PITCH] -= 360;
 	}
 	//elementary action: view
-	trap_EA_View(bs->client, bs->viewangles);
+	engine->trap_EA_View(bs->client, bs->viewangles);
 }
 
 /*
@@ -493,7 +493,7 @@ void BotUpdateInput(bot_state_t* bs, int time) {
 	}
 	//
 	BotChangeViewAngles(bs, (float)time / 1000);
-	trap_EA_GetInput(bs->client, (float)time / 1000, &bi);
+	engine->trap_EA_GetInput(bs->client, (float)time / 1000, &bi);
 	//respawn hack
 	if (bi.actionflags & ACTION_RESPAWN) {
 		if (bs->lastucmd.buttons & BUTTON_ATTACK) {
@@ -515,9 +515,9 @@ BotAIRegularUpdate
 ==============
 */
 void BotAIRegularUpdate(void) {
-	if (regularupdate_time < trap_AAS_Time()) {
-		trap_BotUpdateEntityItems();
-		regularupdate_time = trap_AAS_Time() + 1;
+	if (regularupdate_time < engine->trap_AAS_Time()) {
+		engine->trap_BotUpdateEntityItems();
+		regularupdate_time = engine->trap_AAS_Time() + 1;
 	}
 }
 
@@ -531,7 +531,7 @@ int BotAI(int client, float thinktime) {
 	char buf[1024], * args;
 	int j;
 
-	trap_EA_ResetInput(client, NULL);
+	engine->trap_EA_ResetInput(client, NULL);
 	//
 	bs = botstates[client];
 	if (!bs || !bs->inuse) {
@@ -543,7 +543,7 @@ int BotAI(int client, float thinktime) {
 	BotAI_GetClientState(client, &bs->cur_ps);
 
 	//retrieve any waiting console messages
-	while (trap_BotGetServerCommand(client, buf, sizeof(buf))) {
+	while (engine->trap_BotGetServerCommand(client, buf, sizeof(buf))) {
 		//have buf point to the command and args to the command arguments
 		args = strchr(buf, ' ');
 		if (!args) {
@@ -560,13 +560,13 @@ int BotAI(int client, float thinktime) {
 		else if (!Q_stricmp(buf, "cs")) { /*ConfigStringModified*/
 		}
 		else if (!Q_stricmp(buf, "print")) {
-			//trap_BotQueueConsoleMessage(bs->cs, CMS_NORMAL, args);
+			//engine->trap_BotQueueConsoleMessage(bs->cs, CMS_NORMAL, args);
 		}
 		else if (!Q_stricmp(buf, "chat")) {
-			//trap_BotQueueConsoleMessage(bs->cs, CMS_CHAT, args);
+			//engine->trap_BotQueueConsoleMessage(bs->cs, CMS_CHAT, args);
 		}
 		else if (!Q_stricmp(buf, "tchat")) {
-			//trap_BotQueueConsoleMessage(bs->cs, CMS_CHAT, args);
+			//engine->trap_BotQueueConsoleMessage(bs->cs, CMS_CHAT, args);
 		}
 		else if (!Q_stricmp(buf, "scores")) { /*FIXME: parse scores?*/
 		}
@@ -591,7 +591,7 @@ int BotAI(int client, float thinktime) {
 	//the real AI
 	//BotDeathmatchAI(bs, thinktime);
 	//set the weapon selection every AI frame
-	trap_EA_SelectWeapon(bs->client, bs->weaponnum);
+	engine->trap_EA_SelectWeapon(bs->client, bs->weaponnum);
 	//subtract the delta angles
 	for (j = 0; j < 3; j++) {
 		bs->viewangles[j] = AngleMod(bs->viewangles[j] - SHORT2ANGLE(bs->cur_ps.delta_angles[j]));
@@ -652,18 +652,18 @@ int BotAIShutdownClient(int client) {
 	}
 
 	//if (BotChat_ExitGame(bs)) {
-	//	trap_BotEnterChat(bs->cs, bs->client, CHAT_ALL);
+	//	engine->trap_BotEnterChat(bs->cs, bs->client, CHAT_ALL);
 	//}
 
-	trap_BotFreeMoveState(bs->ms);
+	engine->trap_BotFreeMoveState(bs->ms);
 	//free the goal state
-	trap_BotFreeGoalState(bs->gs);
+	engine->trap_BotFreeGoalState(bs->gs);
 	//free the chat file
-	//trap_BotFreeChatState(bs->cs);
+	//engine->trap_BotFreeChatState(bs->cs);
 	//free the weapon weights
-	//trap_BotFreeWeaponState(bs->ws);
+	//engine->trap_BotFreeWeaponState(bs->ws);
 	//free the bot character
-	//trap_BotFreeCharacter(bs->character);
+	//engine->trap_BotFreeCharacter(bs->character);
 	//
 	BotFreeWaypoints(bs->checkpoints);
 	BotFreeWaypoints(bs->patrolpoints);
@@ -724,19 +724,19 @@ void BotResetState(bot_state_t* bs) {
 	bs->entergame_time = entergame_time;
 	//reset several states
 	if (bs->ms) {
-		trap_BotResetMoveState(bs->ms);
+		engine->trap_BotResetMoveState(bs->ms);
 	}
 	if (bs->gs) {
-		trap_BotResetGoalState(bs->gs);
+		engine->trap_BotResetGoalState(bs->gs);
 	}
 	//if (bs->ws) {
-	//	trap_BotResetWeaponState(bs->ws);
+	//	engine->trap_BotResetWeaponState(bs->ws);
 	//}
 	if (bs->gs) {
-		trap_BotResetAvoidGoals(bs->gs);
+		engine->trap_BotResetAvoidGoals(bs->gs);
 	}
 	if (bs->ms) {
-		trap_BotResetAvoidReach(bs->ms);
+		engine->trap_BotResetAvoidReach(bs->ms);
 	}
 }
 
@@ -750,8 +750,8 @@ int BotAILoadMap(int restart) {
 	vmCvar_t mapname;
 
 	if (!restart) {
-		trap_Cvar_Register(&mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM);
-		trap_BotLibLoadMap(mapname.string);
+		engine->trap_Cvar_Register(&mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM);
+		engine->trap_BotLibLoadMap(mapname.string);
 	}
 
 	for (i = 0; i < MAX_CLIENTS; i++) {
@@ -786,19 +786,19 @@ int BotAIStartFrame(int time) {
 		G_CheckBotSpawn();
 	}
 
-	//trap_Cvar_Update(&bot_rocketjump);
-	//trap_Cvar_Update(&bot_grapple);
-	//trap_Cvar_Update(&bot_fastchat);
-	//trap_Cvar_Update(&bot_nochat);
-	//trap_Cvar_Update(&bot_testrchat);
-	trap_Cvar_Update(&bot_thinktime);
+	//engine->trap_Cvar_Update(&bot_rocketjump);
+	//engine->trap_Cvar_Update(&bot_grapple);
+	//engine->trap_Cvar_Update(&bot_fastchat);
+	//engine->trap_Cvar_Update(&bot_nochat);
+	//engine->trap_Cvar_Update(&bot_testrchat);
+	engine->trap_Cvar_Update(&bot_thinktime);
 	// Ridah, set the default AAS world
-	trap_AAS_SetCurrentWorld(0);
-	trap_Cvar_Update(&memorydump);
+	engine->trap_AAS_SetCurrentWorld(0);
+	engine->trap_Cvar_Update(&memorydump);
 
 	if (memorydump.integer) {
-		trap_BotLibVarSet("memorydump", "1");
-		trap_Cvar_Set("memorydump", "0");
+		engine->trap_BotLibVarSet("memorydump", "1");
+		engine->trap_Cvar_Set("memorydump", "0");
 	}
 
 	//if the bot think time changed we should reschedule the bots
@@ -821,12 +821,12 @@ int BotAIStartFrame(int time) {
 	if (botlib_residual >= thinktime) {
 		botlib_residual -= thinktime;
 
-		trap_BotLibStartFrame((float)time / 1000);
+		engine->trap_BotLibStartFrame((float)time / 1000);
 
 		// Ridah, only check the default world
-		trap_AAS_SetCurrentWorld(0);
+		engine->trap_AAS_SetCurrentWorld(0);
 
-		if (!trap_AAS_Initialized()) {
+		if (!engine->trap_AAS_Initialized()) {
 			return BLERR_NOERROR;
 		}
 
@@ -902,7 +902,7 @@ int BotAIStartFrame(int time) {
 			state.weapon = entitystate.weapon;
 			*/
 			//
-			trap_BotLibUpdateEntity(i, &state);
+			engine->trap_BotLibUpdateEntity(i, &state);
 		}
 
 		BotAIRegularUpdate();
@@ -930,7 +930,7 @@ int BotAIStartFrame(int time) {
 		if (botstates[i]->botthink_residual >= thinktime) {
 			botstates[i]->botthink_residual -= thinktime;
 
-			if (!trap_AAS_Initialized()) {
+			if (!engine->trap_AAS_Initialized()) {
 				return BLERR_NOERROR;
 			}
 
@@ -956,7 +956,7 @@ int BotAIStartFrame(int time) {
 		}
 
 		BotUpdateInput(botstates[i], time);
-		trap_BotUserCommand(botstates[i]->client, &botstates[i]->lastucmd);
+		engine->trap_BotUserCommand(botstates[i]->client, &botstates[i]->lastucmd);
 	}
 
 	return BLERR_NOERROR;
@@ -971,113 +971,113 @@ int BotInitLibrary(void) {
 	char buf[144];
 
 	//set the maxclients and maxentities library variables before calling BotSetupLibrary
-	trap_Cvar_VariableStringBuffer("sv_maxclients", buf, sizeof(buf));
+	engine->trap_Cvar_VariableStringBuffer("sv_maxclients", buf, sizeof(buf));
 	if (!strlen(buf)) {
 		strcpy(buf, "8");
 	}
-	trap_BotLibVarSet("maxclients", buf);
+	engine->trap_BotLibVarSet("maxclients", buf);
 	Com_sprintf(buf, sizeof(buf), "%d", MAX_GENTITIES);
-	trap_BotLibVarSet("maxentities", buf);
+	engine->trap_BotLibVarSet("maxentities", buf);
 	//bsp checksum
-	trap_Cvar_VariableStringBuffer("sv_mapChecksum", buf, sizeof(buf));
+	engine->trap_Cvar_VariableStringBuffer("sv_mapChecksum", buf, sizeof(buf));
 	if (strlen(buf)) {
-		trap_BotLibVarSet("sv_mapChecksum", buf);
+		engine->trap_BotLibVarSet("sv_mapChecksum", buf);
 	}
 	//maximum number of aas links
-	trap_Cvar_VariableStringBuffer("max_aaslinks", buf, sizeof(buf));
+	engine->trap_Cvar_VariableStringBuffer("max_aaslinks", buf, sizeof(buf));
 	if (strlen(buf)) {
-		trap_BotLibVarSet("max_aaslinks", buf);
+		engine->trap_BotLibVarSet("max_aaslinks", buf);
 	}
 	//maximum number of items in a level
-	trap_Cvar_VariableStringBuffer("max_levelitems", buf, sizeof(buf));
+	engine->trap_Cvar_VariableStringBuffer("max_levelitems", buf, sizeof(buf));
 	if (strlen(buf)) {
-		trap_BotLibVarSet("max_levelitems", buf);
+		engine->trap_BotLibVarSet("max_levelitems", buf);
 	}
 	//automatically launch WinBSPC if AAS file not available
-	trap_Cvar_VariableStringBuffer("autolaunchbspc", buf, sizeof(buf));
+	engine->trap_Cvar_VariableStringBuffer("autolaunchbspc", buf, sizeof(buf));
 	if (strlen(buf)) {
-		trap_BotLibVarSet("autolaunchbspc", "1");
+		engine->trap_BotLibVarSet("autolaunchbspc", "1");
 	}
 	//
-	trap_Cvar_VariableStringBuffer("g_gametype", buf, sizeof(buf));
+	engine->trap_Cvar_VariableStringBuffer("g_gametype", buf, sizeof(buf));
 	if (!strlen(buf)) {
 		strcpy(buf, "0");
 	}
-	trap_BotLibVarSet("g_gametype", buf);
+	engine->trap_BotLibVarSet("g_gametype", buf);
 	//
 	// Rafael gameskill
-	trap_Cvar_VariableStringBuffer("g_gameskill", buf, sizeof(buf));
+	engine->trap_Cvar_VariableStringBuffer("g_gameskill", buf, sizeof(buf));
 	if (!strlen(buf)) {
 		strcpy(buf, "0");
 	}
-	trap_BotLibVarSet("g_gamekill", buf);
+	engine->trap_BotLibVarSet("g_gamekill", buf);
 	// done
 	//
-	trap_Cvar_VariableStringBuffer("bot_developer", buf, sizeof(buf));
+	engine->trap_Cvar_VariableStringBuffer("bot_developer", buf, sizeof(buf));
 	if (!strlen(buf)) {
 		strcpy(buf, "0");
 	}
-	trap_BotLibVarSet("bot_developer", buf);
+	engine->trap_BotLibVarSet("bot_developer", buf);
 	//log file
-	trap_Cvar_VariableStringBuffer("bot_developer", buf, sizeof(buf));
+	engine->trap_Cvar_VariableStringBuffer("bot_developer", buf, sizeof(buf));
 	if (!strlen(buf)) {
 		strcpy(buf, "0");
 	}
-	trap_BotLibVarSet("log", buf);
+	engine->trap_BotLibVarSet("log", buf);
 	//no chatting
-	trap_Cvar_VariableStringBuffer("bot_nochat", buf, sizeof(buf));
+	engine->trap_Cvar_VariableStringBuffer("bot_nochat", buf, sizeof(buf));
 	if (strlen(buf)) {
-		trap_BotLibVarSet("nochat", "0");
+		engine->trap_BotLibVarSet("nochat", "0");
 	}
 	//forced clustering calculations
-	trap_Cvar_VariableStringBuffer("forceclustering", buf, sizeof(buf));
+	engine->trap_Cvar_VariableStringBuffer("forceclustering", buf, sizeof(buf));
 	if (strlen(buf)) {
-		trap_BotLibVarSet("forceclustering", buf);
+		engine->trap_BotLibVarSet("forceclustering", buf);
 	}
 	//forced reachability calculations
-	trap_Cvar_VariableStringBuffer("forcereachability", buf, sizeof(buf));
+	engine->trap_Cvar_VariableStringBuffer("forcereachability", buf, sizeof(buf));
 	if (strlen(buf)) {
-		trap_BotLibVarSet("forcereachability", buf);
+		engine->trap_BotLibVarSet("forcereachability", buf);
 	}
 	//force writing of AAS to file
-	trap_Cvar_VariableStringBuffer("forcewrite", buf, sizeof(buf));
+	engine->trap_Cvar_VariableStringBuffer("forcewrite", buf, sizeof(buf));
 	if (strlen(buf)) {
-		trap_BotLibVarSet("forcewrite", buf);
+		engine->trap_BotLibVarSet("forcewrite", buf);
 	}
 	//no AAS optimization
-	trap_Cvar_VariableStringBuffer("nooptimize", buf, sizeof(buf));
+	engine->trap_Cvar_VariableStringBuffer("nooptimize", buf, sizeof(buf));
 	if (strlen(buf)) {
-		trap_BotLibVarSet("nooptimize", buf);
+		engine->trap_BotLibVarSet("nooptimize", buf);
 	}
 	//number of reachabilities to calculate each frame
-	trap_Cvar_VariableStringBuffer("framereachability", buf, sizeof(buf));
+	engine->trap_Cvar_VariableStringBuffer("framereachability", buf, sizeof(buf));
 	if (!strlen(buf)) {
 		strcpy(buf, "20");
 	}
-	trap_BotLibVarSet("framereachability", buf);
+	engine->trap_BotLibVarSet("framereachability", buf);
 	//
-	trap_Cvar_VariableStringBuffer("bot_reloadcharacters", buf, sizeof(buf));
+	engine->trap_Cvar_VariableStringBuffer("bot_reloadcharacters", buf, sizeof(buf));
 	if (!strlen(buf)) {
 		strcpy(buf, "0");
 	}
-	trap_BotLibVarSet("bot_reloadcharacters", buf);
+	engine->trap_BotLibVarSet("bot_reloadcharacters", buf);
 	//base directory
-	trap_Cvar_VariableStringBuffer("fs_basepath", buf, sizeof(buf));
+	engine->trap_Cvar_VariableStringBuffer("fs_basepath", buf, sizeof(buf));
 	if (strlen(buf)) {
-		trap_BotLibVarSet("basedir", buf);
+		engine->trap_BotLibVarSet("basedir", buf);
 	}
 	//game directory
-	trap_Cvar_VariableStringBuffer("fs_game", buf, sizeof(buf));
+	engine->trap_Cvar_VariableStringBuffer("fs_game", buf, sizeof(buf));
 	if (strlen(buf)) {
-		trap_BotLibVarSet("gamedir", buf);
+		engine->trap_BotLibVarSet("gamedir", buf);
 	}
 	//cd directory
-	trap_Cvar_VariableStringBuffer("fs_cdpath", buf, sizeof(buf));
+	engine->trap_Cvar_VariableStringBuffer("fs_cdpath", buf, sizeof(buf));
 	if (strlen(buf)) {
-		trap_BotLibVarSet("cddir", buf);
+		engine->trap_BotLibVarSet("cddir", buf);
 	}
 	//setup the bot library
-	return trap_BotLibSetup();
+	return engine->trap_BotLibSetup();
 }
 
 /*
@@ -1092,8 +1092,8 @@ int BotAISetup(int restart) {
 	srand((unsigned)time(NULL));
 #endif //RANDOMIZE
 
-	trap_Cvar_Register(&bot_thinktime, "bot_thinktime", "100", 0);
-	trap_Cvar_Register(&memorydump, "memorydump", "0", 0);
+	engine->trap_Cvar_Register(&bot_thinktime, "bot_thinktime", "100", 0);
+	engine->trap_Cvar_Register(&memorydump, "memorydump", "0", 0);
 
 	//if the game is restarted for a tournament
 	if (restart) {
@@ -1103,7 +1103,7 @@ int BotAISetup(int restart) {
 	//initialize the bot states
 	memset(botstates, 0, sizeof(botstates));
 
-	trap_Cvar_Register(&bot_thinktime, "bot_thinktime", "100", 0);
+	engine->trap_Cvar_Register(&bot_thinktime, "bot_thinktime", "100", 0);
 
 	errnum = BotInitLibrary();
 	if (errnum != BLERR_NOERROR) {
@@ -1132,7 +1132,7 @@ int BotAIShutdown(int restart) {
 		//don't shutdown the bot library
 	}
 	else {
-		trap_BotLibShutdown();
+		engine->trap_BotLibShutdown();
 	}
 	return qtrue;
 }

@@ -1396,7 +1396,7 @@ typedef struct entityState_s {
 	int clientNum;          // 0 to (MAX_CLIENTS - 1), for players and corpses
 	int frame;
 
-	int solid;              // for client side prediction, trap_linkentity sets this properly
+	int solid;              // for client side prediction, engine->engine->trap_linkentity sets this properly
 
 	// old style events, in for compatibility only
 	int event;
