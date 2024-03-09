@@ -1758,10 +1758,10 @@ static void CG_Efx( centity_t *cent ) {
 		} else {
 			vec3_t angles;
 			if ( splinetarget != -1 ) {
-				if ( engine->trap_getCameraInfo( splinetarget, time, (float *) & targetpos, (float*)&angles, &fov)) {
+				if ( engine->trap_getCameraInfo( splinetarget, time, (vec3_t *) & targetpos, (vec3_t*)&angles, &fov)) {
 				} else {    // loop
 					engine->trap_startCamera( splinetarget, cg.time );
-					engine->trap_getCameraInfo( splinetarget, cg.time, (float*)&targetpos, (float*)&angles, &fov );
+					engine->trap_getCameraInfo( splinetarget, cg.time, (vec3_t*)&targetpos, (vec3_t*)&angles, &fov );
 				}
 			}
 		}

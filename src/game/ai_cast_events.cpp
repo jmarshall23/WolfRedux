@@ -529,7 +529,7 @@ void AICast_ProcessActivate( int entNum, int activatorNum ) {
 	// if we are doing something else
 	if ( cs->castScriptStatus.castScriptEventIndex >= 0 ) {
 		if ( ent->eventTime != level.time ) {
-			G_AddEvent( &g_entities[entNum], EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].soundScripts[ORDERSDENYSOUNDSCRIPT] ) );
+			G_AddEvent( &g_entities[entNum], EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].soundScripts[ORDERSDENYSOUNDSCRIPT].c_str()) );
 		}
 		return;
 	}
@@ -537,7 +537,7 @@ void AICast_ProcessActivate( int entNum, int activatorNum ) {
 	// if we are already following them, stop following
 	if ( cs->leaderNum == activatorNum ) {
 		if ( ent->eventTime != level.time ) {
-			G_AddEvent( &g_entities[entNum], EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].soundScripts[STAYSOUNDSCRIPT] ) );
+			G_AddEvent( &g_entities[entNum], EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].soundScripts[STAYSOUNDSCRIPT].c_str()) );
 		}
 
 		cs->leaderNum = -1;
@@ -562,13 +562,13 @@ void AICast_ProcessActivate( int entNum, int activatorNum ) {
 		}
 		if ( count >= 3 ) {
 			if ( ent->eventTime != level.time ) {
-				G_AddEvent( &g_entities[entNum], EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].soundScripts[ORDERSDENYSOUNDSCRIPT] ) );
+				G_AddEvent( &g_entities[entNum], EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].soundScripts[ORDERSDENYSOUNDSCRIPT].c_str()) );
 			}
 			return;
 		}
 
 		if ( ent->eventTime != level.time ) {
-			G_AddEvent( &g_entities[entNum], EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].soundScripts[FOLLOWSOUNDSCRIPT] ) );
+			G_AddEvent( &g_entities[entNum], EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].soundScripts[FOLLOWSOUNDSCRIPT].c_str()) );
 		}
 
 		// if they have a wait goal, free it

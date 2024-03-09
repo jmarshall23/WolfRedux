@@ -236,6 +236,8 @@ void G_ParseCharacterTable(char* data) {
 			// Assuming the first line is a header and should be skipped or fields.size() > a certain number to validate data rows
 			AICharacterDefaults_t character;
 
+			character.name = fields[1];
+
 			// Initialize character from fields here as in previous examples
 			// Attributes directly mapped
 			character.attributes[0] = std::stof(fields[2]);  // RunningSpeed
@@ -400,19 +402,19 @@ void AIChar_Death( gentity_t *ent, gentity_t *attacker, int damage, int mod ) { 
 	// need this check otherwise sound will overwrite gib message
 	if ( ent->health > GIB_HEALTH  ) {
 		if ( ent->client->ps.eFlags & EF_HEADSHOT ) {
-			G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[QUIETDEATHSOUNDSCRIPT] ) );
+			G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[QUIETDEATHSOUNDSCRIPT].c_str() ) );
 		} else {
 			switch ( mod ) {               //----(SA)	modified to add 'quiet' deaths
 			case MOD_KNIFE_STEALTH:
 			case MOD_SNIPERRIFLE:
 			case MOD_SNOOPERSCOPE:
-				G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[QUIETDEATHSOUNDSCRIPT] ) );
+				G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[QUIETDEATHSOUNDSCRIPT].c_str()) );
 				break;
 			case MOD_FLAMETHROWER:
-				G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[FLAMEDEATHSOUNDSCRIPT] ) );      //----(SA)	added
+				G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[FLAMEDEATHSOUNDSCRIPT].c_str()) );      //----(SA)	added
 				break;
 			default:
-				G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[DEATHSOUNDSCRIPT] ) );
+				G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[DEATHSOUNDSCRIPT].c_str()) );
 				break;
 			}
 		}
@@ -606,7 +608,7 @@ void AIChar_Pain( gentity_t *ent, gentity_t *attacker, int damage, vec3_t point 
 
 		// if we didnt just play a scripted sound, then play one of the default sounds
 		if ( cs->lastScriptSound < level.time ) {
-			G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[PAINSOUNDSCRIPT] ) );
+			G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[PAINSOUNDSCRIPT].c_str()) );
 		}
 
 		// reset the quota
@@ -688,9 +690,9 @@ void AIChar_AttackSound( cast_state_t *cs ) {
 	}
 
 	if ( cs->weaponNum == WP_LUGER ) {
-		G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[ORDERSSOUNDSCRIPT] ) );
+		G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[ORDERSSOUNDSCRIPT].c_str()) );
 	} else {
-		G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[ATTACKSOUNDSCRIPT] ) );
+		G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[ATTACKSOUNDSCRIPT].c_str()) );
 	}
 
 }
@@ -761,14 +763,14 @@ void AIChar_spawn( gentity_t *ent ) {
 	//
 	// use the default skin if nothing specified
 	if ( !ent->aiSkin || !strlen( ent->aiSkin ) ) {
-		ent->aiSkin = aiCharDefaults->skin;
+		ent->aiSkin = (char*)aiCharDefaults->skin.c_str();
 	}
 	// ............................
 	//
 	// create the character
 
 	// (there will always be an ent->aiSkin (SA))
-	newent = AICast_CreateCharacter( ent, aiCharDefaults->attributes, &weaponInfo, aiCharDefaults->name, ent->aiSkin, ent->aihSkin, "m", "7", "100" );
+	newent = AICast_CreateCharacter( ent, aiCharDefaults->attributes, &weaponInfo, (char *)aiCharDefaults->name.c_str(), ent->aiSkin, ent->aihSkin, "m", "7", "100" );
 
 	if ( !newent ) {
 		G_FreeEntity( ent );
@@ -829,14 +831,14 @@ void AIChar_spawn( gentity_t *ent ) {
 	cs->aifuncAttack3 = aiCharDefaults->aifuncAttack3;
 	//
 	// looping sound?
-	if ( aiCharDefaults->loopingSound ) {
-		ent->s.loopSound = G_SoundIndex( aiCharDefaults->loopingSound );
+	if ( aiCharDefaults->loopingSound.size() > 0 ) {
+		ent->s.loopSound = G_SoundIndex( aiCharDefaults->loopingSound.c_str() );
 	}
 	//
 	// precache sounds for this character
 	for ( i = 0; i < MAX_AI_EVENT_SOUNDS; i++ ) {
-		if ( aiDefaults[ent->aiCharacter].soundScripts[i] ) {
-			G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[i] );
+		if ( aiDefaults[ent->aiCharacter].soundScripts[i].size() >0 ) {
+			G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[i].c_str());
 		}
 	}
 	//

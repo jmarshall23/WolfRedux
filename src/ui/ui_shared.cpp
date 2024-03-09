@@ -1470,7 +1470,7 @@ void Script_Exec( itemDef_t *item, char **args ) {
 void Script_Play( itemDef_t *item, char **args ) {
 	const char *val;
 	if ( String_Parse( args, &val ) ) {
-		DC->startLocalSound( DC->registerSound( val ), CHAN_LOCAL_SOUND );      // all sounds are not 3d
+		DC->startLocalSound( DC->registerSound( val, qfalse ), CHAN_LOCAL_SOUND );      // all sounds are not 3d
 	}
 }
 
@@ -4760,7 +4760,7 @@ qboolean ItemParse_focusSound( itemDef_t *item, int handle ) {
 	if ( !PC_String_Parse( handle, &temp ) ) {
 		return qfalse;
 	}
-	item->focusSound = DC->registerSound( temp );
+	item->focusSound = DC->registerSound( temp, qfalse);
 	return qtrue;
 }
 
@@ -6278,7 +6278,7 @@ static void Menu_CacheContents( menuDef_t *menu ) {
 		}
 
 		if ( menu->soundName && *menu->soundName ) {
-			DC->registerSound( menu->soundName );
+			DC->registerSound( menu->soundName, qfalse);
 		}
 	}
 

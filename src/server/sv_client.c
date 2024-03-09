@@ -332,7 +332,7 @@ void SV_DirectConnect( netadr_t from ) {
 			newcl = cl;
 			// disconnect the client from the game first so any flags the
 			// player might have are dropped
-			VM_Call( gvm, GAME_CLIENT_DISCONNECT, newcl - svs.clients );
+			game->ClientDisconnect(newcl - svs.clients);
 			//
 			goto gotnewcl;
 		}
@@ -413,11 +413,9 @@ gotnewcl:
 	Q_strncpyz( newcl->userinfo, userinfo, sizeof( newcl->userinfo ) );
 
 	// get the game a chance to reject this connection or modify the userinfo
-	denied = (char *)VM_Call( gvm, GAME_CLIENT_CONNECT, clientNum, qtrue, qfalse ); // firstTime = qtrue
+	
+	denied = (char *)game->ClientConnect(clientNum, qtrue, qfalse); // firstTime = qtrue
 	if ( denied ) {
-		// we can't just use VM_ArgPtr, because that is only valid inside a VM_Call
-		denied = VM_ExplicitArgPtr( gvm, (int)denied );
-
 		NET_OutOfBandPrint( NS_SERVER, from, "print\n%s\n", denied );
 		Com_DPrintf( "Game rejected a connection: %s.\n", denied );
 		return;
@@ -496,7 +494,7 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 
 	// call the prog function for removing a client
 	// this will remove the body, among other things
-	VM_Call( gvm, GAME_CLIENT_DISCONNECT, drop - svs.clients );
+	game->ClientDisconnect(drop - svs.clients );
 
 	// Ridah, no need to tell the player if an AI drops
 	if ( !( drop->gentity && drop->gentity->r.svFlags & SVF_CASTAI ) ) {
@@ -626,8 +624,8 @@ void SV_ClientEnterWorld( client_t *client, usercmd_t *cmd ) {
 	client->nextSnapshotTime = svs.time;    // generate a snapshot immediately
 	client->lastUsercmd = *cmd;
 
-	// call the game begin function
-	VM_Call( gvm, GAME_CLIENT_BEGIN, client - svs.clients );
+	// call the game begin function	
+	game->ClientBegin(client - svs.clients );
 }
 
 /*
@@ -1154,8 +1152,8 @@ static void SV_UpdateUserinfo_f( client_t *cl ) {
 	Q_strncpyz( cl->userinfo, Cmd_Argv( 1 ), sizeof( cl->userinfo ) );
 
 	SV_UserinfoChanged( cl );
-	// call prog code to allow overrides
-	VM_Call( gvm, GAME_CLIENT_USERINFO_CHANGED, cl - svs.clients );
+	// call prog code to allow overrides	
+	game->ClientUserinfoChanged(cl - svs.clients );
 }
 
 
@@ -1199,8 +1197,8 @@ void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK ) {
 
 	if ( clientOK ) {
 		// pass unknown strings to the game
-		if ( !u->name && sv.state == SS_GAME ) {
-			VM_Call( gvm, GAME_CLIENT_COMMAND, cl - svs.clients );
+		if ( !u->name && sv.state == SS_GAME ) {			
+			game->ClientCommand(cl - svs.clients );
 		}
 	}
 }
@@ -1279,7 +1277,7 @@ void SV_ClientThink( client_t *cl, usercmd_t *cmd ) {
 		return;     // may have been kicked during the last usercmd
 	}
 
-	VM_Call( gvm, GAME_CLIENT_THINK, cl - svs.clients );
+	game->ClientThink(cl - svs.clients );
 }
 
 /*

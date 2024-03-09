@@ -310,9 +310,9 @@ char *AIFunc_ZombieMelee( cast_state_t *cs ) {
 				if ( ( tr = CheckMeleeAttack( ent, AICast_WeaponRange( cs, cs->weaponNum ) + 4.0, qfalse ) ) && ( tr->entityNum == cs->enemyNum ) ) {
 					G_Damage( &g_entities[tr->entityNum], ent, ent, vec3_origin, tr->endpos,
 							  zombieHitDamage[anim], 0, MOD_GAUNTLET );
-					G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[STAYSOUNDSCRIPT] ) );
+					G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[STAYSOUNDSCRIPT].c_str()) );
 				} else {
-					G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[FOLLOWSOUNDSCRIPT] ) );
+					G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[FOLLOWSOUNDSCRIPT].c_str()) );
 				}
 				cs->weaponFireTimes[cs->weaponNum] = level.time;
 				cs->animHitCount++;
@@ -420,9 +420,9 @@ char *AIFunc_LoperAttack1( cast_state_t *cs ) {
 					  LOPER_MELEE_DAMAGE, 0, MOD_LOPER_HIT );
 			// sound
 			if ( anim == 0 ) {
-				G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[ORDERSDENYSOUNDSCRIPT] ) );
+				G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[ORDERSDENYSOUNDSCRIPT].c_str()) );
 			} else {
-				G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[MISC1SOUNDSCRIPT] ) );
+				G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[MISC1SOUNDSCRIPT].c_str()) );
 			}
 		}
 		cs->weaponFireTimes[WP_MONSTER_ATTACK1] = level.time;
@@ -440,10 +440,10 @@ char *AIFunc_LoperAttack1Start( cast_state_t *cs ) {
 	AICast_AimAtEnemy( cs );
 	// start the animation
 	if ( rand() % 2 ) {
-		G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[FOLLOWSOUNDSCRIPT] ) );
+		G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[FOLLOWSOUNDSCRIPT].c_str()) );
 		BG_PlayAnimName( &ent->client->ps, "legs_extra", ANIM_BP_LEGS, qtrue, qfalse, qtrue );
 	} else {
-		G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[STAYSOUNDSCRIPT] ) );
+		G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[STAYSOUNDSCRIPT].c_str()) );
 		BG_PlayAnimName( &ent->client->ps, "legs_extra2", ANIM_BP_LEGS, qtrue, qfalse, qtrue );
 	}
 	//
@@ -1011,9 +1011,9 @@ char *AIFunc_WarriorZombieMelee( cast_state_t *cs ) {
 				if ( ( tr = CheckMeleeAttack( ent, 44, qfalse ) ) && ( tr->entityNum == cs->enemyNum ) ) {
 					G_Damage( &g_entities[tr->entityNum], ent, ent, vec3_origin, tr->endpos,
 							  warriorHitDamage[anim], 0, MOD_GAUNTLET );
-					G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[STAYSOUNDSCRIPT] ) );
+					G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[STAYSOUNDSCRIPT].c_str()) );
 				} else {
-					G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[FOLLOWSOUNDSCRIPT] ) );
+					G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[FOLLOWSOUNDSCRIPT].c_str()) );
 				}
 				cs->weaponFireTimes[cs->weaponNum] = level.time;
 				cs->animHitCount++;

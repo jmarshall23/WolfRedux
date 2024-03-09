@@ -280,13 +280,13 @@ void IN_CenterView( void ) {
 void IN_Notebook( void ) {
 	if ( cls.state == CA_ACTIVE && !clc.demoplaying ) {
 		Cvar_Set( "cg_youGotMail", "0" ); // clear icon	//----(SA)	added
-		VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_NOTEBOOK );    // startup notebook
+		ui->SetActiveMenu(UIMENU_NOTEBOOK);
 	}
 }
 
 void IN_Help( void ) {
 	if ( cls.state == CA_ACTIVE && !clc.demoplaying ) {
-		VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_HELP );        // startup help system
+		ui->SetActiveMenu(UIMENU_HELP);
 	}
 }
 
@@ -409,10 +409,10 @@ CL_MouseEvent
 =================
 */
 void CL_MouseEvent( int dx, int dy, int time ) {
-	if ( cls.keyCatchers & KEYCATCH_UI ) {
-		VM_Call( uivm, UI_MOUSE_EVENT, dx, dy );
+	if ( cls.keyCatchers & KEYCATCH_UI ) {		
+		ui->MouseEvent( dx, dy );
 	} else if ( cls.keyCatchers & KEYCATCH_CGAME ) {
-		VM_Call( cgvm, CG_MOUSE_EVENT, dx, dy );
+		cgame->MouseEvent(dx, dy);
 	} else {
 		cl.mouseDx[cl.mouseIndex] += dx;
 		cl.mouseDy[cl.mouseIndex] += dy;

@@ -4256,7 +4256,7 @@ char *AIFunc_InspectBody( cast_state_t *cs ) {
 		if ( g_entities[cs->enemyNum].health < GIB_HEALTH && ( Distance( cs->bs->origin, enemyOrg ) < 180 ) ) {
 			cs->inspectBodyTime = level.time + 1000 + rand() % 1000;
 			engine->trap_EA_Gesture( cs->entityNum );
-			G_AddEvent( &g_entities[cs->entityNum], EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].soundScripts[ORDERSSOUNDSCRIPT] ) );
+			G_AddEvent( &g_entities[cs->entityNum], EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].soundScripts[ORDERSSOUNDSCRIPT].c_str()) );
 		}
 		// walk to them
 		if ( cs->movestate != MS_CROUCH ) {
@@ -4284,7 +4284,7 @@ char *AIFunc_InspectBody( cast_state_t *cs ) {
 		// just reached them
 		cs->inspectBodyTime = level.time + 1000 + rand() % 1000;
 		engine->trap_EA_Gesture( cs->entityNum );
-		G_AddEvent( &g_entities[cs->entityNum], EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].soundScripts[ORDERSSOUNDSCRIPT] ) );
+		G_AddEvent( &g_entities[cs->entityNum], EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].soundScripts[ORDERSSOUNDSCRIPT].c_str()) );
 	} else if ( cs->inspectBodyTime < level.time ) {
 		vec3_t vec;
 		VectorSubtract( cs->startOrigin, cs->bs->origin, vec );

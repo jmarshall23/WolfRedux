@@ -476,13 +476,13 @@ typedef enum
 } AIEventSounds_t;
 //
 struct AICharacterDefaults_t {
-	char *name;
+	std::string name;
 	float attributes[AICAST_MAX_ATTRIBUTES];
 
-	char    *soundScripts[MAX_AI_EVENT_SOUNDS];
+	std::string soundScripts[MAX_AI_EVENT_SOUNDS];
 
 	int aiTeam;
-	char *skin;
+	std::string skin;
 	int weapons[8];
 	int bboxType;
 	vec2_t crouchstandZ;
@@ -492,7 +492,7 @@ struct AICharacterDefaults_t {
 	char    *( *aifuncAttack2 )( struct cast_state_s *cs );     //use this battle aifunc for monster_attack2
 	char    *( *aifuncAttack3 )( struct cast_state_s *cs );     //use this battle aifunc for monster_attack2
 
-	char *loopingSound;     // play this sound constantly while alive
+	std::string loopingSound;     // play this sound constantly while alive
 
 	aistateEnum_t aiState;
 };

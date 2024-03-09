@@ -1008,6 +1008,14 @@ void S_AddLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocit
 
 	snd.numLoopSounds++;
 }
+/*
+==================
+S_StopLoopingSound
+==================
+*/
+void S_StopLoopingSound(int entityNum) {
+	// Not Implemented
+}
 
 /*
 ==================

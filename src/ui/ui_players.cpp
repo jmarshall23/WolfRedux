@@ -776,7 +776,7 @@ void UI_DrawPlayer( float x, float y, float w, float h, playerInfo_t *pi, int ti
 		pi->pendingWeapon = (weapon_t)-1;
 		pi->weaponTimer = 0;
 		if ( pi->currentWeapon != pi->weapon ) {
-			engine->trap_S_StartLocalSound( engine->trap_S_RegisterSound( "sound/weapons/change.wav" ), CHAN_LOCAL );
+			engine->trap_S_StartLocalSound( engine->trap_S_RegisterSound( "sound/weapons/change.wav", qfalse ), CHAN_LOCAL );
 		}
 	}
 

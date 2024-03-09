@@ -760,6 +760,9 @@ void CL_InitCGame( void ) {
 	static cgameExport_t* (*vmMain)(cgameImports_t * imports);
 	vmMain = Sys_GetProcAddress(cgvm, "vmMain");
 	cgame = vmMain(&cgi);
+	if (cgame->apiVersion != CGAME_IMPORT_API_VERSION) {
+		Com_Error(ERR_FATAL, "Cgame API version incorrect!\n");
+	}
 
 	cls.state = CA_LOADING;
 

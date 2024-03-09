@@ -499,7 +499,7 @@ void AICast_UpdateVisibility( gentity_t *srcent, gentity_t *destent, qboolean sh
 							AICast_ScriptEvent( cs, "enemysight", g_entities[i].aiName );
 							cs->vislist[i].flags |= AIVIS_SIGHT_SCRIPT_CALLED;
 							if ( !( cs->aiFlags & AIFL_DENYACTION ) ) {
-								G_AddEvent( srcent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].soundScripts[SIGHTSOUNDSCRIPT] ) );
+								G_AddEvent( srcent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].soundScripts[SIGHTSOUNDSCRIPT].c_str()) );
 							}
 						}
 					}
@@ -517,7 +517,7 @@ void AICast_UpdateVisibility( gentity_t *srcent, gentity_t *destent, qboolean sh
 					AICast_ScriptEvent( cs, "enemysight", g_entities[i].aiName );
 					cs->vislist[i].flags |= AIVIS_SIGHT_SCRIPT_CALLED;
 					if ( !( cs->aiFlags & AIFL_DENYACTION ) ) {
-						G_AddEvent( srcent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].soundScripts[SIGHTSOUNDSCRIPT] ) );
+						G_AddEvent( srcent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].soundScripts[SIGHTSOUNDSCRIPT].c_str()) );
 					}
 				}
 				svis->flags |= AIVIS_ENEMY;

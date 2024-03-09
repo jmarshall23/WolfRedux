@@ -351,6 +351,7 @@ void SV_ShutdownGameProgs( void ) {
 	game->G_ShutdownGame(qfalse);
 	Sys_UnloadDll(gvm);
 	gvm = NULL;
+	game = NULL;
 }
 
 /*
@@ -658,6 +659,8 @@ void SV_InitGameProgs( void ) {
 	//gi.trap_BotGetNextCampSpotGoal = BotGetNextCampSpotGoal;
 	//gi.trap_BotGetMapLocationGoal = BotGetMapLocationGoal;
 
+	gi.trap_BotUpdateEntityItems = botlib_export->ai.BotUpdateEntityItems;
+
 	// Item and Weapon Management
 	gi.trap_BotLoadItemWeights = botlib_export->ai.BotLoadItemWeights;
 	gi.trap_BotFreeItemWeights = botlib_export->ai.BotFreeItemWeights;
@@ -678,6 +681,10 @@ void SV_InitGameProgs( void ) {
 	// Genetic Parents And Child Selection
 	gi.trap_GeneticParentsAndChildSelection = botlib_export->ai.GeneticParentsAndChildSelection;
 
+	gi.trap_BotResetGoalState = botlib_export->ai.BotResetGoalState;
+	gi.trap_BotResetAvoidGoals = botlib_export->ai.BotResetAvoidGoals;
+
+
 	// load the dll or bytecode
 	gvm = Sys_LoadDll("qagame");
 	if (!gvm) {
@@ -687,6 +694,9 @@ void SV_InitGameProgs( void ) {
 	static gameExport_t* (*vmMain)(gameImports_t * imports);
 	vmMain = Sys_GetProcAddress(gvm, "vmMain");
 	game = vmMain(&gi);
+	if (game->version != GAME_API_VERSION) {
+		Com_Error(ERR_FATAL, "Game API version incorrect!");
+	}
 
 	SV_InitGameVM(qfalse);
 }

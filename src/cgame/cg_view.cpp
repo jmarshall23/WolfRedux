@@ -1072,7 +1072,7 @@ static int CG_CalcViewValues( void ) {
 		float fov = 90;
 		float x;
 
-		if ( engine->trap_getCameraInfo( CAM_PRIMARY, cg.time, (float *)&origin, (float*)&angles, (float*)&fov)) {
+		if ( engine->trap_getCameraInfo( CAM_PRIMARY, cg.time, (vec3_t *)&origin, (vec3_t*)&angles, (float*)&fov)) {
 			VectorCopy( origin, cg.refdef.vieworg );
 			angles[ROLL] = 0;
 			angles[PITCH] = -angles[PITCH];     // (SA) compensate for reversed pitch (this makes the game match the editor, however I'm guessing the real fix is to be done there)

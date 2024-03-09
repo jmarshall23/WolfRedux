@@ -8,7 +8,7 @@ cgameImports_t* engine;
 void CG_Init(int serverMessageNum, int serverCommandSequence);
 void CG_Shutdown(void);
 
-cgameExport_t vmMain(cgameImports_t* imports) {
+cgameExport_t *vmMain(cgameImports_t* imports) {
 	static cgameExport_t exports;
 
 	engine = imports;
@@ -25,5 +25,5 @@ cgameExport_t vmMain(cgameImports_t* imports) {
 	exports.EventHandling = CG_EventHandling;
 	exports.GetTag = CG_GetTag;
 
-	return exports;
+	return &exports;
 }

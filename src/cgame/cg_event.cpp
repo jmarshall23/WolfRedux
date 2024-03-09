@@ -2260,7 +2260,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		s = CG_ConfigString( CS_CLIPBOARDS + es->eventParm );
 		// 's' is now the name of the menu script to run
 		engine->trap_Cvar_Set( "cg_clipboardName", s );    // store new current page name for the ui to pick up
-		engine->trap_UI_Popup( s );
+		engine->trap_UI_Popup( (char *)s );
 		break;
 
 	case EV_CLOSEMENU:

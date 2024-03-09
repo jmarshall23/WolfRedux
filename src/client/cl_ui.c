@@ -754,7 +754,7 @@ void CL_ShutdownUI( void ) {
 	}
 	ui->Shutdown();
 	Sys_UnloadDll(uivm);
-	
+	ui = NULL;
 	uivm = NULL;
 }
 
@@ -877,6 +877,11 @@ void CL_InitUI( void ) {
 	static uiExport_t* (*vmMain)(uiImports_t * imports);
 	vmMain = Sys_GetProcAddress(uivm, "vmMain");
 	ui = vmMain(&uiImports);
+	if (ui->version != UI_API_VERSION) {
+		Com_Error(ERR_FATAL, "UI API version incorrect!\n");
+	}
+
+
 	ui->Init((cls.state >= CA_AUTHORIZING && cls.state < CA_ACTIVE));
 }
 

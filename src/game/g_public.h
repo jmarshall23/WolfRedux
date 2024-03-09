@@ -76,10 +76,16 @@ typedef struct {
 
 
 // the server looks at a sharedEntity, which is the start of the game's gentity_t structure
+#ifndef GAMEDLL
 typedef struct {
 	entityState_t s;                // communicated by server to clients
 	entityShared_t r;               // shared by both the server system and game
 } sharedEntity_t;
+#else
+typedef struct gentity_s gentity_t;
+typedef struct gclient_s gclient_t;
+typedef gentity_t sharedEntity_t;
+#endif
 
 //===============================================================
 // Definition of gameImports_t struct

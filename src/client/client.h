@@ -326,6 +326,7 @@ extern clientStatic_t cls;
 //=============================================================================
 
 extern cgameExport_t*   cg;   // interface to cgame dll or vm
+extern cgameExport_t* cgame;
 extern uiExport_t*		ui;   // interface to ui dll or vm
 extern refexport_t re;          // interface to refresh .dll
 

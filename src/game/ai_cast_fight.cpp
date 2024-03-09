@@ -103,7 +103,7 @@ qboolean AICast_StateChange( cast_state_t *cs, aistateEnum_t newaistate ) {
 			AICast_ScriptEvent( cs, "enemysight", g_entities[cs->enemyNum].aiName );
 			cs->vislist[cs->enemyNum].flags |= AIVIS_SIGHT_SCRIPT_CALLED;
 			if ( !( cs->aiFlags & AIFL_DENYACTION ) ) {
-				G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[SIGHTSOUNDSCRIPT] ) );
+				G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[SIGHTSOUNDSCRIPT].c_str()) );
 			}
 
 			if ( cs->aiFlags & AIFL_DENYACTION ) {

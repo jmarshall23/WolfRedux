@@ -219,7 +219,7 @@ char *AIFunc_Helga_Melee( cast_state_t *cs ) {
 				if ( tr.entityNum == cs->enemyNum ) {
 					G_Damage( &g_entities[tr.entityNum], ent, ent, vec3_origin, tr.endpos,
 							  helgaHitDamage[anim], 0, MOD_GAUNTLET );
-					G_AddEvent( enemy, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[STAYSOUNDSCRIPT] ) );
+					G_AddEvent( enemy, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[STAYSOUNDSCRIPT].c_str()) );
 				}
 			}
 			cs->weaponFireTimes[cs->weaponNum] = level.time;
@@ -268,7 +268,7 @@ char *AIFunc_Helga_MeleeStart( cast_state_t *cs ) {
 	BG_AnimScriptEvent( &ent->client->ps, ANIM_ET_FIREWEAPON, qfalse, qtrue );
 
 	// play a sound
-	G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[ATTACKSOUNDSCRIPT] ) );
+	G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[ATTACKSOUNDSCRIPT].c_str()) );
 
 	cs->aifunc = AIFunc_Helga_Melee;
 	cs->aifunc( cs );   // think once now, to prevent a delay
@@ -764,7 +764,7 @@ char *AIFunc_Heinrich_Earthquake( cast_state_t *cs ) {
 		if ( cs->thinkFuncChangeTime < level.time - HEINRICH_STOMP_DELAY ) {
 			cs->aiFlags |= AIFL_MISCFLAG1;
 			// play the stomp sound
-			G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[ORDERSDENYSOUNDSCRIPT] ) );
+			G_AddEvent( ent, EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[ent->aiCharacter].soundScripts[ORDERSDENYSOUNDSCRIPT].c_str()) );
 			// check for striking the player
 			tr = CheckMeleeAttack( ent, 70, qfalse );
 			// do melee damage

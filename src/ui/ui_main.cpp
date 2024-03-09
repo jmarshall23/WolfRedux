@@ -799,7 +799,7 @@ qboolean Asset_Parse( int handle ) {
 			if ( !PC_String_Parse( handle, &tempStr ) ) {
 				return qfalse;
 			}
-			uiInfo.uiDC.Assets.menuEnterSound = engine->trap_S_RegisterSound( tempStr );
+			uiInfo.uiDC.Assets.menuEnterSound = engine->trap_S_RegisterSound( tempStr, qfalse );
 			continue;
 		}
 
@@ -808,7 +808,7 @@ qboolean Asset_Parse( int handle ) {
 			if ( !PC_String_Parse( handle, &tempStr ) ) {
 				return qfalse;
 			}
-			uiInfo.uiDC.Assets.menuExitSound = engine->trap_S_RegisterSound( tempStr );
+			uiInfo.uiDC.Assets.menuExitSound = engine->trap_S_RegisterSound( tempStr, qfalse);
 			continue;
 		}
 
@@ -817,7 +817,7 @@ qboolean Asset_Parse( int handle ) {
 			if ( !PC_String_Parse( handle, &tempStr ) ) {
 				return qfalse;
 			}
-			uiInfo.uiDC.Assets.itemFocusSound = engine->trap_S_RegisterSound( tempStr );
+			uiInfo.uiDC.Assets.itemFocusSound = engine->trap_S_RegisterSound( tempStr, qfalse);
 			continue;
 		}
 
@@ -826,7 +826,7 @@ qboolean Asset_Parse( int handle ) {
 			if ( !PC_String_Parse( handle, &tempStr ) ) {
 				return qfalse;
 			}
-			uiInfo.uiDC.Assets.menuBuzzSound = engine->trap_S_RegisterSound( tempStr );
+			uiInfo.uiDC.Assets.menuBuzzSound = engine->trap_S_RegisterSound( tempStr, qfalse);
 			continue;
 		}
 
@@ -5249,11 +5249,11 @@ static int UI_GetServerStatusInfo( const char *serverAddress, serverStatusInfo_t
 	int i, len;
 
 	if ( !info ) {
-		engine->trap_LAN_ServerStatus( serverAddress, NULL, 0 );
+		engine->trap_LAN_ServerStatus( (char *)serverAddress, NULL, 0 );
 		return qfalse;
 	}
 	memset( info, 0, sizeof( *info ) );
-	if ( engine->trap_LAN_ServerStatus( serverAddress, info->text, sizeof( info->text ) ) ) {
+	if ( engine->trap_LAN_ServerStatus((char*)serverAddress, info->text, sizeof( info->text ) ) ) {
 		Q_strncpyz( info->address, serverAddress, sizeof( info->address ) );
 		p = info->text;
 		info->numLines = 0;

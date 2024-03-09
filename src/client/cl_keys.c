@@ -1728,7 +1728,7 @@ void CL_KeyEvent( int key, qboolean down, unsigned time ) {
 
 //----(SA)	get the active menu if in ui mode
 	if ( cls.keyCatchers & KEYCATCH_UI ) {
-		activeMenu = VM_Call( uivm, UI_GET_ACTIVE_MENU );
+		activeMenu = ui->GetActiveMenu();
 	}
 
 
@@ -1743,17 +1743,17 @@ void CL_KeyEvent( int key, qboolean down, unsigned time ) {
 		// escape always gets out of CGAME stuff
 		if ( cls.keyCatchers & KEYCATCH_CGAME ) {
 			cls.keyCatchers &= ~KEYCATCH_CGAME;
-			VM_Call( cgvm, CG_EVENT_HANDLING, CGAME_EVENT_NONE );
+			cgame->EventHandling(CGAME_EVENT_NONE);
 			return;
 		}
 
 		if ( !( cls.keyCatchers & KEYCATCH_UI ) ) {
 			if ( cls.state == CA_ACTIVE && !clc.demoplaying ) {
-				VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_INGAME );
+				ui->SetActiveMenu(UIMENU_INGAME);
 			} else {
 				CL_Disconnect_f();
 				S_StopAllSounds();
-				VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_MAIN );
+				ui->SetActiveMenu(UIMENU_MAIN);
 			}
 			return;
 		}
@@ -1762,7 +1762,7 @@ void CL_KeyEvent( int key, qboolean down, unsigned time ) {
 			return;
 		}
 
-		VM_Call( uivm, UI_KEY_EVENT, key, down );
+		ui->KeyEvent(key, down);
 		return;
 	}
 
@@ -1781,10 +1781,11 @@ void CL_KeyEvent( int key, qboolean down, unsigned time ) {
 			Cbuf_AddText( cmd );
 		}
 
-		if ( cls.keyCatchers & KEYCATCH_UI && uivm ) {
-			VM_Call( uivm, UI_KEY_EVENT, key, down );
-		} else if ( cls.keyCatchers & KEYCATCH_CGAME && cgvm ) {
-			VM_Call( cgvm, CG_KEY_EVENT, key, down );
+		if ( cls.keyCatchers & KEYCATCH_UI  ) {
+			ui->KeyEvent(key, down);
+			//VM_Call( uivm, UI_KEY_EVENT, key, down );
+		} else if ( cls.keyCatchers & KEYCATCH_CGAME ) {
+			cgame->KeyEvent(key, down);
 		}
 
 		return;
@@ -1809,8 +1810,8 @@ void CL_KeyEvent( int key, qboolean down, unsigned time ) {
 			// when in the notebook, check for the key bound to "notebook" and allow that as an escape key
 
 			if ( kb ) {
-				if ( !Q_stricmp( "notebook", kb ) ) {
-					if ( VM_Call( uivm, UI_GET_ACTIVE_MENU ) == UIMENU_NOTEBOOK ) {
+				if ( !Q_stricmp( "notebook", kb ) ) {					
+					if (ui->GetActiveMenu() == UIMENU_NOTEBOOK ) {
 						key = K_ESCAPE;
 					}
 				}
@@ -1822,14 +1823,9 @@ void CL_KeyEvent( int key, qboolean down, unsigned time ) {
 			}
 		}
 
-		if ( uivm ) {
-			VM_Call( uivm, UI_KEY_EVENT, key, down );
-		}
-
+		ui->KeyEvent(key, down);		
 	} else if ( cls.keyCatchers & KEYCATCH_CGAME ) {
-		if ( cgvm ) {
-			VM_Call( cgvm, CG_KEY_EVENT, key, down );
-		}
+		cgame->KeyEvent(key, down);
 	} else if ( cls.keyCatchers & KEYCATCH_MESSAGE ) {
 		Message_Key( key );
 	} else if ( cls.state == CA_DISCONNECTED ) {
@@ -1875,7 +1871,7 @@ void CL_CharEvent( int key ) {
 	if ( cls.keyCatchers & KEYCATCH_CONSOLE ) {
 		Field_CharEvent( &g_consoleField, key );
 	} else if ( cls.keyCatchers & KEYCATCH_UI )   {
-		VM_Call( uivm, UI_KEY_EVENT, key | K_CHAR_FLAG, qtrue );
+		ui->KeyEvent(key | K_CHAR_FLAG, qtrue);
 	} else if ( cls.keyCatchers & KEYCATCH_MESSAGE )   {
 		Field_CharEvent( &chatField, key );
 	} else if ( cls.state == CA_DISCONNECTED )   {
