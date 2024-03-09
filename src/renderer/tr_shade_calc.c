@@ -124,6 +124,8 @@ void RB_CalcDeformVertexes( deformStage_t *ds ) {
 	float   *normal = ( float * ) tess.normal;
 	float   *table;
 
+	return;
+
 	// Ridah
 	if ( ds->deformationWave.frequency < 0 ) {
 		qboolean inverse = qfalse;

@@ -812,6 +812,7 @@ static int CG_CalcFov( void ) {
 	float zoomFov;
 	float f;
 	int inwater;
+	float aspect; // Aspect ratio of the screen
 	qboolean dead;
 
 	CG_Zoom();
@@ -896,8 +897,12 @@ static int CG_CalcFov( void ) {
 	}
 
 	x = cg.refdef.width / tan( fov_x / 360 * M_PI );
-	fov_y = atan2( cg.refdef.height, x );
-	fov_y = fov_y * 360 / M_PI;
+	// Adjust fov_x calculation for widescreen support
+	aspect = (float)cg.refdef.width / (float)cg.refdef.height; // Calculate the aspect ratio
+
+	// Calculate the vertical fov based on the horizontal fov and aspect ratio
+	fov_y = 2 * atan(tan((fov_x * (M_PI / 180)) / 2) / aspect);
+	fov_y = fov_y * (180 / M_PI); // Convert back to degrees
 
 	// warp if underwater
 	contents = CG_PointContents( cg.refdef.vieworg, -1 );

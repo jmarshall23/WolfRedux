@@ -990,12 +990,11 @@ static void CG_ServerCommand( void ) {
 	}
 
 	if ( !strcmp( cmd, "rockandroll" ) ) {   // map loaded, game is ready to begin.
+// jmarshall - the game is ready to go, we just auto start.
 		CG_Fade( 0, 0, 0, 255, cg.time, 0 );      // go black
-		engine->trap_UI_Popup( "pregame" );                // start pregame menu
-		engine->trap_Cvar_Set( "cg_norender", "1" );    // don't render the world until the player clicks in and the 'playerstart' func has been called (g_main in G_UpdateCvars() ~ilne 949)
-
+		engine->trap_Cvar_Set( "g_playerStart", "1" );
 		engine->trap_S_FadeAllSound( 1.0f, 1000 );    // fade sound up
-
+// jmarshall end
 		return;
 	}
 
