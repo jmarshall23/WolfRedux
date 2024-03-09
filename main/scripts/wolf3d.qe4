@@ -1,0 +1,16 @@
+{
+"brush_primit" "0"
+"bsp_Extra " "!q3map $ && !q3map -vis $ && !q3map -light -extra $"
+"bsp_FullVis " "!q3map $ && !q3map -vis $ && !q3map -light $"
+"bsp_FastVis " "!q3map $ && !q3map -vis -fast $ && !q3map -light $"
+"bsp_NoLight " "!q3map $ && !q3map -vis $"
+"bsp_Entities" "!q3map -onlyents $"
+"bsp_Relight" "!q3map $"
+"autosave" "e:\autosave.map"
+"texturepath" "c:\Progra~1\Wolf\main\textures"
+"entitypath" "c:\Progra~1\Wolf\main\scripts\wolf.def"
+"mapspath" ""
+"remotebasepath" "c:\Progra~1\Wolf\main"
+"rshcmd" "c:\Progra~1\Wolf\bin_nt\"
+"basepath" "c:\Progra~1\Wolf\main"
+}
