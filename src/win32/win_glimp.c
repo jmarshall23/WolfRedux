@@ -515,6 +515,8 @@ static qboolean GLW_InitDriver( const char *drivername, int colorbits ) {
 	return qtrue;
 }
 
+
+LONG WINAPI MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 /*
 ** GLW_CreateWindow
 **
@@ -537,11 +539,11 @@ static qboolean GLW_CreateWindow( const char *drivername, int width, int height,
 		memset( &wc, 0, sizeof( wc ) );
 
 		wc.style         = 0;
-		wc.lpfnWndProc   = (WNDPROC) glw_state.wndproc;
+		wc.lpfnWndProc   = MainWndProc;
 		wc.cbClsExtra    = 0;
 		wc.cbWndExtra    = 0;
-		wc.hInstance     = g_wv.hInstance;
-		wc.hIcon         = LoadIcon( g_wv.hInstance, MAKEINTRESOURCE( IDI_ICON1 ) );
+		wc.hInstance     = GetModuleHandle(NULL);
+		wc.hIcon         = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE( IDI_ICON1 ) );
 		wc.hCursor       = LoadCursor( NULL,IDC_ARROW );
 		wc.hbrBackground = (void *)COLOR_GRAYTEXT;
 		wc.lpszMenuName  = 0;
@@ -617,7 +619,7 @@ static qboolean GLW_CreateWindow( const char *drivername, int width, int height,
 			x, y, w, h,
 			NULL,
 			NULL,
-			g_wv.hInstance,
+			GetModuleHandle(NULL),
 			NULL );
 
 		if ( !g_wv.hWnd ) {
@@ -1333,11 +1335,11 @@ void GLimp_Init( void ) {
 	}
 
 	// save off hInstance and wndproc
-	cv = ri.Cvar_Get( "win_hinstance", "", 0 );
-	sscanf( cv->string, "%i", (int *)&g_wv.hInstance );
-
-	cv = ri.Cvar_Get( "win_wndproc", "", 0 );
-	sscanf( cv->string, "%i", (int *)&glw_state.wndproc );
+	//cv = ri.Cvar_Get( "win_hinstance", "", 0 );
+	//sscanf( cv->string, "%i", (int *)&g_wv.hInstance );
+	//
+	//cv = ri.Cvar_Get( "win_wndproc", "", 0 );
+	//sscanf( cv->string, "%i", (int *)&glw_state.wndproc );
 
 	r_allowSoftwareGL = ri.Cvar_Get( "r_allowSoftwareGL", "0", CVAR_LATCH );
 	r_maskMinidriver = ri.Cvar_Get( "r_maskMinidriver", "0", CVAR_LATCH );

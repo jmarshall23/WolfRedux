@@ -1333,7 +1333,14 @@ qboolean AICast_GetAvoid( cast_state_t *cs, bot_goal_t *goal, vec3_t outpos, qbo
 				&&  ( castmove.groundEntityNum != ENTITYNUM_NONE ) ) {
 			// they all passed, check any other stuff
 			if ( !enemyVisible || AICast_CheckAttackAtPos( cs->entityNum, cs->enemyNum, castmove.endpos, qfalse, qfalse ) ) {
-				if ( !goal || ( traveltime = engine->trap_AAS_AreaTravelTimeToGoalArea( BotPointAreaNum( castmove.endpos ), castmove.endpos, goal->areanum, cs->travelflags ) ) < ( starttraveltime + 200 ) ) {
+				if (goal)
+				{
+					traveltime = engine->trap_AAS_AreaTravelTimeToGoalArea(BotPointAreaNum(castmove.endpos), castmove.endpos, goal->areanum, cs->travelflags);
+				}
+				else {
+					traveltime = 0;
+				}
+				if ( !goal || (traveltime < ( starttraveltime + 200 ))) {
 					bestyaw = yaw;
 					bestmoved = distmoved;
 					besttraveltime = traveltime;

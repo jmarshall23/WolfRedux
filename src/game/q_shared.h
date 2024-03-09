@@ -43,6 +43,8 @@ extern "C" {
 
 #ifdef _WIN32
 
+
+#pragma warning(disable : 4996)
 #pragma warning(disable : 4018) // signed/unsigned mismatch
 #pragma warning(disable : 4032)
 #pragma warning(disable : 4051)
@@ -130,17 +132,9 @@ extern "C" {
 
 // buildstring will be incorporated into the version string
 #ifdef NDEBUG
-#ifdef _M_IX86
-#define CPUSTRING   "win-x86"
-#elif defined _M_ALPHA
-#define CPUSTRING   "win-AXP"
-#endif
+#define CPUSTRING   "win-x64"
 #else
-#ifdef _M_IX86
-#define CPUSTRING   "win-x86-debug"
-#elif defined _M_ALPHA
-#define CPUSTRING   "win-AXP-debug"
-#endif
+#define CPUSTRING   "win-x64-debug"
 #endif
 
 

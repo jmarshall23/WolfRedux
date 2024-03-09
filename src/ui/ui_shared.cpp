@@ -82,9 +82,9 @@ itemDef_t *Menu_SetNextCursorItem( menuDef_t *menu );
 static qboolean Menu_OverActiveItem( menuDef_t *menu, float x, float y );
 
 #ifdef CGAME
-#define MEM_POOL_SIZE  128 * 1024
+#define MEM_POOL_SIZE  1024 * 1024 * 12
 #else
-#define MEM_POOL_SIZE  1024 * 1024
+#define MEM_POOL_SIZE  1024 * 1024 * 12
 #endif
 
 static char memoryPool[MEM_POOL_SIZE];
@@ -172,11 +172,18 @@ UI_Alloc
 */
 void *UI_Alloc( int size ) {
 	char    *p;
+	static char memoryPool[MEM_POOL_SIZE];
+	static size_t allocPoint = 0;
+	static int outOfMemory = 0; // Consider using a boolean type if available
 
-	if ( allocPoint + size > MEM_POOL_SIZE ) {
-		outOfMemory = qtrue;
-		if ( DC->Print ) {
-			DC->Print( "UI_Alloc: Failure. Out of memory!\n" );
+	// Align the allocation size up to a multiple of 16 bytes for safety on x64
+	// This handles the case where structures require 16-byte alignment
+	size_t alignedSize = (size + 15) & ~((size_t)15);
+
+	if (allocPoint + alignedSize > MEM_POOL_SIZE) {
+		outOfMemory = 1; // true, assuming qtrue is equivalent to 1
+		if (DC->Print) {
+			DC->Print("UI_Alloc: Failure. Out of memory!\n");
 		}
 		//DC->engine->trap_Print(S_COLOR_YELLOW"WARNING: UI Out of Memory!\n");
 		return NULL;
@@ -184,7 +191,7 @@ void *UI_Alloc( int size ) {
 
 	p = &memoryPool[allocPoint];
 
-	allocPoint += ( size + 15 ) & ~15;
+	allocPoint += alignedSize;
 
 	return p;
 }

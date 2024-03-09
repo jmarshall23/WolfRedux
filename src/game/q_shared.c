@@ -378,7 +378,7 @@ void COM_ParseError( char *format, ... ) {
 	vsprintf( string, format, argptr );
 	va_end( argptr );
 
-	Com_Printf( "ERROR: %s, line %d: %s\n", com_parsename, com_lines, string );
+	// Com_Printf( "ERROR: %s, line %d: %s\n", com_parsename, com_lines, string );
 }
 
 /*
@@ -394,7 +394,7 @@ void COM_ParseWarning( char *format, ... ) {
 	vsprintf( string, format, argptr );
 	va_end( argptr );
 
-	Com_Printf( "WARNING: %s, line %d: %s\n", com_parsename, com_lines, string );
+	// Com_Printf( "WARNING: %s, line %d: %s\n", com_parsename, com_lines, string );
 }
 
 /*
@@ -575,7 +575,7 @@ char *COM_ParseExt( char **data_p, qboolean allowLineBreaks ) {
 	} while ( c > ' ' );
 
 	if ( len == MAX_TOKEN_CHARS ) {
-//		Com_Printf ("Token exceeded %i chars, discarded.\n", MAX_TOKEN_CHARS);
+//		// Com_Printf ("Token exceeded %i chars, discarded.\n", MAX_TOKEN_CHARS);
 		len = 0;
 	}
 	com_token[len] = '\0';
@@ -594,7 +594,7 @@ void COM_MatchToken( char **buf_p, char *match ) {
 
 	token = COM_Parse( buf_p );
 	if ( strcmp( token, match ) ) {
-		Com_Error( ERR_DROP, "MatchToken: %s != %s", token, match );
+		// Com_Error( ERR_DROP, "MatchToken: %s != %s", token, match );
 	}
 }
 
@@ -789,10 +789,10 @@ Safe strncpy that ensures a trailing zero
 */
 void Q_strncpyz( char *dest, const char *src, int destsize ) {
 	if ( !src ) {
-		Com_Error( ERR_FATAL, "Q_strncpyz: NULL src" );
+		// Com_Error( ERR_FATAL, "Q_strncpyz: NULL src" );
 	}
 	if ( destsize < 1 ) {
-		Com_Error( ERR_FATAL,"Q_strncpyz: destsize < 1" );
+		// Com_Error( ERR_FATAL,"Q_strncpyz: destsize < 1" );
 	}
 
 	strncpy( dest, src, destsize - 1 );
@@ -879,7 +879,7 @@ void Q_strcat( char *dest, int size, const char *src ) {
 
 	l1 = strlen( dest );
 	if ( l1 >= size ) {
-		Com_Error( ERR_FATAL, "Q_strcat: already overflowed" );
+		// Com_Error( ERR_FATAL, "Q_strcat: already overflowed" );
 	}
 	Q_strncpyz( dest + l1, src, size - l1 );
 }
@@ -938,10 +938,10 @@ void QDECL Com_sprintf( char *dest, int size, const char *fmt, ... ) {
 	len = vsprintf( bigbuffer,fmt,argptr );
 	va_end( argptr );
 	if ( len >= sizeof( bigbuffer ) ) {
-		Com_Error( ERR_FATAL, "Com_sprintf: overflowed bigbuffer" );
+		// Com_Error( ERR_FATAL, "Com_sprintf: overflowed bigbuffer" );
 	}
 	if ( len >= size ) {
-		Com_Printf( "Com_sprintf: overflow of %i in %i\n", len, size );
+		// Com_Printf( "Com_sprintf: overflow of %i in %i\n", len, size );
 	}
 	Q_strncpyz( dest, bigbuffer, size );
 }
@@ -1007,7 +1007,7 @@ char    * QDECL va( char *format, ... ) {
 	va_end( argptr );
 
 	if ( ( len = strlen( temp_buffer ) ) >= MAX_VA_STRING ) {
-		Com_Error( ERR_DROP, "Attempted to overrun string in call to va()\n" );
+		// Com_Error( ERR_DROP, "Attempted to overrun string in call to va()\n" );
 	}
 
 	if ( len + index >= MAX_VA_STRING - 1 ) {
@@ -1078,7 +1078,7 @@ char *Info_ValueForKey( const char *s, const char *key ) {
 	}
 
 	if ( strlen( s ) >= BIG_INFO_STRING ) {
-		Com_Error( ERR_DROP, "Info_ValueForKey: oversize infostring" );
+		// Com_Error( ERR_DROP, "Info_ValueForKey: oversize infostring" );
 	}
 
 	valueindex ^= 1;
@@ -1173,7 +1173,7 @@ void Info_RemoveKey( char *s, const char *key ) {
 	char    *o;
 
 	if ( strlen( s ) >= MAX_INFO_STRING ) {
-		Com_Error( ERR_DROP, "Info_RemoveKey: oversize infostring" );
+		// Com_Error( ERR_DROP, "Info_RemoveKey: oversize infostring" );
 	}
 
 	if ( strchr( key, '\\' ) ) {
@@ -1231,7 +1231,7 @@ void Info_RemoveKey_Big( char *s, const char *key ) {
 	char    *o;
 
 	if ( strlen( s ) >= BIG_INFO_STRING ) {
-		Com_Error( ERR_DROP, "Info_RemoveKey_Big: oversize infostring" );
+		// Com_Error( ERR_DROP, "Info_RemoveKey_Big: oversize infostring" );
 	}
 
 	if ( strchr( key, '\\' ) ) {
@@ -1309,21 +1309,21 @@ void Info_SetValueForKey( char *s, const char *key, const char *value ) {
 	char newi[MAX_INFO_STRING];
 
 	if ( strlen( s ) >= MAX_INFO_STRING ) {
-		Com_Error( ERR_DROP, "Info_SetValueForKey: oversize infostring" );
+		// Com_Error( ERR_DROP, "Info_SetValueForKey: oversize infostring" );
 	}
 
 	if ( strchr( key, '\\' ) || strchr( value, '\\' ) ) {
-		Com_Printf( "Can't use keys or values with a \\\n" );
+		// Com_Printf( "Can't use keys or values with a \\\n" );
 		return;
 	}
 
 	if ( strchr( key, ';' ) || strchr( value, ';' ) ) {
-		Com_Printf( "Can't use keys or values with a semicolon\n" );
+		// Com_Printf( "Can't use keys or values with a semicolon\n" );
 		return;
 	}
 
 	if ( strchr( key, '\"' ) || strchr( value, '\"' ) ) {
-		Com_Printf( "Can't use keys or values with a \"\n" );
+		// Com_Printf( "Can't use keys or values with a \"\n" );
 		return;
 	}
 
@@ -1335,7 +1335,7 @@ void Info_SetValueForKey( char *s, const char *key, const char *value ) {
 	Com_sprintf( newi, sizeof( newi ), "\\%s\\%s", key, value );
 
 	if ( strlen( newi ) + strlen( s ) > MAX_INFO_STRING ) {
-		Com_Printf( "Info string length exceeded\n" );
+		// Com_Printf( "Info string length exceeded\n" );
 		return;
 	}
 
@@ -1353,21 +1353,21 @@ void Info_SetValueForKey_Big( char *s, const char *key, const char *value ) {
 	char newi[BIG_INFO_STRING];
 
 	if ( strlen( s ) >= BIG_INFO_STRING ) {
-		Com_Error( ERR_DROP, "Info_SetValueForKey: oversize infostring" );
+		// Com_Error( ERR_DROP, "Info_SetValueForKey: oversize infostring" );
 	}
 
 	if ( strchr( key, '\\' ) || strchr( value, '\\' ) ) {
-		Com_Printf( "Can't use keys or values with a \\\n" );
+		// Com_Printf( "Can't use keys or values with a \\\n" );
 		return;
 	}
 
 	if ( strchr( key, ';' ) || strchr( value, ';' ) ) {
-		Com_Printf( "Can't use keys or values with a semicolon\n" );
+		// Com_Printf( "Can't use keys or values with a semicolon\n" );
 		return;
 	}
 
 	if ( strchr( key, '\"' ) || strchr( value, '\"' ) ) {
-		Com_Printf( "Can't use keys or values with a \"\n" );
+		// Com_Printf( "Can't use keys or values with a \"\n" );
 		return;
 	}
 
@@ -1379,7 +1379,7 @@ void Info_SetValueForKey_Big( char *s, const char *key, const char *value ) {
 	Com_sprintf( newi, sizeof( newi ), "\\%s\\%s", key, value );
 
 	if ( strlen( newi ) + strlen( s ) > BIG_INFO_STRING ) {
-		Com_Printf( "BIG Info string length exceeded\n" );
+		// Com_Printf( "BIG Info string length exceeded\n" );
 		return;
 	}
 

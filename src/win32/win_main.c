@@ -235,6 +235,7 @@ Sys_Print
 */
 void Sys_Print( const char *msg ) {
 	Conbuf_AppendText( msg );
+	OutputDebugStringA(msg);
 }
 
 
@@ -362,7 +363,7 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 	char        **listCopy;
 	char        *list[MAX_FOUND_FILES];
 	struct _finddata_t findinfo;
-	int findhandle;
+	intptr_t findhandle;
 	int flag;
 	int i;
 
@@ -602,11 +603,7 @@ void * Sys_LoadDll( const char *name ) {
 	char    *fn;
 	char filename[MAX_QPATH];
 
-#ifdef WOLF_SP_DEMO
-	Com_sprintf( filename, sizeof( filename ), "%sx86_d.dll", name );
-#else
-	Com_sprintf( filename, sizeof( filename ), "%sx86.dll", name );
-#endif
+	Com_sprintf( filename, sizeof( filename ), "%s.dll", name );
 
 	// check current folder only if we are a developer
 	if ( 1 ) { //----(SA)	always dll

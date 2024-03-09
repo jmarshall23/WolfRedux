@@ -2121,6 +2121,10 @@ const char *CG_translateString( const char *str ) {
 	return str;
 }
 
+sfxHandle_t CG_RegisterSound(const char* name, qboolean compressed) {
+	return engine->trap_S_RegisterSound(name);
+}
+
 /*
 =================
 CG_LoadHudMenu();
@@ -2176,7 +2180,7 @@ void CG_LoadHudMenu() {
 	cgDC.Print = &Com_Printf;
 	cgDC.ownerDrawWidth = &CG_OwnerDrawWidth;
 	//cgDC.Pause = &CG_Pause;
-	cgDC.registerSound = engine->trap_S_RegisterSound;
+	cgDC.registerSound = CG_RegisterSound;
 	cgDC.startBackgroundTrack = engine->trap_S_StartBackgroundTrack;
 	cgDC.stopBackgroundTrack = engine->trap_S_StopBackgroundTrack;
 	cgDC.playCinematic = &CG_PlayCinematic;

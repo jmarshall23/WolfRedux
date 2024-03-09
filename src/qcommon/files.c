@@ -2912,7 +2912,11 @@ static void FS_Startup( const char *gameName ) {
 		FS_AddGameDirectory( fs_cdpath->string, gameName );
 	}
 	if ( fs_basepath->string[0] ) {
-		FS_AddGameDirectory( fs_basepath->string, gameName );
+// jmarshall
+		// Always load redux assets and support mods.
+		FS_AddGameDirectory( fs_basepath->string, "zion" );
+		FS_AddGameDirectory(fs_basepath->string, gameName);
+// jmarshall end
 	}
 	// fs_homepath is somewhat particular to *nix systems, only add if relevant
 	// NOTE: same filtering below for mods and basegame
