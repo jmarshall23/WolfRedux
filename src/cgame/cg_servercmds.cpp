@@ -33,8 +33,6 @@ If you have questions concerning this license or the applicable additional terms
 // be a valid snapshot this frame
 
 #include "cg_local.h"
-#include "../ui/ui_shared.h" // bk001205 - for Q3_ui as well
-
 
 /*
 =================

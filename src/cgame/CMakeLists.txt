@@ -19,7 +19,6 @@ set(SOURCE_FILES
     ../game/bg_slidemove.cpp
     ../game/q_math.c
     ../game/q_shared.c
-    ../ui/ui_shared.cpp
     cg_consolecmds.cpp
     cg_draw.cpp
     cg_drawtools.cpp
@@ -31,7 +30,6 @@ set(SOURCE_FILES
     cg_localents.cpp
     cg_main.cpp
     cg_marks.cpp
-    cg_newDraw.cpp
     cg_particles.cpp
     cg_players.cpp
     cg_playerstate.cpp

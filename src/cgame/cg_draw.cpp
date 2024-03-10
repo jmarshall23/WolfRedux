@@ -30,14 +30,6 @@ If you have questions concerning this license or the applicable additional terms
 // active (after loading) gameplay
 
 #include "cg_local.h"
-#include "../ui/ui_shared.h"
-
-//----(SA) added to make it easier to raise/lower our statsubar by only changing one thing
-#define STATUSBARHEIGHT 452
-//----(SA) end
-
-extern displayContextDef_t cgDC;
-menuDef_t *menuScoreboard = NULL;
 
 int sortedTeamPlayers[TEAM_MAXOVERLAY];
 int numSortedTeamPlayers;
@@ -53,185 +45,19 @@ char teamChat2[256];
 ///////////////////////
 
 int CG_Text_Width( const char *text, int font, float scale, int limit ) {
-	int count,len;
-	float out;
-	glyphInfo_t *glyph;
-	float useScale;
-	const char *s = text;
-
-	fontInfo_t *fnt = &cgDC.Assets.textFont;
-
-	if ( font == UI_FONT_DEFAULT ) {
-		if ( scale <= cg_smallFont.value ) {
-			fnt = &cgDC.Assets.smallFont;
-		} else if ( scale > cg_bigFont.value ) {
-			fnt = &cgDC.Assets.bigFont;
-		}
-	} else if ( font == UI_FONT_BIG ) {
-		fnt = &cgDC.Assets.bigFont;
-	} else if ( font == UI_FONT_SMALL ) {
-		fnt = &cgDC.Assets.smallFont;
-	} else if ( font == UI_FONT_HANDWRITING ) {
-		fnt = &cgDC.Assets.handwritingFont;
-	}
-
-	useScale = scale * fnt->glyphScale;
-	out = 0;
-	if ( text ) {
-		len = strlen( text );
-		if ( limit > 0 && len > limit ) {
-			len = limit;
-		}
-		count = 0;
-		while ( s && *s && count < len ) {
-			if ( Q_IsColorString( s ) ) {
-				s += 2;
-				continue;
-			} else {
-				glyph = &fnt->glyphs[(int)*s];
-				out += glyph->xSkip;
-				s++;
-				count++;
-			}
-		}
-	}
-	return out * useScale;
+	return 0;
 }
 
 int CG_Text_Height( const char *text, int font, float scale, int limit ) {
-	int len, count;
-	float max;
-	glyphInfo_t *glyph;
-	float useScale;
-	const char *s = text;
-
-	fontInfo_t *fnt = &cgDC.Assets.textFont;
-	if ( font == UI_FONT_DEFAULT ) {
-		if ( scale <= cg_smallFont.value ) {
-			fnt = &cgDC.Assets.smallFont;
-		} else if ( scale > cg_bigFont.value ) {
-			fnt = &cgDC.Assets.bigFont;
-		}
-	} else if ( font == UI_FONT_BIG ) {
-		fnt = &cgDC.Assets.bigFont;
-	} else if ( font == UI_FONT_SMALL ) {
-		fnt = &cgDC.Assets.smallFont;
-	} else if ( font == UI_FONT_HANDWRITING ) {
-		fnt = &cgDC.Assets.handwritingFont;
-	}
-
-	useScale = scale * fnt->glyphScale;
-	max = 0;
-	if ( text ) {
-		len = strlen( text );
-		if ( limit > 0 && len > limit ) {
-			len = limit;
-		}
-		count = 0;
-		while ( s && *s && count < len ) {
-			if ( Q_IsColorString( s ) ) {
-				s += 2;
-				continue;
-			} else {
-				glyph = &fnt->glyphs[(int)*s];
-				if ( max < glyph->height ) {
-					max = glyph->height;
-				}
-				s++;
-				count++;
-			}
-		}
-	}
-	return max * useScale;
+	return 0;
 }
 
 void CG_Text_PaintChar( float x, float y, float width, float height, float scale, float s, float t, float s2, float t2, qhandle_t hShader ) {
-	float w, h;
-	w = width * scale;
-	h = height * scale;
-	CG_AdjustFrom640( &x, &y, &w, &h );
-	engine->trap_R_DrawStretchPic( x, y, w, h, s, t, s2, t2, hShader );
+
 }
 
 void CG_Text_Paint( float x, float y, int font, float scale, vec4_t color, const char *text, float adjust, int limit, int style ) {
-	int len, count;
-	vec4_t newColor;
-	glyphInfo_t *glyph;
-	float useScale;
-	fontInfo_t *fnt = &cgDC.Assets.textFont;
-
-	if ( font == UI_FONT_DEFAULT ) {
-		if ( scale <= cg_smallFont.value ) {
-			fnt = &cgDC.Assets.smallFont;
-		} else if ( scale > cg_bigFont.value ) {
-			fnt = &cgDC.Assets.bigFont;
-		}
-	} else if ( font == UI_FONT_BIG ) {
-		fnt = &cgDC.Assets.bigFont;
-	} else if ( font == UI_FONT_SMALL ) {
-		fnt = &cgDC.Assets.smallFont;
-	} else if ( font == UI_FONT_HANDWRITING ) {
-		fnt = &cgDC.Assets.handwritingFont;
-	}
-
-	useScale = scale * fnt->glyphScale;
-
-	color[3] *= cg_hudAlpha.value;  // (SA) adjust for cg_hudalpha
-
-	if ( text ) {
-		const char *s = text;
-		engine->trap_R_SetColor( color );
-		memcpy( &newColor[0], &color[0], sizeof( vec4_t ) );
-		len = strlen( text );
-		if ( limit > 0 && len > limit ) {
-			len = limit;
-		}
-		count = 0;
-		while ( s && *s && count < len ) {
-			glyph = &fnt->glyphs[(int)*s];
-			//int yadj = Assets.textFont.glyphs[text[i]].bottom + Assets.textFont.glyphs[text[i]].top;
-			//float yadj = scale * (Assets.textFont.glyphs[text[i]].imageHeight - Assets.textFont.glyphs[text[i]].height);
-			if ( Q_IsColorString( s ) ) {
-				memcpy( newColor, g_color_table[ColorIndex( *( s + 1 ) )], sizeof( newColor ) );
-				newColor[3] = color[3];
-				engine->trap_R_SetColor( newColor );
-				s += 2;
-				continue;
-			} else {
-				float yadj = useScale * glyph->top;
-				if ( style == ITEM_TEXTSTYLE_SHADOWED || style == ITEM_TEXTSTYLE_SHADOWEDMORE ) {
-					int ofs = style == ITEM_TEXTSTYLE_SHADOWED ? 1 : 2;
-					colorBlack[3] = newColor[3];
-					engine->trap_R_SetColor( colorBlack );
-					CG_Text_PaintChar( x + ofs, y - yadj + ofs,
-									   glyph->imageWidth,
-									   glyph->imageHeight,
-									   useScale,
-									   glyph->s,
-									   glyph->t,
-									   glyph->s2,
-									   glyph->t2,
-									   glyph->glyph );
-					colorBlack[3] = 1.0;
-					engine->trap_R_SetColor( newColor );
-				}
-				CG_Text_PaintChar( x, y - yadj,
-								   glyph->imageWidth,
-								   glyph->imageHeight,
-								   useScale,
-								   glyph->s,
-								   glyph->t,
-								   glyph->s2,
-								   glyph->t2,
-								   glyph->glyph );
-				// CG_DrawPic(x, y - yadj, scale * cgDC.Assets.textFont.glyphs[text[i]].imageWidth, scale * cgDC.Assets.textFont.glyphs[text[i]].imageHeight, cgDC.Assets.textFont.glyphs[text[i]].glyph);
-				x += ( glyph->xSkip * useScale ) + adjust;
-				s++;
-				count++;
-			}
-		}
-		engine->trap_R_SetColor( NULL );
-	}
+	
 }
 
 
@@ -3221,14 +3047,7 @@ static void CG_DrawObjectiveInfo( void ) {
 
 
 void CG_DrawTimedMenus() {
-	if ( cg.voiceTime ) {
-		int t = cg.time - cg.voiceTime;
-		if ( t > 2500 ) {
-			Menus_CloseByName( "voiceMenu" );
-			engine->trap_Cvar_Set( "cl_conXOffset", "0" );
-			cg.voiceTime = 0;
-		}
-	}
+
 }
 
 
@@ -3379,7 +3198,7 @@ static void CG_Draw2D( void ) {
 			CG_DrawCrosshair();
 
 			if ( cg_drawStatus.integer ) {
-				Menu_PaintAll();
+				//Menu_PaintAll();
 				CG_DrawTimedMenus();
 			}
 

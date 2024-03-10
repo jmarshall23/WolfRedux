@@ -35,9 +35,6 @@ If you have questions concerning this license or the applicable additional terms
 
 
 #include "cg_local.h"
-#include "../ui/ui_shared.h"
-
-
 
 void CG_TargetCommand_f( void ) {
 	int targetNum;
@@ -120,25 +117,25 @@ static void CG_ScoresUp_f( void ) {
 }
 
 
-extern menuDef_t *menuScoreboard;
+//extern menuDef_t *menuScoreboard;
 void Menu_Reset();          // FIXME: add to right include file
 
 static void CG_LoadHud_f( void ) {
-	char buff[1024];
-	const char *hudSet;
-	memset( buff, 0, sizeof( buff ) );
-
-	String_Init();
-	Menu_Reset();
-
-	engine->trap_Cvar_VariableStringBuffer( "cg_hudFiles", buff, sizeof( buff ) );
-	hudSet = buff;
-	if ( hudSet[0] == '\0' ) {
-		hudSet = "ui/hud.txt";
-	}
-
-	CG_LoadMenus( hudSet );
-	menuScoreboard = NULL;
+	//char buff[1024];
+	//const char *hudSet;
+	//memset( buff, 0, sizeof( buff ) );
+	//
+	//String_Init();
+	//Menu_Reset();
+	//
+	//engine->trap_Cvar_VariableStringBuffer( "cg_hudFiles", buff, sizeof( buff ) );
+	//hudSet = buff;
+	//if ( hudSet[0] == '\0' ) {
+	//	hudSet = "ui/hud.txt";
+	//}
+	//
+	//CG_LoadMenus( hudSet );
+	//menuScoreboard = NULL;
 }
 
 // TTimo: defined but not used
