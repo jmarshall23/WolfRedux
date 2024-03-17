@@ -69,7 +69,7 @@ set(SOURCE_FILES
 add_executable(WolfSP WIN32 ${SOURCE_FILES})
 
 # Link against Windows libraries and referenced projects
-target_link_libraries(WolfSP PRIVATE winmm.lib wsock32.lib botlib botutil cgame game renderer splines ui)
+target_link_libraries(WolfSP PRIVATE winmm.lib wsock32.lib opengl32.lib botlib botutil cgame game renderer splines ui)
 
 # Set properties for different configurations
 set_target_properties(WolfSP PROPERTIES

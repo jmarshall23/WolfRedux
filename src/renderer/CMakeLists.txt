@@ -73,33 +73,32 @@ set(SOURCE_FILES
     ../jpeg-6/jmemmgr.c
     ../jpeg-6/jmemnobs.c
     ../jpeg-6/jutils.c
-    ../win32/win_gamma.c
-    ../win32/win_glimp.c
-    ../win32/win_qgl.c
-    tr_animation.c
-    tr_backend.c
-    tr_bsp.c
-    tr_cmds.c
-    tr_cmesh.c
-    tr_curve.c
-    tr_flares.c
-    tr_font.c
-    tr_image.c
-    tr_init.c
-    tr_light.c
-    tr_main.c
-    tr_marks.c
-    tr_mesh.c
-    tr_model.c
-    tr_noise.c
-    tr_scene.c
-    tr_shade.c
-    tr_shader.c
-    tr_shade_calc.c
-    tr_shadows.c
-    tr_sky.c
-    tr_surface.c
-    tr_world.c
+    "../win32/win_glimp.cpp"
+    "../win32/win_qgl.cpp"
+    "tr_animation.cpp"
+    "tr_backend.cpp"
+    "tr_bsp.cpp"
+    "tr_cmds.cpp"
+    "tr_cmesh.cpp"
+    "tr_curve.cpp"
+    "tr_flares.cpp"
+    "tr_font.cpp"
+    "tr_image.cpp"
+    "tr_init.cpp"
+    "tr_light.cpp"
+    "tr_main.cpp"
+    "tr_marks.cpp"
+    "tr_mesh.cpp"
+    "tr_model.cpp"
+    "tr_noise.cpp"
+    "tr_scene.cpp"
+    "tr_shade.cpp"
+    "tr_shader.cpp"
+    "tr_shade_calc.cpp"
+    "tr_shadows.cpp"
+    "tr_sky.cpp"
+    "tr_surface.cpp"
+    "tr_world.cpp"
     # Additional source files here
 )
 

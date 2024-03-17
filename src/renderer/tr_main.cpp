@@ -278,7 +278,7 @@ void R_SetFog( int fogvar, int var1, int var2, float r, float g, float b, float 
 	}
 
 
-	glfogNum = var1;
+	glfogNum = (glfogType_t)var1;
 
 	// transitioning to new fog, store the current values as the 'from'
 
@@ -1474,7 +1474,7 @@ void R_SortDrawSurfs( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 	}
 
 	// sort the drawsurfs by sort type, then orientation, then shader
-	R_RadixSort( drawSurfs, numDrawSurfs, sizeof( drawSurf_t ) );
+	R_RadixSort( drawSurfs, numDrawSurfs );
 
 	// check for any pass through drawing, which
 	// may cause another view to be rendered first

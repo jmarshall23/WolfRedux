@@ -1,31 +1,5 @@
-/*
-===========================================================================
-
-Return to Castle Wolfenstein single player GPL Source Code
-Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
-
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
-
-RTCW SP Source Code is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-RTCW SP Source Code is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
-
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
-
-If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
-
-===========================================================================
-*/
-
+// tr_aninmation.cpp
+//
 
 #include "tr_local.h"
 
@@ -399,7 +373,7 @@ void R_AddAnimSurfaces( trRefEntity_t *ent ) {
 		// don't add third_person objects if not viewing through a portal
 		if ( !personalModel ) {
 			// GR - always tessellate these objects
-			R_AddDrawSurf( (void *)surface, shader, fogNum, qfalse, ATI_TESS_TRUFORM );
+			R_AddDrawSurf( (surfaceType_t *)surface, shader, fogNum, qfalse, ATI_TESS_TRUFORM );
 		}
 
 		surface = ( mdsSurface_t * )( (byte *)surface + surface->ofsEnd );
@@ -1246,7 +1220,7 @@ void RB_SurfaceAnim( mdsSurface_t *surface ) {
 
 	tess.numVertexes += render_count;
 
-	pIndexes = &tess.indexes[baseIndex];
+	pIndexes = (int *)& tess.indexes[baseIndex];
 
 //DBG_SHOWTIME
 
@@ -1373,7 +1347,7 @@ void RB_SurfaceAnim( mdsSurface_t *surface ) {
 			qglBegin( GL_LINES );
 			qglColor3f( .0,.0,.8 );
 
-			pIndexes = &tess.indexes[oldIndexes];
+			pIndexes = (int*)&tess.indexes[oldIndexes];
 			for ( j = 0; j < render_indexes / 3; j++, pIndexes += 3 ) {
 				qglVertex3fv( tempVert + 4 * pIndexes[0] );
 				qglVertex3fv( tempVert + 4 * pIndexes[1] );

@@ -48,9 +48,6 @@ If you have questions concerning this license or the applicable additional terms
 #include "glw_win.h"
 #include "win_local.h"
 
-extern void WG_CheckHardwareGamma( void );
-extern void WG_RestoreGamma( void );
-
 typedef enum {
 	RSERR_OK,
 
@@ -539,13 +536,13 @@ static qboolean GLW_CreateWindow( const char *drivername, int width, int height,
 		memset( &wc, 0, sizeof( wc ) );
 
 		wc.style         = 0;
-		wc.lpfnWndProc   = MainWndProc;
+		wc.lpfnWndProc   = (WNDPROC)MainWndProc;
 		wc.cbClsExtra    = 0;
 		wc.cbWndExtra    = 0;
 		wc.hInstance     = GetModuleHandle(NULL);
 		wc.hIcon         = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE( IDI_ICON1 ) );
 		wc.hCursor       = LoadCursor( NULL,IDC_ARROW );
-		wc.hbrBackground = (void *)COLOR_GRAYTEXT;
+		wc.hbrBackground = (HBRUSH)COLOR_GRAYTEXT;
 		wc.lpszMenuName  = 0;
 		wc.lpszClassName = WINDOW_CLASS_NAME;
 
@@ -1348,10 +1345,10 @@ void GLimp_Init( void ) {
 	GLW_StartOpenGL();
 
 	// get our config strings
-	Q_strncpyz( glConfig.vendor_string, qglGetString( GL_VENDOR ), sizeof( glConfig.vendor_string ) );
-	Q_strncpyz( glConfig.renderer_string, qglGetString( GL_RENDERER ), sizeof( glConfig.renderer_string ) );
-	Q_strncpyz( glConfig.version_string, qglGetString( GL_VERSION ), sizeof( glConfig.version_string ) );
-	Q_strncpyz( glConfig.extensions_string, qglGetString( GL_EXTENSIONS ), sizeof( glConfig.extensions_string ) );
+	Q_strncpyz( glConfig.vendor_string, (const char *)qglGetString( GL_VENDOR ), sizeof( glConfig.vendor_string ) );
+	Q_strncpyz( glConfig.renderer_string, (const char*)qglGetString( GL_RENDERER ), sizeof( glConfig.renderer_string ) );
+	Q_strncpyz( glConfig.version_string, (const char*)qglGetString( GL_VERSION ), sizeof( glConfig.version_string ) );
+	Q_strncpyz( glConfig.extensions_string, (const char*)qglGetString( GL_EXTENSIONS ), sizeof( glConfig.extensions_string ) );
 
 	//
 	// chipset specific configuration
@@ -1417,7 +1414,6 @@ void GLimp_Init( void ) {
 	ri.Cvar_Set( "r_lastValidRenderer", glConfig.renderer_string );
 
 	GLW_InitExtensions();
-	WG_CheckHardwareGamma();
 }
 
 /*
@@ -1437,9 +1433,6 @@ void GLimp_Shutdown( void ) {
 	}
 
 	ri.Printf( PRINT_ALL, "Shutting down OpenGL subsystem\n" );
-
-	// restore gamma.  We do this first because 3Dfx's extension needs a valid OGL subsystem
-	WG_RestoreGamma();
 
 	// set current context to NULL
 	if ( qwglMakeCurrent ) {
@@ -1543,7 +1536,7 @@ qboolean GLimp_SpawnRenderThread( void ( *function )( void ) ) {
 		(LPTHREAD_START_ROUTINE)GLimp_RenderThreadWrapper,  // LPTHREAD_START_ROUTINE lpStartAddr,
 		0,          // LPVOID lpvThreadParm,
 		0,          //   DWORD fdwCreate,
-		&renderThreadId );
+		(LPDWORD)&renderThreadId );
 
 	if ( !renderThreadHandle ) {
 		return qfalse;

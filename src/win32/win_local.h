@@ -81,12 +81,20 @@ void    IN_DeactivateWin32Mouse( void );
 void    IN_Activate( qboolean active );
 void    IN_Frame( void );
 
-// window procedure
-LONG WINAPI MainWndProc(
-	HWND hWnd,
-	UINT uMsg,
-	WPARAM wParam,
-	LPARAM lParam );
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+	// window procedure
+	LONG WINAPI MainWndProc(
+		HWND hWnd,
+		UINT uMsg,
+		WPARAM wParam,
+		LPARAM lParam);
+
+#ifdef __cplusplus
+};
+#endif
 
 void Conbuf_AppendText( const char *msg );
 
@@ -110,7 +118,15 @@ typedef struct
 	unsigned sysMsgTime;
 } WinVars_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern WinVars_t g_wv;
+
+#ifdef __cplusplus
+};
+#endif
 
 #ifdef DOOMSOUND    ///// (SA) DOOMSOUND
 #ifdef __cplusplus

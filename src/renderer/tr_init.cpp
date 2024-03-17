@@ -443,7 +443,7 @@ void R_TakeScreenshot( int x, int y, int width, int height, char *fileName ) {
 	byte        *buffer;
 	int i, c, temp;
 
-	buffer = ri.Hunk_AllocateTempMemory( glConfig.vidWidth * glConfig.vidHeight * 3 + 18 );
+	buffer = (byte *)ri.Hunk_AllocateTempMemory( glConfig.vidWidth * glConfig.vidHeight * 3 + 18 );
 
 	memset( buffer, 0, 18 );
 	buffer[2] = 2;      // uncompressed type
@@ -481,7 +481,7 @@ R_TakeScreenshotJPEG
 void R_TakeScreenshotJPEG( int x, int y, int width, int height, char *fileName ) {
 	byte        *buffer;
 
-	buffer = ri.Hunk_AllocateTempMemory( glConfig.vidWidth * glConfig.vidHeight * 4 );
+	buffer = (byte*)ri.Hunk_AllocateTempMemory( glConfig.vidWidth * glConfig.vidHeight * 4 );
 
 	qglReadPixels( x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer );
 
@@ -566,9 +566,9 @@ void R_LevelShot( void ) {
 
 	sprintf( checkname, "levelshots/%s.tga", tr.world->baseName );
 
-	source = ri.Hunk_AllocateTempMemory( glConfig.vidWidth * glConfig.vidHeight * 3 );
+	source = (byte*)ri.Hunk_AllocateTempMemory( glConfig.vidWidth * glConfig.vidHeight * 3 );
 
-	buffer = ri.Hunk_AllocateTempMemory( 128 * 128 * 3 + 18 );
+	buffer = (byte*)ri.Hunk_AllocateTempMemory( 128 * 128 * 3 + 18 );
 	memset( buffer, 0, 18 );
 	buffer[2] = 2;      // uncompressed type
 	buffer[12] = 128;
@@ -1211,11 +1211,11 @@ void R_Init( void ) {
 	}
 
 //	backEndData[0] = ri.Hunk_Alloc( sizeof( *backEndData[0] ), h_low );
-	backEndData[0] = ri.Hunk_Alloc( sizeof( *backEndData[0] ) + sizeof( srfPoly_t ) * max_polys + sizeof( polyVert_t ) * max_polyverts, h_low );
+	backEndData[0] = (backEndData_t *)ri.Hunk_Alloc( sizeof( *backEndData[0] ) + sizeof( srfPoly_t ) * max_polys + sizeof( polyVert_t ) * max_polyverts, h_low );
 
 	if ( r_smp->integer ) {
 //		backEndData[1] = ri.Hunk_Alloc( sizeof( *backEndData[1] ), h_low );
-		backEndData[1] = ri.Hunk_Alloc( sizeof( *backEndData[1] ) + sizeof( srfPoly_t ) * max_polys + sizeof( polyVert_t ) * max_polyverts, h_low );
+		backEndData[1] = (backEndData_t*)ri.Hunk_Alloc( sizeof( *backEndData[1] ) + sizeof( srfPoly_t ) * max_polys + sizeof( polyVert_t ) * max_polyverts, h_low );
 	} else {
 		backEndData[1] = NULL;
 	}
@@ -1323,9 +1323,7 @@ Touch all images to make sure they are resident
 */
 void RE_EndRegistration( void ) {
 	R_SyncRenderThread();
-	if ( !Sys_LowPhysicalMemory() ) {
-		RB_ShowImages();
-	}
+	RB_ShowImages();
 }
 
 
@@ -1335,7 +1333,7 @@ GetRefAPI
 
 @@@@@@@@@@@@@@@@@@@@@
 */
-refexport_t *GetRefAPI( int apiVersion, refimport_t *rimp ) {
+extern "C" refexport_t * GetRefAPI(int apiVersion, refimport_t * rimp) {
 	static refexport_t re;
 
 	ri = *rimp;
