@@ -62,6 +62,40 @@ set(SOURCE_FILES
     win32/win_snd.c
     win32/win_syscon.c
     win32/win_wndproc.c
+    ft2/ahangles.c
+    ft2/ahglobal.c
+    ft2/ahglyph.c
+    ft2/ahhint.c
+    ft2/ahmodule.c
+    ft2/ahoptim.c
+    ft2/ftcalc.c
+    ft2/ftdebug.c
+    ft2/ftextend.c
+    ft2/ftglyph.c
+    ft2/ftgrays.c
+    ft2/ftinit.c
+    ft2/ftlist.c
+    ft2/ftmm.c
+    ft2/ftnames.c
+    ft2/ftobjs.c
+    ft2/ftoutln.c
+    ft2/ftraster.c
+    ft2/ftrend1.c
+    ft2/ftsmooth.c
+    ft2/ftstream.c
+    ft2/ftsystem.c
+    ft2/sfdriver.c
+    ft2/sfobjs.c
+    ft2/ttcmap.c
+    ft2/ttdriver.c
+    ft2/ttgload.c
+    ft2/ttinterp.c
+    ft2/ttload.c
+    ft2/ttobjs.c
+    ft2/ttpload.c
+    ft2/ttpost.c
+    ft2/ttsbit.c
+
     # Add more files as needed
 )
 

@@ -1,31 +1,3 @@
-/*
-===========================================================================
-
-Return to Castle Wolfenstein single player GPL Source Code
-Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
-
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
-
-RTCW SP Source Code is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-RTCW SP Source Code is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
-
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
-
-If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
-
-===========================================================================
-*/
-
 // tr_font.c
 //
 //
@@ -81,8 +53,6 @@ If you have questions concerning this license or the applicable additional terms
 #include "tr_local.h"
 #include "../qcommon/qcommon.h"
 
-//#define BUILD_FREETYPE
-#ifdef BUILD_FREETYPE
 #include "../ft2/fterrors.h"
 #include "../ft2/ftsystem.h"
 #include "../ft2/ftimage.h"
@@ -94,13 +64,11 @@ If you have questions concerning this license or the applicable additional terms
 #define _TRUNC( x )  ( ( x ) >> 6 )
 
 FT_Library ftLibrary = NULL;
-#endif
 
 #define MAX_FONTS 6
 static int registeredFontCount = 0;
 static fontInfo_t registeredFont[MAX_FONTS];
 
-#ifdef BUILD_FREETYPE
 void R_GetGlyphInfo( FT_GlyphSlot glyph, int *left, int *right, int *width, int *top, int *bottom, int *height, int *pitch ) {
 
 	*left  = _FLOOR( glyph->metrics.horiBearingX );
@@ -124,14 +92,14 @@ FT_Bitmap *R_RenderGlyph( FT_GlyphSlot glyph, glyphInfo_t* glyphOut ) {
 	if ( glyph->format == ft_glyph_format_outline ) {
 		size   = pitch * height;
 
-		bit2 = Z_Malloc( sizeof( FT_Bitmap ) );
+		bit2 = (FT_Bitmap *)Z_Malloc( sizeof( FT_Bitmap ) );
 
 		bit2->width      = width;
 		bit2->rows       = height;
 		bit2->pitch      = pitch;
 		bit2->pixel_mode = ft_pixel_mode_grays;
 		//bit2->pixel_mode = ft_pixel_mode_mono;
-		bit2->buffer     = Z_Malloc( pitch * height );
+		bit2->buffer     = (unsigned char *)Z_Malloc( pitch * height );
 		bit2->num_grays = 256;
 
 		Com_Memset( bit2->buffer, 0, size );
@@ -156,7 +124,7 @@ void WriteTGA( char *filename, byte *data, int width, int height ) {
 	byte    *buffer;
 	int i, c;
 
-	buffer = Z_Malloc( width * height * 4 + 18 );
+	buffer = (byte *)Z_Malloc( width * height * 4 + 18 );
 	Com_Memset( buffer, 0, 18 );
 	buffer[2] = 2;      // uncompressed type
 	buffer[12] = width & 255;
@@ -300,7 +268,6 @@ static glyphInfo_t *RE_ConstructGlyphInfo( unsigned char *imageOut, int *xOut, i
 
 	return &glyph;
 }
-#endif
 
 static int fdOffset;
 static byte *fdFile;
@@ -334,7 +301,6 @@ float readFloat() {
 }
 
 void RE_RegisterFont( const char *fontName, int pointSize, fontInfo_t *font ) {
-#ifdef BUILD_FREETYPE
 	FT_Face face;
 	int j, k, xOut, yOut, lastStart, imageNumber;
 	int scaledSize, newSize, maxHeight, left, satLevels;
@@ -343,7 +309,6 @@ void RE_RegisterFont( const char *fontName, int pointSize, fontInfo_t *font ) {
 	image_t *image;
 	qhandle_t h;
 	float max;
-#endif
 	void *faceData;
 	int i, len;
 	char name[1024];
@@ -372,42 +337,6 @@ void RE_RegisterFont( const char *fontName, int pointSize, fontInfo_t *font ) {
 		}
 	}
 
-	len = ri.FS_ReadFile( name, NULL );
-	if ( len == sizeof( fontInfo_t ) ) {
-		ri.FS_ReadFile( name, &faceData );
-		fdOffset = 0;
-		fdFile = (byte *)faceData;
-		for ( i = 0; i < GLYPHS_PER_FONT; i++ ) {
-			font->glyphs[i].height      = readInt();
-			font->glyphs[i].top         = readInt();
-			font->glyphs[i].bottom      = readInt();
-			font->glyphs[i].pitch       = readInt();
-			font->glyphs[i].xSkip       = readInt();
-			font->glyphs[i].imageWidth  = readInt();
-			font->glyphs[i].imageHeight = readInt();
-			font->glyphs[i].s           = readFloat();
-			font->glyphs[i].t           = readFloat();
-			font->glyphs[i].s2          = readFloat();
-			font->glyphs[i].t2          = readFloat();
-			font->glyphs[i].glyph       = readInt();
-			memcpy( font->glyphs[i].shaderName, &fdFile[fdOffset], 32 );
-			fdOffset += 32;
-		}
-		font->glyphScale = readFloat();
-		memcpy( font->name, &fdFile[fdOffset], MAX_QPATH );
-
-//		memcpy(font, faceData, sizeof(fontInfo_t));
-		Q_strncpyz( font->name, name, sizeof( font->name ) );
-		for ( i = GLYPH_START; i < GLYPH_END; i++ ) {
-			font->glyphs[i].glyph = RE_RegisterShaderNoMip( font->glyphs[i].shaderName );
-		}
-		memcpy( &registeredFont[registeredFontCount++], font, sizeof( fontInfo_t ) );
-		return;
-	}
-
-#ifndef BUILD_FREETYPE
-	ri.Printf( PRINT_ALL, "RE_RegisterFont: FreeType code not available\n" );
-#else
 	if ( ftLibrary == NULL ) {
 		ri.Printf( PRINT_ALL, "RE_RegisterFont: FreeType not initialized.\n" );
 		return;
@@ -420,7 +349,7 @@ void RE_RegisterFont( const char *fontName, int pointSize, fontInfo_t *font ) {
 	}
 
 	// allocate on the stack first in case we fail
-	if ( FT_New_Memory_Face( ftLibrary, faceData, len, 0, &face ) ) {
+	if ( FT_New_Memory_Face( ftLibrary, (FT_Byte *)faceData, len, 0, &face ) ) {
 		ri.Printf( PRINT_ALL, "RE_RegisterFont: FreeType2, unable to allocate new face.\n" );
 		return;
 	}
@@ -436,7 +365,7 @@ void RE_RegisterFont( const char *fontName, int pointSize, fontInfo_t *font ) {
 	// make a 256x256 image buffer, once it is full, register it, clean it and keep going
 	// until all glyphs are rendered
 
-	out = Z_Malloc( 1024 * 1024 );
+	out = (unsigned char *)Z_Malloc( 1024 * 1024 );
 	if ( out == NULL ) {
 		ri.Printf( PRINT_ALL, "RE_RegisterFont: Z_Malloc failure during output image creation.\n" );
 		return;
@@ -466,7 +395,7 @@ void RE_RegisterFont( const char *fontName, int pointSize, fontInfo_t *font ) {
 
 			scaledSize = 256 * 256;
 			newSize = scaledSize * 4;
-			imageBuff = Z_Malloc( newSize );
+			imageBuff = (unsigned char*)Z_Malloc( newSize );
 			left = 0;
 			max = 0;
 			satLevels = 255;
@@ -490,7 +419,7 @@ void RE_RegisterFont( const char *fontName, int pointSize, fontInfo_t *font ) {
 
 			Com_sprintf( name, sizeof( name ), "fonts/fontImage_%i_%i.tga", imageNumber++, pointSize );
 			if ( r_saveFontData->integer ) {
-				WriteTGA( name, imageBuff, 256, 256 );
+			//	WriteTGA( name, imageBuff, 256, 256 );
 			}
 
 			//Com_sprintf (name, sizeof(name), "fonts/fontImage_%i_%i", imageNumber++, pointSize);
@@ -517,34 +446,28 @@ void RE_RegisterFont( const char *fontName, int pointSize, fontInfo_t *font ) {
 	memcpy( &registeredFont[registeredFontCount++], font, sizeof( fontInfo_t ) );
 
 	if ( r_saveFontData->integer ) {
-		ri.FS_WriteFile( va( "fonts/fontImage_%i.dat", pointSize ), font, sizeof( fontInfo_t ) );
+	//	ri.FS_WriteFile( va( "fonts/fontImage_%i.dat", pointSize ), font, sizeof( fontInfo_t ) );
 	}
 
 	Z_Free( out );
 
 	ri.FS_FreeFile( faceData );
-#endif
 }
 
 
 
 void R_InitFreeType() {
-#ifdef BUILD_FREETYPE
 	if ( FT_Init_FreeType( &ftLibrary ) ) {
 		ri.Printf( PRINT_ALL, "R_InitFreeType: Unable to initialize FreeType.\n" );
 	}
-#endif
 	registeredFontCount = 0;
 }
 
 
 void R_DoneFreeType() {
-#ifdef BUILD_FREETYPE
 	if ( ftLibrary ) {
 		FT_Done_FreeType( ftLibrary );
 		ftLibrary = NULL;
 	}
-#endif
-	registeredFontCount = 0;
 }
 
