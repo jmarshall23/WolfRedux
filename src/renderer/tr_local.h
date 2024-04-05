@@ -39,7 +39,6 @@ extern "C" {
 #include "../qcommon/qcommon.h"
 #include "tr_public.h"
 #include "qgl.h"
-#include "qgl_linked.h"
 #ifdef __cplusplus
 };
 #endif

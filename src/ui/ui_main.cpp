@@ -6,7 +6,6 @@
 uiImports_t* engine;
 idUserInterfaceSystem ui;
 
-
 /*
 ====================
 UI_Init

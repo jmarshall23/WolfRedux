@@ -73,8 +73,8 @@ set(SOURCE_FILES
     ../jpeg-6/jmemmgr.c
     ../jpeg-6/jmemnobs.c
     ../jpeg-6/jutils.c
+    ../glew/glew.c
     "../win32/win_glimp.cpp"
-    "../win32/win_qgl.cpp"
     "tr_animation.cpp"
     "tr_backend.cpp"
     "tr_bsp.cpp"
@@ -103,6 +103,7 @@ set(SOURCE_FILES
 )
 
 add_library(renderer STATIC ${SOURCE_FILES})
+target_compile_definitions(renderer PRIVATE GLEW_STATIC)
 
 set_target_properties(renderer PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIG>"

@@ -379,18 +379,18 @@ static void DrawSkySide( struct image_s *image, const int mins[2], const int max
 
 	for ( t = mins[1] + HALF_SKY_SUBDIVISIONS; t < maxs[1] + HALF_SKY_SUBDIVISIONS; t++ )
 	{
-		qglBegin( GL_TRIANGLE_STRIP );
+		glBegin( GL_TRIANGLE_STRIP );
 
 		for ( s = mins[0] + HALF_SKY_SUBDIVISIONS; s <= maxs[0] + HALF_SKY_SUBDIVISIONS; s++ )
 		{
-			qglTexCoord2fv( s_skyTexCoords[t][s] );
-			qglVertex3fv( s_skyPoints[t][s] );
+			glTexCoord2fv( s_skyTexCoords[t][s] );
+			glVertex3fv( s_skyPoints[t][s] );
 
-			qglTexCoord2fv( s_skyTexCoords[t + 1][s] );
-			qglVertex3fv( s_skyPoints[t + 1][s] );
+			glTexCoord2fv( s_skyTexCoords[t + 1][s] );
+			glVertex3fv( s_skyPoints[t + 1][s] );
 		}
 
-		qglEnd();
+		glEnd();
 	}
 }
 
@@ -399,28 +399,28 @@ static void DrawSkySideInner( struct image_s *image, const int mins[2], const in
 
 	GL_Bind( image );
 
-	//qglDisable (GL_BLEND);
-	qglBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	qglEnable( GL_BLEND );
+	//glDisable (GL_BLEND);
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	glEnable( GL_BLEND );
 	GL_TexEnv( GL_MODULATE );
 
 	for ( t = mins[1] + HALF_SKY_SUBDIVISIONS; t < maxs[1] + HALF_SKY_SUBDIVISIONS; t++ )
 	{
-		qglBegin( GL_TRIANGLE_STRIP );
+		glBegin( GL_TRIANGLE_STRIP );
 
 		for ( s = mins[0] + HALF_SKY_SUBDIVISIONS; s <= maxs[0] + HALF_SKY_SUBDIVISIONS; s++ )
 		{
-			qglTexCoord2fv( s_skyTexCoords[t][s] );
-			qglVertex3fv( s_skyPoints[t][s] );
+			glTexCoord2fv( s_skyTexCoords[t][s] );
+			glVertex3fv( s_skyPoints[t][s] );
 
-			qglTexCoord2fv( s_skyTexCoords[t + 1][s] );
-			qglVertex3fv( s_skyPoints[t + 1][s] );
+			glTexCoord2fv( s_skyTexCoords[t + 1][s] );
+			glVertex3fv( s_skyPoints[t + 1][s] );
 		}
 
-		qglEnd();
+		glEnd();
 	}
 
-	qglDisable( GL_BLEND );
+	glDisable( GL_BLEND );
 }
 
 static void DrawSkyBox( shader_t *shader ) {
@@ -823,8 +823,8 @@ void RB_DrawSun( void ) {
 	if ( !r_drawSun->integer ) {
 		return;
 	}
-	qglLoadMatrixf( backEnd.viewParms.world.modelMatrix );
-	qglTranslatef( backEnd.viewParms.or.origin[0], backEnd.viewParms.or.origin[1], backEnd.viewParms.or.origin[2] );
+	glLoadMatrixf( backEnd.viewParms.world.modelMatrix );
+	glTranslatef( backEnd.viewParms.or.origin[0], backEnd.viewParms.or.origin[1], backEnd.viewParms.or.origin[2] );
 
 	dist =  backEnd.viewParms.zFar / 1.75;      // div sqrt(3)
 
@@ -839,7 +839,7 @@ void RB_DrawSun( void ) {
 	VectorScale( vec2, size, vec2 );
 
 	// farthest depth range
-	qglDepthRange( 1.0, 1.0 );
+	glDepthRange( 1.0, 1.0 );
 
 	color[0] = color[1] = color[2] = color[3] = 255;
 
@@ -932,7 +932,7 @@ void RB_DrawSun( void ) {
 	}
 
 	// back to normal depth range
-	qglDepthRange( 0.0, 1.0 );
+	glDepthRange( 0.0, 1.0 );
 }
 
 extern void R_Fog( glfog_t *curfog );
@@ -980,22 +980,22 @@ void RB_StageIteratorSky( void ) {
 	// front of everything to allow developers to see how
 	// much sky is getting sucked in
 	if ( r_showsky->integer ) {
-		qglDepthRange( 0.0, 0.0 );
+		glDepthRange( 0.0, 0.0 );
 	} else {
-		qglDepthRange( 1.0, 1.0 );
+		glDepthRange( 1.0, 1.0 );
 	}
 
 	// draw the outer skybox
 	if ( tess.shader->sky.outerbox[0] && tess.shader->sky.outerbox[0] != tr.defaultImage ) {
-		qglColor3f( tr.identityLight, tr.identityLight, tr.identityLight );
+		glColor3f( tr.identityLight, tr.identityLight, tr.identityLight );
 
-		qglPushMatrix();
+		glPushMatrix();
 		GL_State( 0 );
-		qglTranslatef( backEnd.viewParms.or.origin[0], backEnd.viewParms.or.origin[1], backEnd.viewParms.or.origin[2] );
+		glTranslatef( backEnd.viewParms.or.origin[0], backEnd.viewParms.or.origin[1], backEnd.viewParms.or.origin[2] );
 
 		DrawSkyBox( tess.shader );
 
-		qglPopMatrix();
+		glPopMatrix();
 	}
 
 	// generate the vertexes for all the clouds, which will be drawn
@@ -1007,20 +1007,20 @@ void RB_StageIteratorSky( void ) {
 	// draw the inner skybox
 	// Rafael - drawing inner skybox
 	if ( tess.shader->sky.innerbox[0] && tess.shader->sky.innerbox[0] != tr.defaultImage ) {
-		qglColor3f( tr.identityLight, tr.identityLight, tr.identityLight );
+		glColor3f( tr.identityLight, tr.identityLight, tr.identityLight );
 
-		qglPushMatrix();
+		glPushMatrix();
 		GL_State( 0 );
-		qglTranslatef( backEnd.viewParms.or.origin[0], backEnd.viewParms.or.origin[1], backEnd.viewParms.or.origin[2] );
+		glTranslatef( backEnd.viewParms.or.origin[0], backEnd.viewParms.or.origin[1], backEnd.viewParms.or.origin[2] );
 
 		DrawSkyBoxInner( tess.shader );
 
-		qglPopMatrix();
+		glPopMatrix();
 	}
 	// Rafael - end
 
 	// back to normal depth range
-	qglDepthRange( 0.0, 1.0 );
+	glDepthRange( 0.0, 1.0 );
 
 	backEnd.refdef.rdflags &= ~RDF_DRAWINGSKY;
 

@@ -369,11 +369,11 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 		} else
 		{
 			R_SyncRenderThread();
-			qglEnable( GL_STENCIL_TEST );
-			qglStencilMask( ~0U );
-			qglClearStencil( 0U );
-			qglStencilFunc( GL_ALWAYS, 0U, ~0U );
-			qglStencilOp( GL_KEEP, GL_INCR, GL_INCR );
+			glEnable( GL_STENCIL_TEST );
+			glStencilMask( ~0U );
+			glClearStencil( 0U );
+			glStencilFunc( GL_ALWAYS, 0U, ~0U );
+			glStencilOp( GL_KEEP, GL_INCR, GL_INCR );
 		}
 		r_measureOverdraw->modified = qfalse;
 	} else
@@ -381,7 +381,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 		// this is only reached if it was on and is now off
 		if ( r_measureOverdraw->modified ) {
 			R_SyncRenderThread();
-			qglDisable( GL_STENCIL_TEST );
+			glDisable( GL_STENCIL_TEST );
 		}
 		r_measureOverdraw->modified = qfalse;
 	}
@@ -400,7 +400,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 	//
 
 	// TRUFORM
-	if ( qglPNTrianglesiATI ) {
+	if ( glPNTrianglesiATI ) {
 
 		// tess
 		if ( r_ati_truform_tess->modified ) {
@@ -410,7 +410,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 				ri.Cvar_Set( "r_ati_truform_tess", va( "%d",glConfig.ATIMaxTruformTess ) );
 			}
 
-			qglPNTrianglesiATI( GL_PN_TRIANGLES_TESSELATION_LEVEL_ATI, r_ati_truform_tess->value );
+			glPNTrianglesiATI( GL_PN_TRIANGLES_TESSELATION_LEVEL_ATI, r_ati_truform_tess->value );
 		}
 
 		// point mode
@@ -427,7 +427,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 				glConfig.ATIPointMode = (int)GL_PN_TRIANGLES_POINT_MODE_CUBIC_ATI;
 				ri.Cvar_Set( "r_ati_truform_pointmode", "LINEAR" );
 			}
-			qglPNTrianglesiATI( GL_PN_TRIANGLES_POINT_MODE_ATI, glConfig.ATIPointMode );
+			glPNTrianglesiATI( GL_PN_TRIANGLES_POINT_MODE_ATI, glConfig.ATIPointMode );
 		}
 
 		// normal mode
@@ -444,7 +444,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 				glConfig.ATINormalMode = (int)GL_PN_TRIANGLES_NORMAL_MODE_LINEAR_ATI;
 				ri.Cvar_Set( "r_ati_truform_normalmode", "LINEAR" );
 			}
-			qglPNTrianglesiATI( GL_PN_TRIANGLES_NORMAL_MODE_ATI, glConfig.ATINormalMode );
+			glPNTrianglesiATI( GL_PN_TRIANGLES_NORMAL_MODE_ATI, glConfig.ATINormalMode );
 		}
 	}
 
@@ -484,7 +484,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 		int err;
 
 		R_SyncRenderThread();
-		if ( ( err = qglGetError() ) != GL_NO_ERROR ) {
+		if ( ( err = glGetError() ) != GL_NO_ERROR ) {
 			ri.Error( ERR_FATAL, "RE_BeginFrame() - glGetError() failed (0x%x)!\n", err );
 		}
 	}

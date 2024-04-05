@@ -31,10 +31,9 @@ If you have questions concerning this license or the applicable additional terms
 
 extern "C" {
 #ifdef Q3RADIANT
-  #include "../qgl.h"
+  #include "../gl.h"
 #else
-  #include "../renderer/qgl.h"
-	#include "../renderer/qgl_linked.h"
+    #include "../renderer/qgl.h"	
 #endif
 }
 #include "util_list.h"
@@ -617,10 +616,10 @@ virtual void draw( bool editMode ) {
 #if 0
 	glLabeledPoint( blue, startPos, ( editMode ) ? 5 : 3, "Start interpolated" );
 	glLabeledPoint( blue, endPos, ( editMode ) ? 5 : 3, "End interpolated" );
-	qglBegin( GL_LINES );
-	qglVertex3fv( startPos );
-	qglVertex3fv( endPos );
-	qglEnd();
+	glBegin( GL_LINES );
+	glVertex3fv( startPos );
+	glVertex3fv( endPos );
+	glEnd();
 #endif
 }
 
