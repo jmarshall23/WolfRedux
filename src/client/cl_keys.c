@@ -1253,7 +1253,6 @@ void Message_Key( int key ) {
 
 
 	if ( key == K_ESCAPE ) {
-		cls.keyCatchers &= ~KEYCATCH_MESSAGE;
 		Field_Clear( &chatField );
 		return;
 	}
@@ -1281,7 +1280,6 @@ void Message_Key( int key ) {
 
 			CL_AddReliableCommand( buffer );
 		}
-		cls.keyCatchers &= ~KEYCATCH_MESSAGE;
 		Field_Clear( &chatField );
 		return;
 	}
@@ -1682,7 +1680,6 @@ void CL_KeyEvent( int key, qboolean down, unsigned time ) {
 	if ( key == '`' || key == '~' ) {
 		if ( !down ) {
 			return;
-
 		}
 		Con_ToggleConsole_f();
 		return;
@@ -1690,7 +1687,7 @@ void CL_KeyEvent( int key, qboolean down, unsigned time ) {
 
 //----(SA)	added
 	if ( cl.cameraMode ) {
-		if ( !( cls.keyCatchers & ( KEYCATCH_UI | KEYCATCH_CONSOLE ) ) ) {    // let menu/console handle keys if necessary
+		if ( !ui->HasInputControl() && !cls.consoleActive ) {    // let menu/console handle keys if necessary
 
 			// in cutscenes we need to handle keys specially (pausing not allowed in camera mode)
 			if ( (  key == K_ESCAPE ||
@@ -1708,7 +1705,7 @@ void CL_KeyEvent( int key, qboolean down, unsigned time ) {
 			}
 		}
 
-		if ( ( cls.keyCatchers & KEYCATCH_CONSOLE ) && key == K_ESCAPE ) {
+		if ( cls.consoleActive && key == K_ESCAPE ) {
 			// don't allow menu starting when console is down and camera running
 			return;
 		}
@@ -1720,34 +1717,34 @@ void CL_KeyEvent( int key, qboolean down, unsigned time ) {
 
 	// keys can still be used for bound actions
 	if ( down && ( key < 128 || key == K_MOUSE1 )
-		 && ( clc.demoplaying || cls.state == CA_CINEMATIC ) && !cls.keyCatchers ) {
+		 && ( clc.demoplaying || cls.state == CA_CINEMATIC ) && (!cls.consoleActive && !ui->HasInputControl()) ) {
 
 		Cvar_Set( "nextdemo","" );
 		key = K_ESCAPE;
 	}
 
 //----(SA)	get the active menu if in ui mode
-	if ( cls.keyCatchers & KEYCATCH_UI ) {
+	if (ui->HasInputControl()) {
 		activeMenu = ui->GetActiveMenu();
 	}
 
 
 	// escape is always handled special
 	if ( key == K_ESCAPE && down ) {
-		if ( cls.keyCatchers & KEYCATCH_MESSAGE ) {
-			// clear message mode
-			Message_Key( key );
-			return;
-		}
+		//if ( cls.keyCatchers & KEYCATCH_MESSAGE ) {
+		//	// clear message mode
+		//	Message_Key( key );
+		//	return;
+		//}
+		//
+		//// escape always gets out of CGAME stuff
+		//if ( cls.keyCatchers & KEYCATCH_CGAME ) {
+		//	cls.keyCatchers &= ~KEYCATCH_CGAME;
+		//	cgame->EventHandling(CGAME_EVENT_NONE);
+		//	return;
+		//}
 
-		// escape always gets out of CGAME stuff
-		if ( cls.keyCatchers & KEYCATCH_CGAME ) {
-			cls.keyCatchers &= ~KEYCATCH_CGAME;
-			cgame->EventHandling(CGAME_EVENT_NONE);
-			return;
-		}
-
-		if ( !( cls.keyCatchers & KEYCATCH_UI ) ) {
+		if ( !ui->HasInputControl()) {
 			if ( cls.state == CA_ACTIVE && !clc.demoplaying ) {
 				ui->SetActiveMenu(UIMENU_INGAME);
 			} else {
@@ -1781,11 +1778,8 @@ void CL_KeyEvent( int key, qboolean down, unsigned time ) {
 			Cbuf_AddText( cmd );
 		}
 
-		if ( cls.keyCatchers & KEYCATCH_UI  ) {
+		if (ui->HasInputControl()) {
 			ui->KeyEvent(key, down);
-			//VM_Call( uivm, UI_KEY_EVENT, key, down );
-		} else if ( cls.keyCatchers & KEYCATCH_CGAME ) {
-			cgame->KeyEvent(key, down);
 		}
 
 		return;
@@ -1793,9 +1787,9 @@ void CL_KeyEvent( int key, qboolean down, unsigned time ) {
 
 
 	// distribute the key down event to the apropriate handler
-	if ( cls.keyCatchers & KEYCATCH_CONSOLE ) {
+	if ( cls.consoleActive ) {
 		Console_Key( key );
-	} else if ( cls.keyCatchers & KEYCATCH_UI ) {
+	} else if ( ui->HasInputControl() ) {
 		kb = keys[key].binding;
 
 		if ( activeMenu == UIMENU_CLIPBOARD ) {
@@ -1824,10 +1818,6 @@ void CL_KeyEvent( int key, qboolean down, unsigned time ) {
 		}
 
 		ui->KeyEvent(key, down);		
-	} else if ( cls.keyCatchers & KEYCATCH_CGAME ) {
-		cgame->KeyEvent(key, down);
-	} else if ( cls.keyCatchers & KEYCATCH_MESSAGE ) {
-		Message_Key( key );
 	} else if ( cls.state == CA_DISCONNECTED ) {
 
 		Console_Key( key );
@@ -1868,12 +1858,10 @@ void CL_CharEvent( int key ) {
 	}
 
 	// distribute the key down event to the apropriate handler
-	if ( cls.keyCatchers & KEYCATCH_CONSOLE ) {
+	if ( cls.consoleActive ) {
 		Field_CharEvent( &g_consoleField, key );
-	} else if ( cls.keyCatchers & KEYCATCH_UI )   {
+	} else if ( ui->HasInputControl() )   {
 		ui->KeyEvent(key | K_CHAR_FLAG, qtrue);
-	} else if ( cls.keyCatchers & KEYCATCH_MESSAGE )   {
-		Field_CharEvent( &chatField, key );
 	} else if ( cls.state == CA_DISCONNECTED )   {
 		Field_CharEvent( &g_consoleField, key );
 	}

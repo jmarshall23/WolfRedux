@@ -476,7 +476,7 @@ void IN_Frame( void ) {
 		return;
 	}
 
-	if ( cls.keyCatchers & KEYCATCH_CONSOLE ) {
+	if ( cls.consoleActive ) {
 		// temporarily deactivate if not in the game and
 		// running on the desktop
 		// voodoo always counts as full screen

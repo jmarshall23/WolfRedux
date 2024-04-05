@@ -504,9 +504,7 @@ void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 	}
 
 	// the menu draws next
-	if ( cls.keyCatchers & KEYCATCH_UI  ) {
-		ui->Refresh(cls.realtime);
-	}
+	ui->Refresh(cls.realtime);
 
 	// console draws next
 	Con_DrawConsole();

@@ -8,4 +8,9 @@
 #include "../cgame/tr_types.h"
 #include "ui_public.h"
 
+class idUserInterfaceSystem {
+public:
+	uiMenuCommand_t			currentMenu = UIMENU_NONE;
+};
+
 #endif

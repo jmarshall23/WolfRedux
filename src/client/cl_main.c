@@ -559,7 +559,6 @@ Closing the main menu will restart the demo loop
 void CL_StartDemoLoop( void ) {
 	// start the demo loop again
 	Cbuf_AddText( "d1\n" );
-	cls.keyCatchers = 0;
 }
 
 /*
@@ -601,7 +600,7 @@ void CL_ShutdownAll( void ) {
 	// shutdown CGame
 	CL_ShutdownCGame();
 	// shutdown UI
-	CL_ShutdownUI();
+	//CL_ShutdownUI();
 
 	// shutdown the renderer
 	if ( re.Shutdown ) {
@@ -657,8 +656,6 @@ void CL_MapLoading( void ) {
 	}
 
 	Con_Close();
-	cls.keyCatchers = 0;
-
 // this was for multi-threaded music
 //	S_StartBackgroundTrack( "sound/music/l_briefing_1.wav", "", -2);	// '-2' for 'queue looping track' (QUEUED_PLAY_LOOPED)
 
@@ -676,7 +673,6 @@ void CL_MapLoading( void ) {
 		CL_Disconnect( qtrue );
 		Q_strncpyz( cls.servername, "localhost", sizeof( cls.servername ) );
 		cls.state = CA_CHALLENGING;     // so the connect screen is drawn
-		cls.keyCatchers = 0;
 		SCR_UpdateScreen();
 		clc.connectTime = -RETRANSMIT_TIMEOUT;
 		NET_StringToAdr( cls.servername, &clc.serverAddress );
@@ -1076,7 +1072,6 @@ void CL_Connect_f( void ) {
 		cls.state = CA_CONNECTING;
 	}
 
-	cls.keyCatchers = 0;
 	clc.connectTime = -99999;   // CL_CheckForResend() will fire immediately
 	clc.connectPacketCount = 0;
 
@@ -1993,7 +1988,7 @@ void CL_Frame( int msec ) {
 	} else if ( cls.endgamemenu ) {
 		cls.endgamemenu = qfalse;
 		ui->SetActiveMenu(UIMENU_ENDGAME);
-	} else if ( cls.state == CA_DISCONNECTED && !( cls.keyCatchers & KEYCATCH_UI )
+	} else if ( cls.state == CA_DISCONNECTED && !ui->HasInputControl()
 				&& !com_sv_running->integer ) {
 		// if disconnected, bring up the menu
 		S_StopAllSounds();

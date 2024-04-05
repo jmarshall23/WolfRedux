@@ -201,6 +201,7 @@ typedef struct {
 	void	(*Shutdown)(void);
 	void	(*KeyEvent)(int key, qboolean isDown);
 	void	(*MouseEvent)(int dx, int dy);
+	qboolean(*HasInputControl)(void);
 	void	(*Refresh)(int time);
 	qboolean(*IsFullscreen)( void );
 	void	(*SetActiveMenu)( uiMenuCommand_t menu );

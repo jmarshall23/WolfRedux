@@ -4,6 +4,9 @@
 #include "ui_local.h"
 
 uiImports_t* engine;
+idUserInterfaceSystem ui;
+
+
 /*
 ====================
 UI_Init
@@ -64,7 +67,7 @@ UI_SetActiveMenu
 ====================
 */
 void UI_SetActiveMenu(uiMenuCommand_t menu) {
-
+	ui.currentMenu = menu;
 }
 
 /*
@@ -94,6 +97,15 @@ void UI_DrawConnectScreen(qboolean overlay) {
 
 }
 
+/*
+====================
+UI_HasInputControl
+====================
+*/
+qboolean UI_HasInputControl(void) {
+	return ui.currentMenu != UIMENU_NONE;
+}
+
 
 uiExport_t* vmMain(uiImports_t* uiImports) {
 	// Save uiImports to the global variable
@@ -113,6 +125,7 @@ uiExport_t* vmMain(uiImports_t* uiImports) {
 	uiExports.GetActiveMenu = UI_GetActiveMenu; // Casting to match the signature in the struct
 	uiExports.ConsoleCommand = UI_ConsoleCommand;
 	uiExports.DrawConnectScreen = UI_DrawConnectScreen;
+	uiExports.HasInputControl = UI_HasInputControl;
 
 	// Return the populated uiExports
 	return &uiExports;

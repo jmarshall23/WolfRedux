@@ -409,7 +409,6 @@ CL_ShutdonwCGame
 ====================
 */
 void CL_ShutdownCGame( void ) {
-	cls.keyCatchers &= ~KEYCATCH_CGAME;
 	cls.cgameStarted = qfalse;
 	if ( !cgvm ) {
 		return;
@@ -546,7 +545,7 @@ void CL_UIPopup(char* menu) {
 		return;
 
 	if (menu && !Q_stricmp(menu, "briefing")) {  //----(SA) added
-		ui->SetActiveMenu(UIMENU_BRIEFING);
+		ui->SetActiveMenu(UIMENU_NONE);
 		return;
 	}
 

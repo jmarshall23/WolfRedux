@@ -1170,7 +1170,7 @@ void Hunk_Clear( void ) {
 
 #ifndef DEDICATED
 	CL_ShutdownCGame();
-	CL_ShutdownUI();
+//	CL_ShutdownUI();
 #endif
 	SV_ShutdownGameProgs();
 #ifndef DEDICATED

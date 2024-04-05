@@ -84,16 +84,16 @@ Con_ToggleConsole_f
 */
 void Con_ToggleConsole_f( void ) {
 	// closing a full screen console restarts the demo loop
-	if ( cls.state == CA_DISCONNECTED && cls.keyCatchers == KEYCATCH_CONSOLE ) {
-		CL_StartDemoLoop();
-		return;
-	}
+	//if ( cls.state == CA_DISCONNECTED && cls.consoleActive) {
+	//	CL_StartDemoLoop();
+	//	return;
+	//}
 
 	Field_Clear( &g_consoleField );
 	g_consoleField.widthInChars = g_console_field_width;
 
 	Con_ClearNotify();
-	cls.keyCatchers ^= KEYCATCH_CONSOLE;
+	cls.consoleActive = !cls.consoleActive;
 }
 
 /*
@@ -108,7 +108,7 @@ void Con_MessageMode_f( void ) {
 	Field_Clear( &chatField );
 	chatField.widthInChars = 30;
 
-	cls.keyCatchers ^= KEYCATCH_MESSAGE;
+//	cls.keyCatchers ^= KEYCATCH_MESSAGE;
 }
 
 /*
@@ -122,7 +122,7 @@ void Con_MessageMode2_f( void ) {
 //	chat_limbo = qfalse;		// NERVE - SMF
 	Field_Clear( &chatField );
 	chatField.widthInChars = 25;
-	cls.keyCatchers ^= KEYCATCH_MESSAGE;
+//	cls.keyCatchers ^= KEYCATCH_MESSAGE;
 }
 
 /*
@@ -140,7 +140,7 @@ void Con_MessageMode3_f( void ) {
 //	chat_limbo = qfalse;		// NERVE - SMF
 	Field_Clear( &chatField );
 	chatField.widthInChars = 30;
-	cls.keyCatchers ^= KEYCATCH_MESSAGE;
+//	cls.keyCatchers ^= KEYCATCH_MESSAGE;
 }
 
 /*
@@ -158,7 +158,7 @@ void Con_MessageMode4_f( void ) {
 //	chat_limbo = qfalse;		// NERVE - SMF
 	Field_Clear( &chatField );
 	chatField.widthInChars = 30;
-	cls.keyCatchers ^= KEYCATCH_MESSAGE;
+//	cls.keyCatchers ^= KEYCATCH_MESSAGE;
 }
 
 // NERVE - SMF
@@ -515,7 +515,7 @@ Draw the editline after a ] prompt
 void Con_DrawInput( void ) {
 	int y;
 
-	if ( cls.state != CA_DISCONNECTED && !( cls.keyCatchers & KEYCATCH_CONSOLE ) ) {
+	if ( cls.state != CA_DISCONNECTED && !cls.consoleActive) {
 		return;
 	}
 
@@ -564,10 +564,6 @@ void Con_DrawNotify( void ) {
 		}
 		text = con.text + ( i % con.totallines ) * con.linewidth;
 
-		if ( cl.snap.ps.pm_type != PM_INTERMISSION && cls.keyCatchers & ( KEYCATCH_UI | KEYCATCH_CGAME ) ) {
-			continue;
-		}
-
 		for ( x = 0 ; x < con.linewidth ; x++ ) {
 			if ( ( text[x] & 0xff ) == ' ' ) {
 				continue;
@@ -582,29 +578,7 @@ void Con_DrawNotify( void ) {
 		v += SMALLCHAR_HEIGHT;
 	}
 
-	re.SetColor( NULL );
-
-	if ( cls.keyCatchers & ( KEYCATCH_UI | KEYCATCH_CGAME ) ) {
-		return;
-	}
-
-	// draw the chat line
-	if ( cls.keyCatchers & KEYCATCH_MESSAGE ) {
-		if ( chat_team ) {
-			SCR_DrawBigString( 8, v, "say_team:", 1.0f );
-			skip = 11;
-		} else
-		{
-			SCR_DrawBigString( 8, v, "say:", 1.0f );
-			skip = 5;
-		}
-
-		Field_BigDraw( &chatField, skip * BIGCHAR_WIDTH, v,
-					   SCREEN_WIDTH - ( skip + 1 ) * BIGCHAR_WIDTH, qtrue );
-
-		v += BIGCHAR_HEIGHT;
-	}
-
+	re.SetColor( NULL );	
 }
 
 /*
@@ -744,49 +718,6 @@ void Con_DrawConsole( void ) {
 	// check for console width changes from a vid mode change
 	Con_CheckResize();
 
-	// if disconnected, render console full screen
-	switch ( cls.state ) {
-	case CA_UNINITIALIZED:
-	case CA_CONNECTING:         // sending request packets to the server
-	case CA_CHALLENGING:        // sending challenge packets to the server
-	case CA_CONNECTED:          // netchan_t established, getting gamestate
-	case CA_PRIMED:             // got gamestate, waiting for first frame
-	case CA_LOADING:            // only during cgame initialization, never during main loop
-		if ( !con_debug->integer ) { // these are all 'no console at all' when con_debug is not set
-			return;
-		}
-
-		if ( cls.keyCatchers & KEYCATCH_UI ) {
-			return;
-		}
-
-		Con_DrawSolidConsole( 1.0 );
-		return;
-
-	case CA_DISCONNECTED:       // not talking to a server
-		if ( !( cls.keyCatchers & KEYCATCH_UI ) ) {
-			Con_DrawSolidConsole( 1.0 );
-			return;
-		}
-		break;
-
-	case CA_ACTIVE:             // game views should be displayed
-		if ( con.displayFrac ) {
-			if ( con_debug->integer == 2 ) {    // 2 means draw full screen console at '~'
-//					Con_DrawSolidConsole( 1.0f );
-				Con_DrawSolidConsole( con.displayFrac * 2.0f );
-				return;
-			}
-		}
-
-		break;
-
-
-	case CA_CINEMATIC:          // playing a cinematic or a static pic, not connected to a server
-	default:
-		break;
-	}
-
 	if ( con.displayFrac ) {
 		Con_DrawSolidConsole( con.displayFrac );
 	} else {
@@ -805,7 +736,7 @@ Scroll it up or down
 */
 void Con_RunConsole( void ) {
 	// decide on the destination height of the console
-	if ( cls.keyCatchers & KEYCATCH_CONSOLE ) {
+	if ( cls.consoleActive ) {
 		con.finalFrac = 0.5;        // half screen
 	} else {
 		con.finalFrac = 0;              // none visible
@@ -860,7 +791,8 @@ void Con_Close( void ) {
 	}
 	Field_Clear( &g_consoleField );
 	Con_ClearNotify();
-	cls.keyCatchers &= ~KEYCATCH_CONSOLE;
+	//cls.keyCatchers &= ~KEYCATCH_CONSOLE;
+	cls.consoleActive = qfalse;
 	con.finalFrac = 0;              // none visible
 	con.displayFrac = 0;
 }

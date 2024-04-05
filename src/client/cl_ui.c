@@ -664,7 +664,7 @@ Key_GetCatcher
 ====================
 */
 int Key_GetCatcher( void ) {
-	return cls.keyCatchers;
+	return 0;
 }
 
 /*
@@ -673,7 +673,7 @@ Ket_SetCatcher
 ====================
 */
 void Key_SetCatcher( int catcher ) {
-	cls.keyCatchers = catcher;
+	//cls.keyCatchers = catcher;
 }
 
 
@@ -747,7 +747,7 @@ CL_ShutdownUI
 ====================
 */
 void CL_ShutdownUI( void ) {
-	cls.keyCatchers &= ~KEYCATCH_UI;
+	//cls.keyCatchers &= ~KEYCATCH_UI;
 	cls.uiStarted = qfalse;
 	if ( !uivm ) {
 		return;

@@ -265,11 +265,11 @@ typedef struct {
 } serverAddress_t;
 
 typedef struct {
-	connstate_t state;              // connection status
-	int keyCatchers;                // bit flags
+	connstate_t state;              // connection status	
 
 	qboolean cddialog;              // bring up the cd needed dialog next frame
 	qboolean endgamemenu;           // bring up the end game credits menu next frame
+	qboolean consoleActive;
 
 	char servername[MAX_OSPATH];            // name of server from original connect (used by reconnect)
 

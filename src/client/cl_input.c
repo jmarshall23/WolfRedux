@@ -409,11 +409,12 @@ CL_MouseEvent
 =================
 */
 void CL_MouseEvent( int dx, int dy, int time ) {
-	if ( cls.keyCatchers & KEYCATCH_UI ) {		
-		ui->MouseEvent( dx, dy );
-	} else if ( cls.keyCatchers & KEYCATCH_CGAME ) {
-		cgame->MouseEvent(dx, dy);
-	} else {
+	if (ui->HasInputControl())
+	{
+		ui->MouseEvent(dx, dy);
+	}
+	else
+	{
 		cl.mouseDx[cl.mouseIndex] += dx;
 		cl.mouseDy[cl.mouseIndex] += dy;
 	}
@@ -573,13 +574,13 @@ void CL_CmdButtons( usercmd_t *cmd ) {
 		kb[KB_WBUTTONS0 + i].wasPressed = qfalse;
 	}
 
-	if ( cls.keyCatchers ) {
-		cmd->buttons |= BUTTON_TALK;
-	}
+	//if (cls.keyCatchers) {
+	//	cmd->buttons |= BUTTON_TALK;
+	//}
 
 	// allow the game to know if any key at all is
 	// currently pressed, even if it isn't bound to anything
-	if ( anykeydown && !cls.keyCatchers ) {
+	if (anykeydown && !ui->HasInputControl() && !cls.consoleActive) {
 		cmd->buttons |= BUTTON_ANY;
 	}
 }
